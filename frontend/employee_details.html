@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Szczegóły pracownika</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>MENU</h2>
+    <ul>
+      <li><a href="index.html">Pulpit</a></li>
+      <li><a href="employees.html">Zespół</a></li>
+      <li class="attendance-menu">
+        <a href="#" id="mainAttendanceBtn">Obecność</a>
+        <div class="attendance-submenu">
+          <a href="attendance_day.html">Obecność – Dzień</a>
+          <a href="attendance_summary.html">Obecność – Ewidencja</a>
+        </div>
+      </li>
+      <li><a href="mobile_config.html">Konfiguracja Aplikacji</a></li>
+    </ul>
+    <!-- Kalendarz w sidebarze -->
+    <div id="calendarBox" style="margin-top:24px;padding:12px 8px 8px 8px;background:#fff;border-radius:10px;box-shadow:0 2px 8px #0001;">
+      <h3 style="margin:0 0 8px 0;font-size:1.1em;">Kalendarz</h3>
+      <div id="calendar"></div>
+    </div>
+  </div>
+  <div class="app-container">
+    <div class="content">
+      <!-- Przycisk wstecz -->
+      <button onclick="goBack()" id="backBtn" style="margin-bottom:18px;padding:8px 18px;background:#eee;border-radius:8px;border:none;cursor:pointer;font-size:1em;box-shadow:0 2px 8px #0001;">&larr; Wstecz</button>
+      <!-- Opis pracownika + odnośnik do edycji -->
+      <div id="profileBox" style="background:#f7f7f7;border-radius:10px;padding:16px 32px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;max-width:700px;">
+        <div id="profileDesc" style="font-size:1.1em;"></div>
+      </div>
+      <div id="workerDetailsBox" style="background:#fff;border-radius:10px;box-shadow:0 2px 8px #0001;padding:24px 32px 18px 32px;margin-bottom:24px;max-width:700px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <h1 id="workerName" style="margin-top:0;margin-bottom:8px;font-size:2em;display:inline-block;"></h1>
+          <div id="workerDetails"></div>
+        </div>
+        <a id="editProfileBtn" href="#" title="Edytuj ustawienia" style="color:#0077cc;font-size:1.3em;margin-left:18px;display:flex;align-items:center;justify-content:center;height:40px;"><span style="font-size:1.5em;">&#9881;</span></a>
+      </div>
+      <div id="summaryPanel" style="margin-bottom:32px;"></div>
+      <h3 style="margin-top:0;">Dodaj nowy dzień pracy</h3>
+      <form id="add-log-form" style="margin-bottom: 24px;max-width:700px;background:#fff;border-radius:10px;box-shadow:0 2px 8px #0001;padding:18px 24px;">
+        <input type="date" id="new-date" required />
+        <input type="time" id="new-start" required />
+        <input type="time" id="new-stop" required />
+        <button type="submit">Dodaj</button>
+      </form>
+      <div id="bulkEditPanel" style="display:none; margin-bottom:18px; background:#f7f7f7; border:1px solid #ccc; border-radius:8px; padding:16px;max-width:700px;">
+        <h3 style="margin-top:0;">Hurtowa edycja zaznaczonych</h3>
+        <label>Nowa godzina wejścia: <input type="time" id="bulkStart" /></label>
+        <label style="margin-left:12px;">Nowa godzina wyjścia: <input type="time" id="bulkStop" /></label>
+        <label style="margin-left:12px;">Typ dnia:
+          <select id="bulkType">
+            <option value="zwykly">Zwykły dzień</option>
+            <option value="urlop">Urlop</option>
+            <option value="chorobowe">Chorobowe</option>
+          </select>
+        </label>
+        <button id="bulkEditBtn" style="margin-left:18px; background:#0077cc;color:#fff;padding:8px 18px;border:none;border-radius:6px;cursor:pointer;">Zatwierdź zmiany</button>
+      </div>
+      <div id="groupActions" style="margin:18px 0 0 0; display:none;max-width:700px;">
+        <button id="deleteSelectedSick" style="background:#d33;color:#fff;padding:8px 18px;border:none;border-radius:6px;cursor:pointer;">Usuń zaznaczone chorobowe</button>
+      </div>
+      <div id="exportPanel" style="max-width:700px;margin-bottom:18px;display:flex;gap:12px;">
+        <button id="exportExcelBtn" style="background:#0077cc;color:#fff;padding:8px 18px;border:none;border-radius:6px;cursor:pointer;">Export do Excel</button>
+        <button id="exportPdfBtn" style="background:#0077cc;color:#fff;padding:8px 18px;border:none;border-radius:6px;cursor:pointer;">Export do PDF</button>
+        <button id="printBtn" style="background:#0077cc;color:#fff;padding:8px 18px;border:none;border-radius:6px;cursor:pointer;">Drukuj</button>
+      </div>
+      <div id="detailsTable" style="max-width:700px;"></div>
+    </div>
+  </div>
+  <script>
+    function goBack() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('start') && params.has('end')) {
+        sessionStorage.setItem('attendance_summary_last', JSON.stringify({start: params.get('start'), end: params.get('end')}));
+        window.location.href = `attendance_summary.html?start=${params.get('start')}&end=${params.get('end')}`;
+      } else {
+        window.history.back();
+      }
+    }
+    // Po załadowaniu strony, jeśli są parametry start/end, zapisz do sessionStorage
+    (function(){
+      const params = new URLSearchParams(window.location.search);
+      if(params.has('start') && params.has('end')){
+        sessionStorage.setItem('attendance_summary_last', JSON.stringify({start: params.get('start'), end: params.get('end')}));
+      }
+    })();
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+    // Obsługa formularza dodawania dnia pracy
+    const addLogForm = document.getElementById('add-log-form');
+    if(addLogForm) {
+      addLogForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const date = document.getElementById('new-date').value;
+        const startTime = document.getElementById('new-start').value;
+        const stopTime = document.getElementById('new-stop').value;
+        const workerId = new URLSearchParams(window.location.search).get('worker_id');
+        const startDateTime = `${date}T${startTime}:00`;
+        const stopDateTime = `${date}T${stopTime}:00`;
+        await fetch('http://127.0.0.1:8002/logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            worker_id: workerId,
+            start_time: startDateTime,
+            stop_time: stopDateTime,
+            start_lat: 0.0,
+            start_lon: 0.0,
+            stop_lat: 0.0,
+            stop_lon: 0.0,
+          })
+        });
+        location.reload();
+      });
+    }
+    
+    // Wszystka logika ładowania danych w DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+      const workerId = getParam('worker_id');
+      const editBtn = document.getElementById('editProfileBtn');
+      if(editBtn && workerId){
+        editBtn.href = `http://127.0.0.1:8002/frontend/employee_edit.html?id=${workerId}`;
+      }
+      const start = getParam('start');
+      const end = getParam('end');
+      
+      // Załaduj szczegóły pracownika
+      const workerXhr = new XMLHttpRequest();
+      workerXhr.open('GET', `http://127.0.0.1:8002/worker/${workerId}`, true);
+      workerXhr.onreadystatechange = function() {
+        if (workerXhr.readyState === 4 && workerXhr.status === 200) {
+          try {
+            const data = JSON.parse(workerXhr.responseText);
+            // Opis pracownika
+            let desc = `<b>${data.first_name} ${data.last_name}</b> <span style='color:#888;'>ID: ${data.id}</span>`;
+            desc += `<div style='margin-top:8px;'>Stawka godzinowa: <b>${data.hourly_rate} zł</b></div>`;
+            desc += `<div style='margin-top:8px;'>Soboty: <b>${data.rate_saturday} zł</b>, niedziele: <b>${data.rate_sunday} zł</b></div>`;
+            desc += `<div style='margin-top:8px;'>Noc: <b>${data.rate_night} zł</b>, nadgodziny: <b>${data.rate_overtime} zł</b></div>`;
+            document.getElementById('profileDesc').innerHTML = desc;
+            document.getElementById('editProfileBtn').href = `employee_edit.html?id=${data.id}`;
+            // Szczegóły pracownika (panel poniżej)
+            let html = `<div style='font-size:1.1em;'><b>${data.first_name} ${data.last_name}</b> <span style='color:#888;'>ID: ${data.id}</span></div>`;
+            html += `<div style='margin-top:8px;'>Stawka godzinowa: <b>${data.hourly_rate} zł</b></div>`;
+            html += `<div style='margin-top:8px;'>Stawka sobota: <b>${data.rate_saturday} zł</b>, niedziela: <b>${data.rate_sunday} zł</b></div>`;
+            html += `<div style='margin-top:8px;'>Stawka noc: <b>${data.rate_night} zł</b>, nadgodziny: <b>${data.rate_overtime} zł</b></div>`;
+            document.getElementById('workerDetails').innerHTML = html;
+          } catch (error) {
+            console.error('Błąd parsowania danych pracownika:', error);
+          }
+        } else if (workerXhr.readyState === 4) {
+          console.error('Błąd podczas pobierania danych pracownika');
+        }
+      };
+      workerXhr.send();
+      
+      // Użyj XMLHttpRequest zamiast fetch dla kompatybilności z Simple Browser
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', `http://127.0.0.1:8002/attendance_details?worker_id=${workerId}&date_from=${start}&date_to=${end}`, true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            // Nowy format: data.logs (tablica), data.summary (obiekt)
+          const logs = data.logs || [];
+          const sum = data.summary || null;
+          if (!logs.length) {
+            document.getElementById('detailsTable').innerHTML = '<p>Brak danych.</p>';
+            document.getElementById('summaryPanel').innerHTML = '';
+            return;
+          }
+        document.getElementById('workerName').innerText = `Szczegóły: ${logs[0].name || ''}`;
+        let html = "<table class='employee-table'><thead><tr><th><input type='checkbox' id='selectAll' /></th><th>Data</th><th>Wejście</th><th>Wyjście</th><th>Czas pracy</th><th>Typ dnia</th><th>Kwota</th><th>Rodzaj dnia</th><th>Lokalizacja wejścia</th><th>Lokalizacja wyjścia</th><th>Manualny</th><th>Akcje</th></tr></thead><tbody>";
+        logs.forEach(item => {
+          const dayOfWeek = new Date(item.date).toLocaleDateString('pl-PL', { weekday: 'long' });
+          const typDnia = item.typ || '';
+          const kwota = (item.kwota !== undefined && item.kwota !== null) ? item.kwota.toFixed(2) + ' zł' : '-';
+          const wejscie = (item.start_lat && item.start_lon) ? `<a href='https://maps.google.com/?q=${item.start_lat},${item.start_lon}' target='_blank'>${item.start_lat},${item.start_lon}</a>` : '-';
+          const wyjscie = (item.stop_lat && item.stop_lon) ? `<a href='https://maps.google.com/?q=${item.stop_lat},${item.stop_lon}' target='_blank'>${item.stop_lat},${item.stop_lon}</a>` : '-';
+          const manualny = (!item.start_lat && !item.start_lon && !item.stop_lat && !item.stop_lon) || (item.start === '08:00' && item.stop === '16:00') ? '✔️' : '';
+          let rodzajDnia = 'zwykly';
+          if(item.is_holiday === 'tak') rodzajDnia = 'urlop';
+          else if(item.is_sick === 'tak') rodzajDnia = 'chorobowe';
+          html += `<tr data-isHoliday="${item.is_holiday}" data-isSick="${item.is_sick}" data-logId="${item.log_id}">
+            <td><input type='checkbox' class='rowSelect' data-logid='${item.log_id}' data-rodzaj='${rodzajDnia}' /></td>
+            <td data-date="${item.date}">${item.date} <span style='color:#888;font-size:0.95em;'>(${dayOfWeek})</span></td>
+            <td><input type="time" value="${item.start.slice(0,5)}" id="start-${item.log_id}" /></td>
+            <td><input type="time" value="${item.stop.slice(0,5)}" id="stop-${item.log_id}" /></td>
+            <td>${item.duration}</td>
+            <td>${typDnia}</td>
+            <td>${kwota}</td>
+            <td><select id="rodzaj-${item.log_id}">
+              <option value="zwykly"${rodzajDnia==='zwykly'?' selected':''}>Zwykły dzień</option>
+              <option value="urlop"${rodzajDnia==='urlop'?' selected':''}>Urlop</option>
+              <option value="chorobowe"${rodzajDnia==='chorobowe'?' selected':''}>Chorobowe</option>
+            </select></td>
+            <td>${wejscie}</td>
+            <td>${wyjscie}</td>
+            <td>${manualny}</td>
+            <td class='action-buttons'>
+              <button onclick="saveEdit(${item.log_id})">💾 Zapisz</button>
+              <button class="delete" onclick="deleteLog(${item.log_id})">❌ Usuń</button>
+            </td>
+          </tr>`;
+        });
+        html += "</tbody></table>";
+        document.getElementById('detailsTable').innerHTML = html;
+        attachExportHandlers();
+        // Obsługa zaznaczania wszystkich
+        document.getElementById('selectAll').addEventListener('change', function(){
+          document.querySelectorAll('.rowSelect').forEach(cb => cb.checked = this.checked);
+          showGroupActions();
+        });
+        document.querySelectorAll('.rowSelect').forEach(cb => {
+          cb.addEventListener('change', showGroupActions);
+        });
+        function showGroupActions() {
+          const anyChecked = Array.from(document.querySelectorAll('.rowSelect')).some(cb => cb.checked);
+          document.getElementById('groupActions').style.display = anyChecked ? 'block' : 'none';
+          document.getElementById('bulkEditPanel').style.display = anyChecked ? 'block' : 'none';
+        }
+        // Podsumowanie na dole w formie tabeli z tooltipami
+        if(sum) {
+          let godzinySoboty = 0, godzinyNiedziele = 0, godzinySwieta = 0, godzinyZwykle = 0;
+          logs.forEach(item => {
+            const d = new Date(item.date);
+            const duration = parseFloat(item.duration);
+            if (window.PL_HOLIDAYS && window.PL_HOLIDAYS.includes(item.date)) godzinySwieta += duration;
+            else if (d.getDay() === 0) godzinyNiedziele += duration;
+            else if (d.getDay() === 6) godzinySoboty += duration;
+            else godzinyZwykle += duration;
+          });
+          document.getElementById('summaryPanel').innerHTML = `<div class='summary-box'>
+            <h3>Podsumowanie za okres</h3>
+            <table class='summary-table' style='max-width:700px;background:#fff;border-radius:10px;box-shadow:0 2px 8px #0001;border-collapse:collapse;overflow:hidden;'>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;width:40%;font-weight:600;' title='Liczba wszystkich dni pracy w wybranym okresie'>Liczba dni <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Liczba wszystkich dni pracy w wybranym okresie'>${sum.dni}</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Suma wszystkich godzin pracy w wybranym okresie'>Godzin <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Suma wszystkich godzin pracy w wybranym okresie'>${sum.godziny.toFixed(2)}</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Liczba sobót, suma godzin i kwota za soboty w okresie'>Soboty <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Liczba sobót, suma godzin i kwota za soboty w okresie'>${sum.soboty} &mdash; ${godzinySoboty.toFixed(2)}h &mdash; ${sum.kwota_soboty.toFixed(2)} zł</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Liczba niedziel, suma godzin i kwota za niedziele w okresie'>Niedziele <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Liczba niedziel, suma godzin i kwota za niedziele w okresie'>${sum.niedziele} &mdash; ${godzinyNiedziele.toFixed(2)}h &mdash; ${sum.kwota_niedziele.toFixed(2)} zł</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Liczba świąt, suma godzin i kwota za święta w okresie'>Święta <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Liczba świąt, suma godzin i kwota za święta w okresie'>${sum.swieta} &mdash; ${godzinySwieta.toFixed(2)}h &mdash; ${sum.kwota_swieta.toFixed(2)} zł</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Dni pracujące pon-pt, suma godzin i kwota za zwykłe dni'>Zwykłe dni <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Dni pracujące pon-pt, suma godzin i kwota za zwykłe dni'>${godzinyZwykle.toFixed(2)}h &mdash; ${sum.kwota_zwykle.toFixed(2)} zł</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Urlop: liczba dni i kwota'>Urlop <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Urlop: liczba dni i kwota'>${sum.urlop_dni} dni &mdash; ${sum.urlop_kwota.toFixed(2)} zł</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Chorobowe: liczba dni i kwota'>Chorobowe <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Chorobowe: liczba dni i kwota'>${sum.chorobowe_dni} dni &mdash; ${sum.chorobowe_kwota.toFixed(2)} zł</td></tr>
+              <tr style='font-weight:bold;background:#e3f2fd;'><th style='background:#e3f2fd;padding:12px 16px;text-align:left;font-weight:700;font-size:1.1em;' title='Suma wszystkich kwot za okres'>SUMA <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;font-weight:700;font-size:1.1em;color:#1976d2;' title='Suma wszystkich kwot za okres'>${sum.kwota.toFixed(2)} zł</td></tr>
+            </table>
+            <div style='font-size:0.95em;color:#666;margin-top:8px;'>Wszystkie wartości dotyczą wybranego zakresu dat.</div>
+          </div>`;
+          // Dodaj styl CSS dla tooltipów
+          const style = document.createElement('style');
+          style.innerHTML = `.tooltip-icon { cursor: help; color: #0077cc; font-size: 1.1em; }
+.tooltip-table th[title], .tooltip-table td[title] { position: relative; }
+.tooltip-table th[title]:hover:after, .tooltip-table td[title]:hover:after {
+  content: attr(title);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #222;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 10;
+  font-size: 0.95em;
+  margin-left: 8px;
+}`;
+          document.head.appendChild(style);
+        } else {
+          document.getElementById('summaryPanel').innerHTML = '';
+        }
+        attachExportHandlers();
+        } catch (error) {
+          console.error('Błąd parsowania danych:', error);
+          document.getElementById('detailsTable').innerHTML = '<p>Błąd podczas ładowania danych.</p>';
+        }
+      } else if (xhr.readyState === 4) {
+        document.getElementById('detailsTable').innerHTML = '<p>Błąd podczas pobierania danych.</p>';
+      }
+    };
+    xhr.send();
+    }); // Koniec DOMContentLoaded
+    
+    // sidebar obsługa
+    // Dodaj funkcje JS do PATCH i DELETE
+    function getRowDate(logId) {
+      // Poprawka: data jest w drugiej kolumnie (children[1])
+      return document.querySelector(`#start-${logId}`).closest('tr').children[1].dataset.date;
+    }
+    async function saveEdit(logId) {
+      const start = document.getElementById(`start-${logId}`).value;
+      const stop = document.getElementById(`stop-${logId}`).value;
+      const rowDate = getRowDate(logId);
+      const startDateTime = `${rowDate}T${start}:00`;
+      const stopDateTime = `${rowDate}T${stop}:00`;
+      const rodzaj = document.getElementById(`rodzaj-${logId}`).value;
+      // Pobierz aktualne wartości z wiersza (data-*)
+      const tr = document.getElementById(`start-${logId}`).closest('tr');
+      let isHoliday = rodzaj === 'urlop' ? 'tak' : 'nie';
+      let isSick = rodzaj === 'chorobowe' ? 'tak' : (rodzaj === 'urlop' ? 'nie' : 'nie');
+      // Payload zawsze zawiera godziny i typ dnia
+      let payload = {
+        start_time: startDateTime,
+        stop_time: stopDateTime,
+        is_holiday: isHoliday,
+        is_sick: isSick
+      };
+      const res = await fetch(`/logs/${logId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        alert("Zapisano zmiany");
+        location.reload();
+      } else {
+        alert("Błąd zapisu");
+      }
+    }
+    async function deleteLog(logId) {
+      if (!confirm("Na pewno chcesz usunąć ten wpis?")) return;
+      const res = await fetch(`/logs/${logId}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert("Usunięto wpis");
+        location.reload();
+      } else {
+        alert("Błąd usuwania");
+      }
+    }
+    // Przycisk usuwania zaznaczonych chorobowych
+    document.getElementById('deleteSelectedSick').onclick = async function(){
+      const selected = Array.from(document.querySelectorAll('.rowSelect:checked'));
+      const sickIds = selected.filter(cb => cb.dataset.rodzaj === 'chorobowe').map(cb => cb.dataset.logid);
+      if(sickIds.length === 0){ alert('Nie zaznaczono żadnych chorobowych!'); return; }
+      if(!confirm(`Na pewno usunąć ${sickIds.length} chorobowych?`)) return;
+      for(const id of sickIds){ await fetch(`/logs/${id}`, {method:'DELETE'}); }
+      location.reload();
+    };
+    // Przycisk hurtowej edycji
+    document.getElementById('bulkEditBtn').onclick = async function(){
+      const selected = Array.from(document.querySelectorAll('.rowSelect:checked'));
+      if(selected.length === 0){ alert('Zaznacz wiersze do edycji!'); return; }
+      const start = document.getElementById('bulkStart').value;
+      const stop = document.getElementById('bulkStop').value;
+      const typ = document.getElementById('bulkType').value;
+      for(const cb of selected){
+        const logId = cb.dataset.logid;
+        const row = cb.closest('tr');
+        const rowDate = row.children[1].dataset.date;
+        // Jeśli nie podano nowych godzin, pobierz z wiersza
+        let startVal = start ? start : document.getElementById(`start-${logId}`).value;
+        let stopVal = stop ? stop : document.getElementById(`stop-${logId}`).value;
+        let isHoliday = typ === 'urlop' ? 'tak' : 'nie';
+        let isSick = typ === 'chorobowe' ? 'tak' : (typ === 'urlop' ? 'nie' : 'nie');
+        let payload = {
+          start_time: `${rowDate}T${startVal}:00`,
+          stop_time: `${rowDate}T${stopVal}:00`,
+          is_holiday: isHoliday,
+          is_sick: isSick
+        };
+        await fetch(`/logs/${logId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+      alert('Zmieniono dane dla zaznaczonych!');
+      location.reload();
+    };
+    // Przekierowanie do ustawień pracownika
+    document.getElementById('goToSettings').onclick = function(){
+      const workerId = new URLSearchParams(window.location.search).get('worker_id');
+      window.location.href = `http://127.0.0.1:8002/frontend/employee_edit.html?id=${workerId}`;
+    };
+    // Kalendarz 3-miesięczny
+    let calendarMonth = (new Date()).getMonth();
+let calendarYear = (new Date()).getFullYear();
+function renderCalendar() {
+  const now = new Date();
+  const m = new Date(calendarYear, calendarMonth, 1);
+  let calHtml = `<div style='text-align:center;margin-bottom:8px;'>
+    <button id='calPrev' style='margin-right:12px;'>&lt;</button>
+    <span style='font-weight:bold;font-size:1.1em;'>${m.toLocaleString('pl-PL', {month:'long', year:'numeric'})}</span>
+    <button id='calNext' style='margin-left:12px;'>&gt;</button>
+  </div>`;
+  calHtml += `<table style='border-collapse:collapse;width:100%;background:#fff;border-radius:8px;'>`;
+  calHtml += `<tr>`;
+  ['Pn','Wt','Śr','Cz','Pt','So','Nd'].forEach(d => calHtml += `<th style='padding:4px;color:#0077cc;'>${d}</th>`);
+  calHtml += `</tr>`;
+  let firstDay = m.getDay();
+  if(firstDay===0) firstDay=7;
+  let daysInMonth = new Date(m.getFullYear(), m.getMonth()+1, 0).getDate();
+  let day = 1;
+  calHtml += `<tr>`;
+  for(let i=1;i<firstDay;i++) calHtml += `<td></td>`;
+  for(let i=firstDay;i<=7;i++){
+    let isToday = (day === now.getDate() && m.getMonth() === now.getMonth() && m.getFullYear() === now.getFullYear());
+    calHtml += `<td${isToday ? ' class="today"' : ''}>${day}</td>`; day++;
+  }
+  calHtml += `</tr>`;
+  while(day<=daysInMonth){
+    calHtml += `<tr>`;
+    for(let i=1;i<=7;i++){
+      let isToday = (day === now.getDate() && m.getMonth() === now.getMonth() && m.getFullYear() === now.getFullYear());
+      if(day<=daysInMonth) calHtml += `<td${isToday ? ' class="today"' : ''}>${day}</td>`;
+      else calHtml += `<td></td>`;
+      day++;
+    }
+    calHtml += `</tr>`;
+  }
+  calHtml += `</table>`;
+  document.getElementById('calendar').innerHTML = calHtml;
+  document.getElementById('calPrev').onclick = function(){
+    calendarMonth--;
+    if(calendarMonth<0){ calendarMonth=11; calendarYear--; }
+    renderCalendar();
+  };
+  document.getElementById('calNext').onclick = function(){
+    calendarMonth++;
+    if(calendarMonth>11){ calendarMonth=0; calendarYear++; }
+    renderCalendar();
+  };
+}
+renderCalendar();
+// Renderowanie kalendarza w sidebarze pod MENU
+function renderSidebarCalendar(targetId) {
+  const now = new Date();
+  const m = new Date(now.getFullYear(), now.getMonth(), 1);
+  let calHtml = `<table style='border-collapse:collapse;width:100%;background:#fff;border-radius:8px;'>`;
+  calHtml += `<tr>`;
+  ['Pn','Wt','Śr','Cz','Pt','So','Nd'].forEach(d => calHtml += `<th style='padding:4px;color:#0077cc;'>${d}</th>`);
+  calHtml += `</tr>`;
+  let firstDay = m.getDay();
+  if(firstDay===0) firstDay=7;
+  let daysInMonth = new Date(m.getFullYear(), m.getMonth()+1, 0).getDate();
+  let day = 1;
+  calHtml += `<tr>`;
+  for(let i=1;i<firstDay;i++) calHtml += `<td></td>`;
+  for(let i=firstDay;i<=7;i++){
+    let isToday = (day === now.getDate());
+    calHtml += `<td${isToday ? ' class="today"' : ''}>${day}</td>`; day++;
+  }
+  calHtml += `</tr>`;
+  while(day<=daysInMonth){
+    calHtml += `<tr>`;
+    for(let i=1;i<=7;i++){
+      let isToday = (day === now.getDate());
+      if(day<=daysInMonth) calHtml += `<td${isToday ? ' class="today"' : ''}>${day}</td>`;
+      else calHtml += `<td></td>`;
+      day++;
+    }
+    calHtml += `</tr>`;
+  }
+  calHtml += `</table>`;
+  document.getElementById(targetId).innerHTML = calHtml;
+}
+renderSidebarCalendar('calendar');
+// Export do CSV
+function exportTableToCSV(tableId, filename = '') {
+    var tableSelect = document.querySelector('#detailsTable table');
+    if(!tableSelect){ alert('Brak danych do eksportu!'); return; }
+    var rows = Array.from(tableSelect.rows);
+    var csv = rows.map(row =>
+        Array.from(row.cells).map(cell => '"' + cell.innerText.replace(/"/g, '""') + '"').join(',')
+    ).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    var url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename ? filename + '.csv' : 'dane.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+// Export do Excel
+function exportTableToPDF(tableId, filename = '') {
+    var tableSelect = document.querySelector('#detailsTable table');
+    if(!tableSelect){ alert('Brak danych do eksportu!'); return; }
+    
+    try {
+        // Sprawdź czy jsPDF jest dostępne
+        if (typeof window.jspdf === 'undefined') {
+            console.error('jsPDF nie została załadowana');
+            alert('Biblioteka PDF nie została załadowana. Eksportuję jako tekst...');
+            exportAsText(tableSelect, filename);
+            return;
+        }
+        
+        console.log('Rozpoczynam eksport PDF...');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        console.log('jsPDF utworzone pomyślnie');
+        
+        // Prostszy start - tylko podstawowe informacje
+        doc.setFontSize(16);
+        doc.text('EWIDENCJA CZASU PRACY', 20, 20);
+        
+        doc.setFontSize(12);
+        const workerName = document.querySelector('#profileDesc')?.innerText || 'Nieznany pracownik';
+        // Usuń polskie znaki dla testów
+        const cleanWorkerName = workerName.replace(/[ąćęłńóśźż]/g, function(match) {
+            const map = {'ą':'a','ć':'c','ę':'e','ł':'l','ń':'n','ó':'o','ś':'s','ź':'z','ż':'z'};
+            return map[match] || match;
+        });
+        
+        doc.text('Pracownik: ' + cleanWorkerName, 20, 35);
+        doc.text('Data eksportu: ' + new Date().toLocaleDateString(), 20, 45);
+        
+        console.log('Nagłówek dodany pomyślnie');
+        
+        // Uproszczona tabela
+        const rows = Array.from(tableSelect.rows);
+        if(rows.length > 1) {
+            doc.setFontSize(10);
+            let yPos = 60;
+            
+            // Tylko kilka pierwszych wierszy dla testów
+            const maxRows = Math.min(10, rows.length);
+            for(let i = 1; i < maxRows; i++) {
+                const cells = Array.from(rows[i].cells);
+                let xPos = 20;
+                
+                // Data
+                if(cells[1]) {
+                    doc.text(cells[1].innerText.substring(0,10), xPos, yPos);
+                    xPos += 40;
+                }
+                
+                // Czas pracy
+                if(cells[4]) {
+                    doc.text(cells[4].innerText, xPos, yPos);
+                    xPos += 40;
+                }
+                
+                // Kwota (usuń polskie znaki)
+                if(cells[6]) {
+                    const amount = cells[6].innerText.replace(/[ąćęłńóśźż]/g, function(match) {
+                        const map = {'ą':'a','ć':'c','ę':'e','ł':'l','ń':'n','ó':'o','ś':'s','ź':'z','ż':'z'};
+                        return map[match] || match;
+                    });
+                    doc.text(amount, xPos, yPos);
+                }
+                
+                yPos += 8;
+                if(yPos > 250) break; // Zatrzymaj się przed końcem strony
+            }
+        }
+        
+        console.log('Tabela dodana pomyślnie');
+        
+        // Zapisz PDF
+        doc.save((filename || 'ewidencja') + '.pdf');
+        console.log('PDF został wygenerowany pomyślnie');
+        
+    } catch(error) {
+        console.error('Szczegóły błędu eksportu PDF:', error);
+        console.error('Stack trace:', error.stack);
+        console.error('Typ błędu:', typeof error);
+        
+        // Fallback - eksport jako tekst
+        alert('Błąd eksportu PDF: ' + error.message + '. Eksportuję jako tekst...');
+        exportAsText(tableSelect, filename);
+    }
+}
+
+// Funkcja fallback dla eksportu tekstowego
+function exportAsText(tableSelect, filename) {
+    try {
+        var rows = Array.from(tableSelect.rows);
+        var content = '';
+        
+        content += 'EWIDENCJA CZASU PRACY\n\n';
+        content += 'Pracownik: ' + (document.querySelector('#profileDesc')?.innerText || 'Nieznany') + '\n';
+        content += 'Data eksportu: ' + new Date().toLocaleDateString('pl-PL') + '\n\n';
+        
+        if(rows.length > 0) {
+            var headers = Array.from(rows[0].cells).map(cell => cell.innerText).join('\t');
+            content += headers + '\n';
+            content += '-'.repeat(80) + '\n';
+            
+            for(var i=1; i<rows.length; i++) {
+                content += Array.from(rows[i].cells).map(cell => cell.innerText).join('\t') + '\n';
+            }
+        }
+        
+        var blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+        var link = document.createElement('a');
+        var url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', (filename || 'ewidencja') + '.txt');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch(fallbackError) {
+        console.error('Błąd fallback eksportu:', fallbackError);
+        alert('Nie można wyeksportować danych');
+    }
+}
+
+function exportTableToXLS(tableId, filename = '') {
+    var tableSelect = document.querySelector('#detailsTable table');
+    if(!tableSelect){ alert('Brak danych do eksportu!'); return; }
+    var rows = Array.from(tableSelect.rows);
+    // Dodaj nagłówki
+    var csv = '';
+    if(rows.length > 0) {
+        var headers = Array.from(rows[0].cells).map(cell => '"' + cell.innerText.replace(/"/g, '""') + '"').join(',');
+        csv += headers + '\n';
+        for(var i=1; i<rows.length; i++) {
+            csv += Array.from(rows[i].cells).map(cell => '"' + cell.innerText.replace(/"/g, '""') + '"').join(',') + '\n';
+        }
+    }
+    // Dodaj BOM dla polskich znaków
+    var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    var url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename ? filename + '.xls' : 'dane.xls');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+function attachExportHandlers() {
+  if(document.getElementById('exportExcelBtn')){
+    document.getElementById('exportExcelBtn').onclick = function(){
+      exportTableToXLS('detailsTable', 'obecnosc');
+    };
+  }
+  if(document.getElementById('exportPdfBtn')){
+    document.getElementById('exportPdfBtn').onclick = function(){
+      exportTableToPDF('detailsTable', 'obecnosc');
+    };
+  }
+  if(document.getElementById('printBtn')){
+    document.getElementById('printBtn').onclick = function(){
+      window.print();
+    };
+  }
+}
+attachExportHandlers();
+
+// Sprawdź dostępność biblioteki jsPDF
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    if (typeof window.jspdf === 'undefined') {
+      console.warn('jsPDF nie została załadowana. Eksport PDF będzie działał jako fallback tekstowy.');
+    } else {
+      console.log('jsPDF załadowana pomyślnie');
+    }
+  }, 1000);
+});
+  </script>
+</body>
+</html>

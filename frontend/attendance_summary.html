@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Obecność – Ewidencja</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 200px;
+      height: 100vh;
+      background: #eeeeee;
+      padding: 20px;
+      z-index: 100;
+    }
+    .submenu-panel {
+      position: fixed;
+      left: 200px;
+      top: 0;
+      width: 140px;
+      height: 100vh;
+      background: #f6f6f6;
+      padding: 20px 8px;
+      border-left: 1px solid #ddd;
+      z-index: 101;
+      display: none;
+    }
+    .submenu-panel.active {
+      display: block;
+    }
+    .submenu-panel h3 {
+      margin-top: 0;
+      font-size: 1.1em;
+      margin-bottom: 12px;
+    }
+    .submenu-panel a {
+      display: block;
+      margin-bottom: 10px;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .submenu-panel a:hover {
+      text-decoration: underline;
+    }
+    .app-container {
+      transition: margin-left 0.2s;
+      margin-left: 200px;
+    }
+    body.submenu-open .app-container {
+      margin-left: 340px;
+    }
+    .content {
+      padding: 20px;
+    }
+    .employee-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .employee-table th, .employee-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .employee-table th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>MENU</h2>
+    <ul>
+      <li><a href="index.html">Pulpit</a></li>
+      <li><a href="employees.html">Zespół</a></li>
+      <li><span id="showSubmenu" style="cursor:pointer;font-weight:bold;">Obecność &#9654;</span></li>
+      <li><a href="mobile_config.html">Konfiguracja Aplikacji</a></li>
+    </ul>
+  </div>
+  <div id="submenuPanel" class="submenu-panel">
+    <h3>Obecność</h3>
+    <a href="attendance_day.html">Obecność – Dzień</a>
+    <a href="attendance_summary.html">Obecność – Ewidencja</a>
+  </div>
+  <div class="app-container">
+    <div class="content">
+      <button onclick="goBack()" style="margin-bottom:18px;">&larr; Wstecz</button>
+      <h1>Ewidencja czasu pracy</h1>
+      <form id="summaryForm" style="margin-bottom:24px;">
+        <label>Od: <input type="date" id="dateFrom" required></label>
+        <label style="margin-left:12px;">Do: <input type="date" id="dateTo" required></label>
+        <button type="submit" id="showBtn">Pokaż</button>
+      </form>
+      <div id="summaryResults"></div>
+      <div id="addEmployeeSection" style="margin-top:32px;"></div>
+    </div>
+  </div>
+  <script>
+    const showSubmenu = document.getElementById('showSubmenu');
+    const submenuPanel = document.getElementById('submenuPanel');
+    showSubmenu.onclick = function() {
+      submenuPanel.classList.toggle('active');
+      document.body.classList.toggle('submenu-open', submenuPanel.classList.contains('active'));
+    };
+    document.addEventListener('click', function(e) {
+      if (!submenuPanel.contains(e.target) && e.target !== showSubmenu) {
+        submenuPanel.classList.remove('active');
+        document.body.classList.remove('submenu-open');
+      }
+    });
+    document.getElementById('summaryForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const from = document.getElementById('dateFrom').value;
+      const to = document.getElementById('dateTo').value;
+      if (!from || !to) return alert('Wybierz zakres dat!');
+      fetch(`http://127.0.0.1:8002/attendance_summary?date_from=${from}&date_to=${to}`)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('summaryResults');
+          const addSection = document.getElementById('addEmployeeSection');
+          if (!data || data.length === 0) {
+            container.innerHTML = '<p>Brak danych dla wybranego zakresu.</p>';
+            addSection.innerHTML = '';
+            return;
+          }
+          let html = "<table class='employee-table'><thead><tr><th>Imię i nazwisko</th><th>Liczba dni obecności</th><th>Łączny czas pracy</th><th>Soboty</th><th>Niedziele</th><th>Święta</th><th>Kwota</th></tr></thead><tbody>";
+          data.forEach(item => {
+            const kwota = (item.total_hours && item.rate) ? (item.rate * item.total_hours).toFixed(2) : '-';
+            html += `<tr>
+              <td><a href="employee_details.html?worker_id=${item.id}&start=${from}&end=${to}" target="_blank">${item.name}</a></td>
+              <td>${item.days_present}</td>
+              <td>${item.total_time}</td>
+              <td>${item.saturdays}</td>
+              <td>${item.sundays}</td>
+              <td>${item.holidays}</td>
+              <td>${kwota} zł</td>
+            </tr>`;
+          });
+          html += "</tbody></table>";
+          container.innerHTML = html;
+          // Dodaj przycisk do ręcznego dodania pracownika do ewidencji
+          addSection.innerHTML = `<button id='addEmployeeBtn' style='margin-top:20px;'>Dodaj pracownika do ewidencji</button><div id='addEmployeeFormContainer'></div>`;
+          document.getElementById('addEmployeeBtn').onclick = function() {
+            showAddEmployeeForm(from, to);
+          };
+        })
+        .catch(err => {
+          document.getElementById('summaryResults').innerText = 'Błąd podczas pobierania danych.';
+          document.getElementById('addEmployeeSection').innerHTML = '';
+          console.error(err);
+        });
+    });
+
+    // Funkcja do pobrania pracowników bez logów i wyświetlenia formularza
+    function showAddEmployeeForm(from, to) {
+      const formContainer = document.getElementById('addEmployeeFormContainer');
+      formContainer.innerHTML = '<p>Ładowanie...</p>';
+      fetch(`http://127.0.0.1:8002/employees_without_logs?date_from=${from}&date_to=${to}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data || data.length === 0) {
+            formContainer.innerHTML = '<p>Brak pracowników bez logów w tym okresie.</p>';
+            return;
+          }
+          let html = `<form id='addEmployeeToAttendanceForm'>
+            <label>Pracownik:
+              <select id='employeeSelect' required>
+                <option value=''>--wybierz--</option>
+                ${data.map(emp => `<option value='${emp.id}'>${emp.name}</option>`).join('')}
+              </select>
+            </label>
+            <div id='daysCheckboxes' style='margin:12px 0;'></div>
+            <button type='submit'>Dodaj dni pracy</button>
+            <button type='button' id='cancelAddEmployee' style='margin-left:10px;'>Anuluj</button>
+          </form>`;
+          formContainer.innerHTML = html;
+          // Generuj listę dni z zakresu jako tabelę z dniem tygodnia i kolorami
+          const daysDiv = document.getElementById('daysCheckboxes');
+          const days = getDaysArray(from, to);
+          let daysTable = "<table style='border-collapse:collapse;'><tr>";
+          days.forEach((d, i) => {
+            const dateObj = new Date(d);
+            const weekday = dateObj.getDay(); // 0-niedziela, 6-sobota
+            let dayName = ['niedz.', 'pon.', 'wt.', 'śr.', 'czw.', 'pt.', 'sob.'][weekday];
+            let color = '';
+            if (weekday === 6) color = 'background: #ffe066;'; // sobota - żółty
+            if (weekday === 0) color = 'background: #ffb3b3;'; // niedziela - czerwony
+            daysTable += `<td style='padding:4px 8px; border:1px solid #ccc;${color}'><label><input type='checkbox' name='days' value='${d}'>${d}<br><span style='font-size:0.9em;'>${dayName}</span></label></td>`;
+            if ((i+1) % 4 === 0) daysTable += '</tr><tr>';
+          });
+          daysTable += "</tr></table>";
+          daysDiv.innerHTML = daysTable;
+          document.getElementById('cancelAddEmployee').onclick = () => { formContainer.innerHTML = ''; };
+          document.getElementById('addEmployeeToAttendanceForm').onsubmit = function(e) {
+            e.preventDefault();
+            const empId = document.getElementById('employeeSelect').value;
+            const checkedDays = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(cb => cb.value);
+            if (!empId || checkedDays.length === 0) return alert('Wybierz pracownika i co najmniej jeden dzień!');
+            // Przygotuj dane do wysłania (lista logów)
+            const logs = checkedDays.map(date => ({ employee_id: empId, date: date }));
+            fetch('http://127.0.0.1:8002/logs/batch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(logs)
+            })
+            .then(res => {
+              if (!res.ok) throw new Error('Błąd dodawania logów');
+              return res.json();
+            })
+            .then(() => {
+              alert('Dodano dni pracy!');
+              formContainer.innerHTML = '';
+              document.getElementById('showBtn').click(); // odśwież ewidencję
+            })
+            .catch(err => {
+              alert('Błąd podczas dodawania dni pracy.');
+              console.error(err);
+            });
+          };
+        })
+        .catch(err => {
+          formContainer.innerHTML = '<p>Błąd podczas pobierania pracowników.</p>';
+          console.error(err);
+        });
+    }
+    // Funkcja pomocnicza do generowania tablicy dat (YYYY-MM-DD) z zakresu
+    function getDaysArray(start, end) {
+      const arr = [];
+      let dt = new Date(start);
+      const dtEnd = new Date(end);
+      while (dt <= dtEnd) {
+        arr.push(dt.toISOString().slice(0,10));
+        dt.setDate(dt.getDate() + 1);
+      }
+      return arr;
+    }
+    // Po załadowaniu strony, jeśli są parametry start/end w URL lub w sessionStorage, ustaw wartości pól daty
+    (function(){
+      const params = new URLSearchParams(window.location.search);
+      let start = params.get('start');
+      let end = params.get('end');
+      if ((!start || !end) && sessionStorage.getItem('attendance_summary_last')) {
+        const last = JSON.parse(sessionStorage.getItem('attendance_summary_last'));
+        start = last.start;
+        end = last.end;
+      }
+      if (start && end) {
+        document.getElementById('dateFrom').value = start;
+        document.getElementById('dateTo').value = end;
+        // Automatycznie kliknij przycisk 'Pokaż', zamiast dispatchEvent na formularzu
+        setTimeout(() => {
+          document.getElementById('showBtn').click();
+        }, 0);
+      }
+    })();
+    
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>

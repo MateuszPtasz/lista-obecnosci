@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Obecność – Dzień</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 200px;
+      height: 100vh;
+      background: #eeeeee;
+      padding: 20px;
+      z-index: 100;
+    }
+    .submenu-panel {
+      position: fixed;
+      left: 200px;
+      top: 0;
+      width: 140px;
+      height: 100vh;
+      background: #f6f6f6;
+      padding: 20px 8px;
+      border-left: 1px solid #ddd;
+      z-index: 101;
+      display: none;
+    }
+    .submenu-panel.active {
+      display: block;
+    }
+    .submenu-panel h3 {
+      margin-top: 0;
+      font-size: 1.1em;
+      margin-bottom: 12px;
+    }
+    .submenu-panel a {
+      display: block;
+      margin-bottom: 10px;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .submenu-panel a:hover {
+      text-decoration: underline;
+    }
+    .app-container {
+      transition: margin-left 0.2s;
+      margin-left: 200px;
+    }
+    body.submenu-open .app-container {
+      margin-left: 340px;
+    }
+    .content {
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="sidebar">
+      <h2>MENU</h2>
+      <ul>
+        <li><a href="index.html">Pulpit</a></li>
+        <li><a href="employees.html">Zespół</a></li>
+        <li><span id="showSubmenu" style="cursor:pointer;font-weight:bold;">Obecność &#9654;</span></li>
+        <li><a href="mobile_config.html">Konfiguracja Aplikacji</a></li>
+      </ul>
+    </div>
+    <div id="submenuPanel" class="submenu-panel">
+      <h3>Obecność</h3>
+      <a href="attendance_day.html">Obecność – Dzień</a>
+      <a href="attendance_summary.html">Obecność – Ewidencja</a>
+    </div>
+    <div class="content">
+      <button onclick="goBack()" style="margin-bottom:18px;">&larr; Wstecz</button>
+      <h1>Obecność – wybrany dzień</h1>
+      <input type="date" id="selectedDate">
+      <button onclick="loadAttendance()">Pokaż</button>
+
+      <div id="attendanceResults"></div>
+    </div>
+  </div>
+
+  <script>
+    function loadAttendance() {
+      const date = document.getElementById('selectedDate').value;
+      if (!date) return alert("Wybierz datę");
+
+      fetch(`http://127.0.0.1:8002/attendance_by_date?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('attendanceResults');
+          if (data.length === 0) {
+            container.innerHTML = "<p>Brak danych dla wybranego dnia.</p>";
+            return;
+          }
+
+          let html = "<table class='employee-table'><thead><tr><th>Imię i nazwisko</th><th>Wejście</th><th>Wyjście</th><th>Czas pracy</th><th>Lokalizacja wejścia</th><th>Lokalizacja wyjścia</th></tr></thead><tbody>";
+          data.forEach(item => {
+            let startLoc = '-';
+            let stopLoc = '-';
+            if (item.start_lat && item.start_lon) {
+              const lat = item.start_lat.toFixed(5);
+              const lon = item.start_lon.toFixed(5);
+              startLoc = `<a href='https://www.google.com/maps?q=${lat},${lon}' target='_blank'>Pokaż na mapie</a>`;
+            }
+            if (item.stop_lat && item.stop_lon) {
+              const lat = item.stop_lat.toFixed(5);
+              const lon = item.stop_lon.toFixed(5);
+              stopLoc = `<a href='https://www.google.com/maps?q=${lat},${lon}' target='_blank'>Pokaż na mapie</a>`;
+            }
+            html += `<tr>
+              <td>${item.name}</td>
+              <td>${item.start}</td>
+              <td>${item.stop}</td>
+              <td>${item.duration}</td>
+              <td>${startLoc}</td>
+              <td>${stopLoc}</td>
+            </tr>`;
+          });
+          html += "</tbody></table>";
+          container.innerHTML = html;
+        })
+        .catch(err => {
+          document.getElementById('attendanceResults').innerText = "Błąd podczas pobierania danych.";
+          console.error(err);
+        });
+    }
+
+    const showSubmenu = document.getElementById('showSubmenu');
+    const submenuPanel = document.getElementById('submenuPanel');
+    showSubmenu.onclick = function() {
+      submenuPanel.classList.toggle('active');
+      document.body.classList.toggle('submenu-open', submenuPanel.classList.contains('active'));
+    };
+    
+    function goBack() {
+      window.history.back();
+    }
+    
+    document.addEventListener('click', function(e) {
+      if (!submenuPanel.contains(e.target) && e.target !== showSubmenu) {
+        submenuPanel.classList.remove('active');
+        document.body.classList.remove('submenu-open');
+      }
+    });
+  </script>
+</body>
+</html>

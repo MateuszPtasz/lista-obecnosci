@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Edytuj pracownika</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+      <aside class="sidebar">
+        <h2>MENU</h2>
+        <ul>
+          <li><a href="index.html">Pulpit</a></li>
+          <li><a href="employees.html">Zespół</a></li>
+          <li><span id="showSubmenu" style="cursor:pointer;font-weight:bold;">Obecność &#9654;</span></li>
+          <li><a href="mobile_config.html">Konfiguracja Aplikacji</a></li>
+        </ul>
+      </aside>
+      <div id="submenuPanel" class="submenu-panel">
+        <h3>Obecność</h3>
+        <a href="attendance_day.html">Obecność – Dzień</a>
+        <a href="attendance_summary.html">Obecność – Ewidencja</a>
+      </div>
+      <main class="main-content">
+        <button onclick="goBack()" style="margin-bottom:18px;">&larr; Wstecz</button>
+        <h1>Edytuj pracownika</h1>
+        <form id="editForm" class="employee-edit-form">
+          <table class="edit-table">
+            <tr><th colspan="2">Dane podstawowe</th></tr>
+            <tr>
+              <td><label for="firstName">Imię:</label></td>
+              <td><input type="text" id="firstName" name="firstName"></td>
+            </tr>
+            <tr>
+              <td><label for="lastName">Nazwisko:</label></td>
+              <td><input type="text" id="lastName" name="lastName"></td>
+            </tr>
+            <tr>
+              <td><label for="workerId">ID pracownika:</label></td>
+              <td><input type="text" id="workerId" name="workerId"></td>
+            </tr>
+            <tr>
+              <td><label for="hourlyRate">Stawka godzinowa (zł):</label></td>
+              <td><input type="number" id="hourlyRate" name="hourlyRate" step="0.01"></td>
+            </tr>
+            <tr><th colspan="2">Stawki specjalne</th></tr>
+            <tr>
+              <td><label for="rate_saturday">Stawka za soboty (zł/h):</label></td>
+              <td><input type="number" step="0.01" id="rate_saturday"></td>
+            </tr>
+            <tr>
+              <td><label for="rate_sunday">Stawka za niedziele i święta (zł/h):</label></td>
+              <td><input type="number" step="0.01" id="rate_sunday"></td>
+            </tr>
+            <tr>
+              <td><label for="rate_night">Stawka za godziny nocne (zł/h):</label></td>
+              <td><input type="number" step="0.01" id="rate_night"></td>
+            </tr>
+            <tr>
+              <td><label for="rate_overtime">Stawka za nadgodziny (zł/h):</label></td>
+              <td><input type="number" step="0.01" id="rate_overtime"></td>
+            </tr>
+            <tr>
+              <td colspan="2" style="text-align:center; padding-top:12px;">
+                <button type="submit">Zapisz zmiany</button>
+              </td>
+            </tr>
+          </table>
+        </form>
+      </main>
+    </div>
+    <script src="sidebar.js"></script>
+    <script src="employee_edit.js"></script>
+</body>
+</html>

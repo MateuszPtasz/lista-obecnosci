@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista pracowników</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="employees.js"></script>
+    <style>
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 200px;
+        height: 100vh;
+        background: #eeeeee;
+        padding: 20px;
+        z-index: 100;
+      }
+      .submenu-panel {
+        position: fixed;
+        left: 200px;
+        top: 0;
+        width: 140px;
+        height: 100vh;
+        background: #f6f6f6;
+        padding: 20px 8px;
+        border-left: 1px solid #ddd;
+        z-index: 101;
+        display: none;
+      }
+      .submenu-panel.active {
+        display: block;
+      }
+      .submenu-panel h3 {
+        margin-top: 0;
+        font-size: 1.1em;
+        margin-bottom: 12px;
+      }
+      .submenu-panel a {
+        display: block;
+        margin-bottom: 10px;
+        color: #007bff;
+        text-decoration: none;
+      }
+      .submenu-panel a:hover {
+        text-decoration: underline;
+      }
+      .app-container {
+        transition: margin-left 0.2s;
+        margin-left: 200px;
+      }
+      body.submenu-open .app-container {
+        margin-left: 340px;
+      }
+      .main-content {
+        padding: 20px;
+      }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <h2>MENU</h2>
+            <ul>
+                <li><a href="index.html">Pulpit</a></li>
+                <li><a href="employees.html">Zespół</a></li>
+                <li><span id="showSubmenu" style="cursor:pointer;font-weight:bold;">Obecność &#9654;</span></li>
+                <li><a href="mobile_config.html">Konfiguracja Aplikacji</a></li>
+            </ul>
+        </aside>
+        <div id="submenuPanel" class="submenu-panel">
+          <h3>Obecność</h3>
+          <a href="attendance_day.html">Obecność – Dzień</a>
+          <a href="attendance_summary.html">Obecność – Ewidencja</a>
+        </div>
+        <main class="main-content">
+            <h1>Mój zespół</h1>
+            <button onclick="window.location.href='employee_add.html'" style="margin-bottom: 10px;">+ Dodaj pracownika</button>
+            <table class="employee-table">
+              <thead>
+                <tr>
+                  <th>Imię i nazwisko</th>
+                  <th>ID</th>
+                  <th>Stawka</th>
+                  <th>Akcje</th>
+                </tr>
+              </thead>
+              <tbody id="employeeList">
+                <!-- pracownicy będą tu ładowani -->
+              </tbody>
+            </table>
+        </main>
+    </div>
+    <script>
+      const showSubmenu = document.getElementById('showSubmenu');
+      const submenuPanel = document.getElementById('submenuPanel');
+      showSubmenu.onclick = function() {
+        submenuPanel.classList.toggle('active');
+        document.body.classList.toggle('submenu-open', submenuPanel.classList.contains('active'));
+      };
+      document.addEventListener('click', function(e) {
+        if (!submenuPanel.contains(e.target) && e.target !== showSubmenu) {
+          submenuPanel.classList.remove('active');
+          document.body.classList.remove('submenu-open');
+        }
+      });
+      
+      // Załaduj listę pracowników po załadowaniu strony
+      document.addEventListener('DOMContentLoaded', function() {
+        loadEmployeesTable();
+      });
+    </script>
+</body>
+</html>
