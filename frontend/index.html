@@ -76,56 +76,66 @@
       <h1>Pulpit</h1>
       <div id="active-workers">Ładowanie danych...</div>
       <script>
-      document.addEventListener('DOMContentLoaded', async function() {
+      document.addEventListener('DOMContentLoaded', function() {
         try {
-          console.log('Fetching active workers...');
-          const response = await fetch('http://127.0.0.1:8002/active_workers');
-          console.log('Response status:', response.status);
-          console.log('Response ok:', response.ok);
+          console.log('Loading active workers...');
           
-          if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          
-          const data = await response.json();
-          console.log('Received data:', data);
-          
-          const container = document.getElementById('active-workers');
-          if (data.length === 0) {
-              container.innerHTML = "<p>Brak pracowników z dzisiaj.</p>";
-              return;
-          }
-          
-          let html = "<table class='employee-table'><thead><tr><th></th><th>Imię i nazwisko</th><th>Start</th><th>Czas pracy</th><th>Lokalizacja wejścia</th></tr></thead><tbody>";
-          data.forEach(worker => {
-              console.log('Processing worker:', worker);
-              const dot = `<span style='color:${worker.online ? 'green' : 'red'};font-size:1.5em;'>&#9679;</span>`;
-              let startLoc = '-';
-              if (worker.start_lat && worker.start_lon) {
-                try {
-                  const lat = parseFloat(worker.start_lat).toFixed(5);
-                  const lon = parseFloat(worker.start_lon).toFixed(5);
-                  startLoc = `<a href='https://www.google.com/maps?q=${lat},${lon}' target='_blank'>Pokaż na mapie</a>`;
-                } catch (err) {
-                  console.error('Error processing location:', err);
-                  startLoc = 'Błąd lokalizacji';
+          // Użyj XMLHttpRequest zamiast fetch dla kompatybilności z Simple Browser
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', 'http://127.0.0.1:8002/active_workers', true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+              try {
+                const data = JSON.parse(xhr.responseText);
+                console.log('Received data:', data);
+                
+                const container = document.getElementById('active-workers');
+                if (data.length === 0) {
+                    container.innerHTML = "<p>Brak pracowników z dzisiaj.</p>";
+                    return;
                 }
+                
+                let html = "<table class='employee-table'><thead><tr><th></th><th>Imię i nazwisko</th><th>Start</th><th>Czas pracy</th><th>Lokalizacja wejścia</th></tr></thead><tbody>";
+                data.forEach(worker => {
+                    console.log('Processing worker:', worker);
+                    const dot = `<span style='color:${worker.online ? 'green' : 'red'};font-size:1.5em;'>&#9679;</span>`;
+                    let startLoc = '-';
+                    if (worker.start_lat && worker.start_lon) {
+                      try {
+                        const lat = parseFloat(worker.start_lat).toFixed(5);
+                        const lon = parseFloat(worker.start_lon).toFixed(5);
+                        startLoc = `<a href='https://www.google.com/maps?q=${lat},${lon}' target='_blank'>Pokaż na mapie</a>`;
+                      } catch (err) {
+                        console.error('Error processing location:', err);
+                        startLoc = 'Błąd lokalizacji';
+                      }
+                    }
+                    html += `<tr>
+                                <td style='text-align:center;'>${dot}</td>
+                                <td>${worker.name}</td>
+                                <td>${worker.start_time}</td>
+                                <td>${worker.duration}</td>
+                                <td>${startLoc}</td>
+                             </tr>`;
+                });
+                html += "</tbody></table>";
+                container.innerHTML = html;
+                console.log('Table updated successfully');
+                
+              } catch (parseError) {
+                console.error('Error parsing response:', parseError);
+                document.getElementById('active-workers').innerHTML = "Błąd podczas parsowania danych.";
               }
-              html += `<tr>
-                          <td style='text-align:center;'>${dot}</td>
-                          <td>${worker.name}</td>
-                          <td>${worker.start_time}</td>
-                          <td>${worker.duration}</td>
-                          <td>${startLoc}</td>
-                       </tr>`;
-          });
-          html += "</tbody></table>";
-          container.innerHTML = html;
-          console.log('Table updated successfully');
+            } else if (xhr.readyState === 4) {
+              console.error('HTTP Error:', xhr.status);
+              document.getElementById('active-workers').innerHTML = "Błąd podczas pobierania danych: " + xhr.status;
+            }
+          };
+          xhr.send();
           
         } catch (error) {
           console.error("Szczegóły błędu:", error);
-          document.getElementById('active-workers').innerText = "Błąd podczas pobierania danych: " + error.message;
+          document.getElementById('active-workers').innerHTML = "Błąd podczas pobierania danych: " + error.message;
         }
       }); // Zamknięcie DOMContentLoaded
       </script>
