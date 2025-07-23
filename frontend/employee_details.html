@@ -31,10 +31,7 @@
     <div class="content">
       <!-- Przycisk wstecz -->
       <button onclick="goBack()" id="backBtn" style="margin-bottom:18px;padding:8px 18px;background:#eee;border-radius:8px;border:none;cursor:pointer;font-size:1em;box-shadow:0 2px 8px #0001;">&larr; Wstecz</button>
-      <!-- Opis pracownika + odnośnik do edycji -->
-      <div id="profileBox" style="background:#f7f7f7;border-radius:10px;padding:16px 32px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;max-width:700px;">
-        <div id="profileDesc" style="font-size:1.1em;"></div>
-      </div>
+      
       <div id="workerDetailsBox" style="background:#fff;border-radius:10px;box-shadow:0 2px 8px #0001;padding:24px 32px 18px 32px;margin-bottom:24px;max-width:700px;display:flex;align-items:center;justify-content:space-between;">
         <div>
           <h1 id="workerName" style="margin-top:0;margin-bottom:8px;font-size:2em;display:inline-block;"></h1>
@@ -140,18 +137,14 @@
         if (workerXhr.readyState === 4 && workerXhr.status === 200) {
           try {
             const data = JSON.parse(workerXhr.responseText);
-            // Opis pracownika
-            let desc = `<b>${data.first_name} ${data.last_name}</b> <span style='color:#888;'>ID: ${data.id}</span>`;
-            desc += `<div style='margin-top:8px;'>Stawka godzinowa: <b>${data.hourly_rate} zł</b></div>`;
-            desc += `<div style='margin-top:8px;'>Soboty: <b>${data.rate_saturday} zł</b>, niedziele: <b>${data.rate_sunday} zł</b></div>`;
-            desc += `<div style='margin-top:8px;'>Noc: <b>${data.rate_night} zł</b>, nadgodziny: <b>${data.rate_overtime} zł</b></div>`;
-            document.getElementById('profileDesc').innerHTML = desc;
+            // Ustaw nazwę w nagłówku
+            document.getElementById('workerName').innerHTML = `${data.first_name} ${data.last_name}`;
             document.getElementById('editProfileBtn').href = `employee_edit.html?id=${data.id}`;
-            // Szczegóły pracownika (panel poniżej)
-            let html = `<div style='font-size:1.1em;'><b>${data.first_name} ${data.last_name}</b> <span style='color:#888;'>ID: ${data.id}</span></div>`;
-            html += `<div style='margin-top:8px;'>Stawka godzinowa: <b>${data.hourly_rate} zł</b></div>`;
-            html += `<div style='margin-top:8px;'>Stawka sobota: <b>${data.rate_saturday} zł</b>, niedziela: <b>${data.rate_sunday} zł</b></div>`;
-            html += `<div style='margin-top:8px;'>Stawka noc: <b>${data.rate_night} zł</b>, nadgodziny: <b>${data.rate_overtime} zł</b></div>`;
+            // Szczegóły pracownika
+            let html = `<div style='font-size:1.1em;'><b>ID:</b> ${data.id}</div>`;
+            html += `<div style='margin-top:8px;'><b>Stawka godzinowa:</b> ${data.hourly_rate} zł</div>`;
+            html += `<div style='margin-top:8px;'><b>Sobota:</b> ${data.rate_saturday} zł, <b>Niedziela:</b> ${data.rate_sunday} zł</div>`;
+            html += `<div style='margin-top:8px;'><b>Noc:</b> ${data.rate_night} zł, <b>Nadgodziny:</b> ${data.rate_overtime} zł</div>`;
             document.getElementById('workerDetails').innerHTML = html;
           } catch (error) {
             console.error('Błąd parsowania danych pracownika:', error);
@@ -505,7 +498,7 @@ function exportTableToPDF(tableId, filename = '') {
         doc.text('EWIDENCJA CZASU PRACY', 20, 20);
         
         doc.setFontSize(12);
-        const workerName = document.querySelector('#profileDesc')?.innerText || 'Nieznany pracownik';
+        const workerName = document.querySelector('#workerName')?.innerText || 'Nieznany pracownik';
         // Usuń polskie znaki dla testów
         const cleanWorkerName = workerName.replace(/[ąćęłńóśźż]/g, function(match) {
             const map = {'ą':'a','ć':'c','ę':'e','ł':'l','ń':'n','ó':'o','ś':'s','ź':'z','ż':'z'};
@@ -579,7 +572,7 @@ function exportAsText(tableSelect, filename) {
         var content = '';
         
         content += 'EWIDENCJA CZASU PRACY\n\n';
-        content += 'Pracownik: ' + (document.querySelector('#profileDesc')?.innerText || 'Nieznany') + '\n';
+        content += 'Pracownik: ' + (document.querySelector('#workerName')?.innerText || 'Nieznany') + '\n';
         content += 'Data eksportu: ' + new Date().toLocaleDateString('pl-PL') + '\n\n';
         
         if(rows.length > 0) {
