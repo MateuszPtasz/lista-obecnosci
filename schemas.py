@@ -6,6 +6,10 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
+class User(BaseModel):
+    username: str
+    is_admin: bool = False
+
 class Location(BaseModel):
     lat: float
     lon: float

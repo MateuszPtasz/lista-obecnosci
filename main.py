@@ -1,47 +1,255 @@
-from fastapi import FastAPI, Depends, HTTPException, Body, Query
+from fastapi import FastAPI, Depends, HTTPException, Body, Query, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, date
 from pydantic import BaseModel
-from fastapi.responses import JSONResponse
 from sqlalchemy import func
 import calendar
-from typing import List
+from typing import List, Optional
 import os
 import ast
 import holidays
+import base64
+import io
+import logging.config
 
 import models, schemas, database
 from config import MOBILE_APP_CONFIG, CONFIG_VERSION, APP_VERSION_INFO, EMAIL_CONFIG
+from auth import (
+    authenticate_user, create_access_token, Token, require_auth, require_admin,
+    create_session, get_session_user, require_web_auth, destroy_session,
+    create_error_response, get_current_user
+)
+from csv_export import generate_csv_report, create_excel_content, generate_report_filename
+from logging_config import LOGGING_CONFIG, LoggingMiddleware, app_logger, auth_logger, log_auth_event, log_error, log_security_event
 
-app = FastAPI()
+# Configure logging
+logging.config.dictConfig(LOGGING_CONFIG)
+
+import models, schemas, database
+from config import MOBILE_APP_CONFIG, CONFIG_VERSION, APP_VERSION_INFO, EMAIL_CONFIG
+from auth import (
+    authenticate_user, create_access_token, Token, require_auth, require_admin,
+    create_session, get_session_user, require_web_auth, destroy_session,
+    create_error_response, get_current_user
+)
+
+app = FastAPI(title="Lista Obecności API", description="Attendance Management System API", version="1.0.0")
+
+# Add logging middleware
+app.add_middleware(LoggingMiddleware)
 
 PL_HOLIDAYS = holidays.Poland()
 
 # Middleware CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # możesz tu podać konkretną domenę np. ["http://localhost:3000"]
+    allow_origins=["*"],  # In production, specify actual domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global exception handlers
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle HTTP exceptions with standardized error format"""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=create_error_response(
+            status_code=exc.status_code,
+            message=exc.detail,
+            details=f"Path: {request.url.path}"
+        )
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle general exceptions"""
+    return JSONResponse(
+        status_code=500,
+        content=create_error_response(
+            status_code=500,
+            message="Internal server error",
+            details=str(exc) if app.debug else "An unexpected error occurred"
+        )
+    )
 
 # Serwowanie plików statycznych z folderu frontend
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
 models.Base.metadata.create_all(bind=database.engine)
 
-# Dependency
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Authentication endpoints
+@app.post("/auth/login", response_model=Token, tags=["Authentication"])
+async def login(username: str = Form(...), password: str = Form(...)):
+    """Login endpoint for JWT authentication"""
+    user = authenticate_user(username, password)
+    if not user:
+        log_auth_event("login_failed", username, {"reason": "invalid_credentials"})
+        raise HTTPException(
+            status_code=400,
+            detail="Incorrect username or password"
+        )
+    
+    log_auth_event("login_success", username, {"method": "jwt"})
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
-@app.post("/send-report-email")
+@app.post("/auth/web-login", tags=["Authentication"])
+async def web_login(request: Request, username: str = Form(...), password: str = Form(...)):
+    """Web login endpoint for session-based authentication"""
+    user = authenticate_user(username, password)
+    if not user:
+        return JSONResponse(
+            status_code=400,
+            content=create_error_response(400, "Invalid credentials")
+        )
+    
+    session_id = create_session(user.username)
+    response = JSONResponse(content={"success": True, "message": "Login successful"})
+    response.set_cookie(
+        key="session_id", 
+        value=session_id, 
+        max_age=8*60*60,  # 8 hours
+        httponly=True,
+        secure=False  # Set to True in production with HTTPS
+    )
+    return response
+
+@app.post("/auth/logout", tags=["Authentication"])
+async def logout(request: Request):
+    """Logout endpoint - destroys session"""
+    session_id = request.cookies.get("session_id")
+    if session_id:
+        destroy_session(session_id)
+    
+    response = JSONResponse(content={"success": True, "message": "Logged out successfully"})
+    response.delete_cookie("session_id")
+    return response
+
+@app.get("/auth/me", tags=["Authentication"])
+async def get_current_user_info(current_user: Optional[schemas.User] = Depends(get_current_user)):
+    """Get current authenticated user information"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return current_user
+
+@app.get("/auth/status", tags=["Authentication"])
+async def auth_status(request: Request):
+    """Check authentication status for web interface"""
+    username = get_session_user(request)
+    return {"authenticated": username is not None, "username": username}
+
+# Protected endpoint examples
+@app.get("/protected", tags=["Authentication"])
+async def protected_endpoint(current_user: schemas.User = Depends(require_auth)):
+    """Example protected endpoint requiring authentication"""
+    return {"message": f"Hello {current_user.username}, this is a protected endpoint"}
+
+@app.get("/admin-only", tags=["Authentication"])
+async def admin_only_endpoint(current_user: schemas.User = Depends(require_admin)):
+    """Example admin-only endpoint"""
+    return {"message": f"Hello admin {current_user.username}, this is an admin-only endpoint"}
+
+# Import ACCESS_TOKEN_EXPIRE_MINUTES
+from auth import ACCESS_TOKEN_EXPIRE_MINUTES
+
+# CSV Export endpoints
+@app.get("/export/attendance-summary/csv", tags=["Export"])
+def export_attendance_summary_csv(
+    date_from: str = Query(...), 
+    date_to: str = Query(...), 
+    current_user: schemas.User = Depends(require_auth)
+):
+    """Export attendance summary as CSV"""
+    try:
+        # Get the same data as attendance_summary endpoint
+        from database import SessionLocal
+        db = SessionLocal()
+        try:
+            date_from_dt = datetime.strptime(date_from, "%Y-%m-%d")
+            date_to_dt = datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
+            logs = db.query(models.AttendanceLog).filter(
+                models.AttendanceLog.start_time >= date_from_dt,
+                models.AttendanceLog.start_time < date_to_dt,
+                models.AttendanceLog.stop_time != None
+            ).all()
+            employees = db.query(models.Employee).all()
+            
+            # Process data same as attendance_summary
+            summary = {}
+            for log in logs:
+                emp = next((w for w in employees if w.id == log.worker_id), None)
+                if not emp:
+                    continue
+                parts = emp.name.split(' ')
+                first_name = parts[0] if len(parts) > 0 else ''
+                last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
+                name = f"{first_name} {last_name}".strip()
+                day = log.start_time.date()
+                key = emp.id
+                if key not in summary:
+                    summary[key] = {
+                        "id": emp.id,
+                        "name": name,
+                        "rate": emp.hourly_rate,
+                        "days": set(),
+                        "total_seconds": 0,
+                        "saturdays": 0,
+                        "sundays": 0,
+                        "holidays": 0
+                    }
+                summary[key]["days"].add(day)
+                if log.stop_time:
+                    summary[key]["total_seconds"] += int((log.stop_time - log.start_time).total_seconds())
+                weekday = log.start_time.weekday()
+                if weekday == 5:
+                    summary[key]["saturdays"] += 1
+                elif weekday == 6:
+                    summary[key]["sundays"] += 1
+            
+            data = []
+            for val in summary.values():
+                hours, remainder = divmod(val["total_seconds"], 3600)
+                minutes = remainder // 60
+                total_hours = val["total_seconds"] / 3600
+                data.append({
+                    "id": val["id"],
+                    "name": val["name"],
+                    "rate": val["rate"],
+                    "days_present": len(val["days"]),
+                    "total_time": f"{int(hours)}h {int(minutes)}min",
+                    "total_hours": round(total_hours, 2),
+                    "saturdays": val["saturdays"],
+                    "sundays": val["sundays"],
+                    "holidays": val["holidays"]
+                })
+            
+            # Generate CSV
+            csv_content = generate_csv_report(data, "attendance_summary")
+            filename = generate_report_filename("attendance_summary", format="csv")
+            
+            return StreamingResponse(
+                io.StringIO(csv_content),
+                media_type="text/csv",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
+        finally:
+            db.close()
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating CSV export: {str(e)}")
+
 async def send_report_email(email_data: schemas.EmailReport):
     """Endpoint do wysyłania raportów przez email"""
     try:
@@ -337,8 +545,9 @@ def get_worker(worker_id: str, db: Session = Depends(get_db)):
         "rate_overtime": emp.rate_overtime
     }
 
-@app.put("/worker/{worker_id}")
-def update_worker(worker_id: str, data: schemas.EmployeeUpdate, db: Session = Depends(get_db)):
+@app.put("/worker/{worker_id}", tags=["Workers"])
+def update_worker(worker_id: str, data: schemas.EmployeeUpdate, db: Session = Depends(get_db), current_user: schemas.User = Depends(require_admin)):
+    """Update worker (Admin only)"""
     emp = db.query(models.Employee).filter(models.Employee.id == worker_id).first()
     if not emp:
         raise HTTPException(status_code=404, detail="Worker not found")
@@ -358,8 +567,10 @@ def update_worker(worker_id: str, data: schemas.EmployeeUpdate, db: Session = De
     db.commit()
     return {"msg": "Worker updated"}
 
-@app.post("/workers")
-def create_worker(worker: dict = Body(...), db: Session = Depends(get_db)):
+# Protected worker management endpoints
+@app.post("/workers", tags=["Workers"])
+def create_worker(worker: dict = Body(...), db: Session = Depends(get_db), current_user: schemas.User = Depends(require_admin)):
+    """Create new worker (Admin only)"""
     # Oczekujemy: id, first_name, last_name, hourly_rate, rate_saturday, rate_sunday, rate_night, rate_overtime
     if db.query(models.Employee).filter(models.Employee.id == worker["id"]).first():
         raise HTTPException(status_code=400, detail="Pracownik o tym ID już istnieje")
@@ -378,8 +589,9 @@ def create_worker(worker: dict = Body(...), db: Session = Depends(get_db)):
     db.refresh(db_employee)
     return db_employee
 
-@app.delete("/workers/{worker_id}")
-def delete_worker(worker_id: str, db: Session = Depends(get_db)):
+@app.delete("/workers/{worker_id}", tags=["Workers"])
+def delete_worker(worker_id: str, db: Session = Depends(get_db), current_user: schemas.User = Depends(require_admin)):
+    """Delete worker (Admin only)"""
     worker = db.query(models.Employee).filter(models.Employee.id == worker_id).first()
     if not worker:
         raise HTTPException(status_code=404, detail="Pracownik nie istnieje")
@@ -387,8 +599,9 @@ def delete_worker(worker_id: str, db: Session = Depends(get_db)):
     db.commit()
     return {"msg": "Usunięto pracownika"}
 
-@app.get("/workers")
-def get_workers(db: Session = Depends(get_db)):
+@app.get("/workers", tags=["Workers"])
+def get_workers(db: Session = Depends(get_db), current_user: schemas.User = Depends(require_auth)):
+    """Get all workers (Authentication required)"""
     return db.query(models.Employee).all()
 
 @app.get("/active_workers")
@@ -478,8 +691,8 @@ def attendance_by_date(date: str = Query(...)):
     except Exception as e:
         return {"error": str(e)}
 
-@app.get("/attendance_summary")
-def attendance_summary(date_from: str = Query(...), date_to: str = Query(...)):
+@app.get("/attendance_summary", tags=["Reports"])
+def attendance_summary(date_from: str = Query(...), date_to: str = Query(...), current_user: schemas.User = Depends(require_auth)):
     from database import SessionLocal
     db = SessionLocal()
     try:
@@ -545,8 +758,8 @@ def attendance_summary(date_from: str = Query(...), date_to: str = Query(...)):
         # Zwracaj pustą listę zamiast error
         return []
 
-@app.get("/attendance_details")
-def attendance_details(worker_id: str = Query(...), date_from: str = Query(...), date_to: str = Query(...)):
+@app.get("/attendance_details", tags=["Reports"])
+def attendance_details(worker_id: str = Query(...), date_from: str = Query(...), date_to: str = Query(...), current_user: schemas.User = Depends(require_auth)):
     from database import SessionLocal
     db = SessionLocal()
     try:
@@ -970,10 +1183,20 @@ async def update_mobile_config(config_data: dict = Body(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Błąd podczas zapisywania konfiguracji: {str(e)}")
 
-# Import funkcji email
-from email_service import send_report_email as send_report_service
+# Import email service functions
+from email_service import send_report_email as send_report_service, test_smtp_connection, validate_email_config
 
-@app.post("/send-report-email")
+@app.get("/email/test-connection", tags=["Email"])
+async def test_email_connection(current_user: schemas.User = Depends(require_admin)):
+    """Test SMTP connection (Admin only)"""
+    return test_smtp_connection()
+
+@app.get("/email/validate-config", tags=["Email"])  
+async def validate_email_configuration(current_user: schemas.User = Depends(require_admin)):
+    """Validate email configuration (Admin only)"""
+    return validate_email_config()
+
+@app.post("/send-report-email", tags=["Email"])
 async def send_report_email_endpoint(email_data: schemas.EmailReport):
     """Endpoint do wysyłania raportów przez email"""
     return send_report_service(

@@ -20,6 +20,8 @@ build/
 venv/
 env/
 .env
+.env.local
+.env.production
 
 # IDE
 .vscode/
@@ -29,6 +31,17 @@ env/
 
 # Logs
 *.log
+logs/
+
+# Backups
+backups/
+*.backup
+
+# SSL Certificates
+ssl/
+*.pem
+*.key
+*.crt
 
 # OS
 .DS_Store
@@ -41,6 +54,8 @@ main_backup.py
 # Temporary files
 *.tmp
 *.temp
+tmp/
+temp/
 
 # Mobile app build
 mobile_app/build/
@@ -50,3 +65,14 @@ mobile_app/pubspec.lock
 
 # Windows
 desktop.ini
+
+# Docker
+.docker/
+
+# Configuration (keep templates)
+config.py
+
+# Keep templates and examples
+!config_production.py
+!nginx.conf
+!docker-compose.yml

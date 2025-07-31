@@ -1,38 +1,33 @@
-# Lista Obecności - System Ewidencji Czasu Pracy
+# Lista Obecności - Enhanced Security & Production-Ready System
 
-## Opis
-Kompleksowy system do ewidencji czasu pracy składający się z:
-- **Aplikacji mobilnej Flutter** - dla pracowników
-- **Panelu webowego** - dla administratorów 
-- **API Backend** - FastAPI + SQLite
-- **Systemu email** - automatyczne raporty
-- **Zdalnej konfiguracji** - zarządzanie funkcjami aplikacji
+Kompleksowy system do ewidencji czasu pracy z zaawansowanymi funkcjami bezpieczeństwa, autoryzacji i gotowością produkcyjną.
 
-## Funkcjonalności
+## 🚀 Nowe Funkcje v2.0
 
-### Aplikacja mobilna (Flutter)
-- ✅ Logowanie/wylogowanie z lokalizacją GPS
-- ✅ Timer czasu pracy w czasie rzeczywistym
-- ✅ Sprawdzanie statusu pracy
-- ✅ Zdalna konfiguracja funkcji
-- ✅ Automatyczne sprawdzanie aktualizacji
-- ✅ Obsługa offline
+### 🔐 Bezpieczeństwo i Autoryzacja
+- **JWT Authentication** - Bezpieczny dostęp do API dla aplikacji mobilnej
+- **Session-based Authentication** - Autoryzacja sesyjna dla panelu webowego  
+- **Protected Endpoints** - Wszystkie wrażliwe endpointy zabezpieczone
+- **Role-based Access** - Rozróżnienie uprawnień administratora i użytkownika
+- **Password Hashing** - Bezpieczne przechowywanie haseł (bcrypt)
 
-### Panel webowy
-- ✅ Dashboard z aktywnymi pracownikami
-- ✅ Zarządzanie zespołem (dodawanie/edycja pracowników)
-- ✅ Ewidencja czasu pracy z szczegółami
-- ✅ Generowanie raportów PDF
-- ✅ Konfiguracja aplikacji mobilnej
-- ✅ Wysyłanie raportów przez email
+### 📊 Eksport i Raporty
+- **CSV Export** - Alternatywa do eksportu PDF
+- **Enhanced Email Service** - Ulepszona obsługa SMTP z zaawansowaną obsługą błędów
+- **Multiple Report Formats** - Podsumowania, szczegóły, raporty dzienne
+- **Secure Report Access** - Raporty dostępne tylko po uwierzytelnieniu
 
-### Backend API
-- ✅ FastAPI z dokumentacją OpenAPI
-- ✅ Baza danych SQLite
-- ✅ Endpoints dla aplikacji mobilnej i webowej
-- ✅ System stawek (podstawowa, sobota, niedziela, noc, nadgodziny)
-- ✅ Obliczenia urlopów i chorobowych
-- ✅ Dual-port setup (8000 mobile, 8002 web)
+### 🐳 Wdrożenie Produkcyjne
+- **Docker Support** - Kompletny setup Docker Compose
+- **Nginx Reverse Proxy** - Load balancing, SSL, rate limiting
+- **Comprehensive Logging** - Strukturalne logowanie z rotacją plików
+- **Automated Backups** - System kopii zapasowych z kompresją
+- **Health Checks** - Monitoring zdrowia aplikacji
+
+### 🛠️ Narzędzia Administracyjne
+- **Backup System** - Narzędzie do tworzenia i przywracania kopii zapasowych
+- **Email Testing** - Testowanie konfiguracji SMTP
+- **Configuration Management** - Zdalne zarządzanie konfiguracją aplikacji mobilnej
 
 ## Struktura projektu
 
