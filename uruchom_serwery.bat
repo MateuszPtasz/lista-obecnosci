@@ -1,0 +1,3 @@
+@echo off
+echo Uruchamianie serwerow API...
+python start_serwery.py

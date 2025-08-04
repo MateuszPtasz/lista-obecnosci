@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Modułu Aktualizacji</title>
+    <meta charset="UTF-8">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover { background: #45a049; }
+        .test-button.warn { background: #ff9800; }
+        .test-button.danger { background: #f44336; }
+        .result {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        .info { color: blue; }
+        .input-group {
+            margin: 10px 0;
+        }
+        .input-group label {
+            display: inline-block;
+            width: 150px;
+            font-weight: bold;
+        }
+        .input-group input {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            width: 200px;
+        }
+        .version-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .update-status {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Test Modułu Aktualizacji Aplikacji</h1>
+        <p>Ta strona pozwala przetestować wszystkie funkcje systemu aktualizacji aplikacji mobilnej.</p>
+    </div>
+
+    <div class="container">
+        <h2>📱 Informacje o Aktualnej Wersji</h2>
+        <div class="test-section">
+            <button class="test-button" onclick="getVersionInfo()">Pobierz Informacje o Wersji</button>
+            <div id="version-result" class="result"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔍 Test Sprawdzania Aktualizacji</h2>
+        <div class="test-section">
+            <div class="input-group">
+                <label>Wersja Klienta:</label>
+                <input type="text" id="client-version" value="0.9.0" placeholder="np. 0.9.0">
+            </div>
+            <button class="test-button" onclick="checkUpdate()">Sprawdź Dostępność Aktualizacji</button>
+            <div id="update-check-result" class="result"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🧪 Scenariusze Testowe</h2>
+        
+        <div class="test-section">
+            <h3>Test 1: Aktualizacja Dostępna (nie wymagana)</h3>
+            <p>Symuluje sytuację gdy dostępna jest nowa wersja, ale stara nadal jest obsługiwana.</p>
+            <button class="test-button" onclick="testScenario('0.9.0')">Test: Wersja 0.9.0</button>
+            <div id="scenario1-result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Aktualizacja Wymagana</h3>
+            <p>Symuluje sytuację gdy aplikacja ma zbyt starą wersję i musi być zaktualizowana.</p>
+            <button class="test-button warn" onclick="testScenario('0.5.0')">Test: Wersja 0.5.0</button>
+            <div id="scenario2-result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Najnowsza Wersja</h3>
+            <p>Symuluje sytuację gdy aplikacja ma już najnowszą wersję.</p>
+            <button class="test-button" onclick="testScenario('1.0.0')">Test: Wersja 1.0.0</button>
+            <div id="scenario3-result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 4: Przyszła Wersja</h3>
+            <p>Symuluje sytuację gdy aplikacja ma nowszą wersję niż serwer (test deweloperski).</p>
+            <button class="test-button" onclick="testScenario('1.5.0')">Test: Wersja 1.5.0</button>
+            <div id="scenario4-result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 5: Nieprawidłowa Wersja</h3>
+            <p>Symuluje błędny format wersji.</p>
+            <button class="test-button danger" onclick="testScenario('invalid')">Test: Wersja "invalid"</button>
+            <div id="scenario5-result" class="result"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>⚙️ Test Konfiguracji Mobilnej</h2>
+        <div class="test-section">
+            <h3>Aktualizacja Konfiguracji APP_VERSION_INFO</h3>
+            <div class="input-group">
+                <label>Nowa Wersja:</label>
+                <input type="text" id="new-version" value="1.1.0" placeholder="np. 1.1.0">
+            </div>
+            <div class="input-group">
+                <label>Min. Wersja:</label>
+                <input type="text" id="min-version" value="1.0.0" placeholder="np. 1.0.0">
+            </div>
+            <div class="input-group">
+                <label>Wiadomość:</label>
+                <input type="text" id="update-message" value="Nowa aktualizacja z ulepszeniami!" placeholder="Wiadomość o aktualizacji">
+            </div>
+            <button class="test-button warn" onclick="updateConfig()">Aktualizuj Konfigurację (OSTROŻNIE!)</button>
+            <div id="config-result" class="result"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📊 Status Serwera</h2>
+        <div class="test-section">
+            <button class="test-button" onclick="checkServerStatus()">Sprawdź Status Serwera</button>
+            <div id="server-status" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8000';
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = `[${timestamp}] `;
+            console.log(prefix + message);
+            return `<span class="${type}">${prefix}${message}</span>\n`;
+        }
+
+        function displayResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = log(content, type);
+        }
+
+        function appendResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML += log(content, type);
+        }
+
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(`${BASE_URL}${endpoint}`, options);
+                const result = await response.json();
+                
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    data: result
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        async function getVersionInfo() {
+            displayResult('version-result', 'Pobieranie informacji o wersji...');
+            
+            const result = await apiCall('/app-version');
+            
+            if (result.success) {
+                const data = result.data;
+                let output = 'INFORMACJE O WERSJI:\n';
+                output += `📱 Aktualna wersja: ${data.version_info.current_version}\n`;
+                output += `🔒 Minimalna wersja: ${data.version_info.minimum_version}\n`;
+                output += `📅 Czas serwera: ${data.server_time}\n`;
+                output += `⚙️ Wersja konfiguracji: ${data.config_version}\n`;
+                output += `\n📝 Pełne dane:\n${JSON.stringify(data, null, 2)}`;
+                
+                displayResult('version-result', output, 'success');
+            } else {
+                displayResult('version-result', `❌ Błąd: ${result.error || result.data}`, 'error');
+            }
+        }
+
+        async function checkUpdate() {
+            const clientVersion = document.getElementById('client-version').value;
+            displayResult('update-check-result', `Sprawdzanie aktualizacji dla wersji: ${clientVersion}...`);
+            
+            const result = await apiCall('/app-version/check', 'POST', {
+                current_version: clientVersion
+            });
+            
+            if (result.success) {
+                const data = result.data;
+                let output = 'WYNIK SPRAWDZENIA AKTUALIZACJI:\n';
+                output += `📱 Wersja klienta: ${data.client_version}\n`;
+                output += `🆕 Najnowsza wersja: ${data.latest_version}\n`;
+                output += `📊 Aktualizacja dostępna: ${data.update_available ? '✅ TAK' : '❌ NIE'}\n`;
+                output += `⚠️ Aktualizacja wymagana: ${data.update_required ? '🔴 TAK' : '🟢 NIE'}\n`;
+                
+                if (data.update_available) {
+                    output += `\n📝 Wiadomość: ${data.update_message}\n`;
+                    output += `🔗 Link do Play Store: ${data.play_store_url}\n`;
+                    output += `✨ Nowe funkcje:\n`;
+                    data.features.forEach(feature => {
+                        output += `  • ${feature}\n`;
+                    });
+                }
+                
+                output += `\n🕐 Timestamp: ${data.timestamp}`;
+                output += `\n\n📝 Pełne dane:\n${JSON.stringify(data, null, 2)}`;
+                
+                const type = data.update_required ? 'error' : (data.update_available ? 'warning' : 'success');
+                displayResult('update-check-result', output, type);
+            } else {
+                displayResult('update-check-result', `❌ Błąd: ${result.error || JSON.stringify(result.data)}`, 'error');
+            }
+        }
+
+        async function testScenario(version) {
+            const scenarioMap = {
+                '0.9.0': 'scenario1',
+                '0.5.0': 'scenario2', 
+                '1.0.0': 'scenario3',
+                '1.5.0': 'scenario4',
+                'invalid': 'scenario5'
+            };
+            
+            const resultId = scenarioMap[version] + '-result';
+            displayResult(resultId, `🧪 Testowanie scenariusza z wersją: ${version}...`);
+            
+            const result = await apiCall('/app-version/check', 'POST', {
+                current_version: version
+            });
+            
+            if (result.success) {
+                const data = result.data;
+                let output = `SCENARIUSZ - WERSJA ${version}:\n`;
+                
+                if (data.update_required) {
+                    output += `🔴 AKTUALIZACJA WYMAGANA!\n`;
+                    output += `⚠️ Aplikacja musi być zaktualizowana do wersji ${data.latest_version}\n`;
+                } else if (data.update_available) {
+                    output += `🟡 AKTUALIZACJA DOSTĘPNA\n`;
+                    output += `📱 Można zaktualizować z ${data.client_version} do ${data.latest_version}\n`;
+                } else {
+                    output += `🟢 NAJNOWSZA WERSJA\n`;
+                    output += `✅ Aplikacja jest aktualna\n`;
+                }
+                
+                if (data.update_message) {
+                    output += `💬 ${data.update_message}\n`;
+                }
+                
+                output += `\n📊 Szczegóły:\n${JSON.stringify(data, null, 2)}`;
+                
+                const type = data.update_required ? 'error' : (data.update_available ? 'warning' : 'success');
+                displayResult(resultId, output, type);
+            } else {
+                displayResult(resultId, `❌ Błąd scenariusza: ${result.error || JSON.stringify(result.data)}`, 'error');
+            }
+        }
+
+        async function updateConfig() {
+            const newVersion = document.getElementById('new-version').value;
+            const minVersion = document.getElementById('min-version').value;
+            const updateMessage = document.getElementById('update-message').value;
+            
+            displayResult('config-result', '⚠️ UWAGA: Ta operacja modyfikuje config.py na serwerze!');
+            appendResult('config-result', `Aktualizacja konfiguracji: ${newVersion}...`, 'warning');
+            
+            const configData = {
+                APP_VERSION_INFO: {
+                    current_version: newVersion,
+                    minimum_version: minVersion,
+                    update_required: false,
+                    update_message: updateMessage,
+                    play_store_url: "https://play.google.com/store/apps/details?id=com.example.lista_obecnosci",
+                    update_features: [
+                        "Zaktualizowane funkcje",
+                        "Nowe ulepszenia",
+                        "Poprawki błędów"
+                    ]
+                }
+            };
+            
+            const result = await apiCall('/mobile-config', 'POST', configData);
+            
+            if (result.success) {
+                appendResult('config-result', `✅ Konfiguracja została zaktualizowana!`, 'success');
+                appendResult('config-result', `📝 Odpowiedź: ${JSON.stringify(result.data, null, 2)}`, 'info');
+                appendResult('config-result', `🔄 Odśwież stronę aby zobaczyć nowe wartości`, 'warning');
+            } else {
+                appendResult('config-result', `❌ Błąd aktualizacji: ${result.error || JSON.stringify(result.data)}`, 'error');
+            }
+        }
+
+        async function checkServerStatus() {
+            displayResult('server-status', 'Sprawdzanie statusu serwera...');
+            
+            // Test podstawowego endpointu
+            const statusResult = await apiCall('/');
+            
+            if (statusResult.success) {
+                appendResult('server-status', '✅ Serwer działa poprawnie', 'success');
+                
+                // Test endpointów aktualizacji
+                const versionResult = await apiCall('/app-version');
+                if (versionResult.success) {
+                    appendResult('server-status', '✅ Endpoint /app-version działa', 'success');
+                } else {
+                    appendResult('server-status', '❌ Endpoint /app-version nie działa', 'error');
+                }
+                
+                // Test sprawdzania wersji
+                const checkResult = await apiCall('/app-version/check', 'POST', {current_version: '1.0.0'});
+                if (checkResult.success) {
+                    appendResult('server-status', '✅ Endpoint /app-version/check działa', 'success');
+                } else {
+                    appendResult('server-status', '❌ Endpoint /app-version/check nie działa', 'error');
+                }
+                
+                appendResult('server-status', '🎯 Wszystkie testy zakończone', 'info');
+                
+            } else {
+                displayResult('server-status', `❌ Serwer nie odpowiada: ${statusResult.error}`, 'error');
+            }
+        }
+
+        // Auto-test przy ładowaniu strony
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔄 Strona testowa modułu aktualizacji załadowana');
+            displayResult('server-status', 'Strona gotowa do testowania. Kliknij "Sprawdź Status Serwera" aby rozpocząć.', 'info');
+        });
+    </script>
+</body>
+</html>

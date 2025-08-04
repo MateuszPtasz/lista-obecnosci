@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Monitor Dostępu PIN - Lista Obecności</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .pin-monitor-container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .pin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .pin-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .pin-stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .pin-stat-number {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .pin-stat-label {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    .pin-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .pin-table th,
+    .pin-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    .pin-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+      position: sticky;
+      top: 0;
+    }
+
+    .pin-table tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75em;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-correct {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-incorrect {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-granted {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .status-denied {
+      background: #f5c6cb;
+      color: #721c24;
+    }
+
+    .refresh-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .refresh-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #6c757d;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #6c757d;
+      font-style: italic;
+    }
+
+    .search-box {
+      width: 300px;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .filter-controls {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .pin-attempt {
+      font-family: monospace;
+      background: #f8f9fa;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html"><i class="fas fa-users"></i> Zespół</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecności -->
+          <div id="submenuPanel">
+            <a href="attendance_day.html">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showSecuritySubmenu">
+            <i class="fas fa-shield-alt"></i> 
+            Bezpieczeństwo 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu bezpieczeństwa -->
+          <div id="securitySubmenuPanel">
+            <a href="device_security.html">
+              <i class="fas fa-mobile-alt"></i> Urządzenia
+            </a>
+            <a href="pin_access_monitor.html" class="active">
+              <i class="fas fa-key"></i> Dostęp PIN
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+          </div>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <main class="content">
+      <div class="pin-monitor-container">
+        <div class="pin-header">
+          <h1><i class="fas fa-key"></i> Monitor Dostępu PIN</h1>
+          <button class="refresh-btn" onclick="loadPinLogs()">
+            <i class="fas fa-sync-alt"></i> Odśwież
+          </button>
+        </div>
+
+        <!-- Statystyki -->
+        <div class="pin-stats" id="pinStats">
+          <div class="pin-stat-card">
+            <div class="pin-stat-number" id="totalAttempts">-</div>
+            <div class="pin-stat-label">Próby dostępu</div>
+          </div>
+          <div class="pin-stat-card">
+            <div class="pin-stat-number" id="correctPins">-</div>
+            <div class="pin-stat-label">Poprawne PINy</div>
+          </div>
+          <div class="pin-stat-card">
+            <div class="pin-stat-number" id="accessGranted">-</div>
+            <div class="pin-stat-label">Dostęp udzielony</div>
+          </div>
+          <div class="pin-stat-card">
+            <div class="pin-stat-number" id="uniqueUsers">-</div>
+            <div class="pin-stat-label">Unikalnych użytkowników</div>
+          </div>
+        </div>
+
+        <!-- Filtry -->
+        <div class="filter-controls">
+          <input type="text" class="search-box" id="searchInput" placeholder="Szukaj po ID pracownika...">
+          <select id="statusFilter" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd;">
+            <option value="">Wszystkie statusy</option>
+            <option value="correct">Poprawny PIN</option>
+            <option value="incorrect">Niepoprawny PIN</option>
+            <option value="granted">Dostęp udzielony</option>
+            <option value="denied">Dostęp odmówiony</option>
+          </select>
+        </div>
+
+        <!-- Tabela logów -->
+        <div id="pinLogsContainer">
+          <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Ładowanie logów PIN...
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="sidebar.js"></script>
+  <script>
+    let pinLogsData = [];
+
+    function loadPinLogs() {
+      const container = document.getElementById('pinLogsContainer');
+      container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Ładowanie logów PIN...</div>';
+
+      // Określ URL w zależności od hosta
+      let apiUrl;
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        apiUrl = `http://${window.location.hostname}:8000/pin_access_logs`;
+      } else {
+        apiUrl = `/pin_access_logs`;
+      }
+
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            pinLogsData = data.logs;
+            updatePinStats();
+            displayPinLogs(pinLogsData);
+          } else {
+            container.innerHTML = `<div class="no-data">Błąd: ${data.error}</div>`;
+          }
+        })
+        .catch(error => {
+          console.error('Błąd ładowania logów PIN:', error);
+          container.innerHTML = '<div class="no-data">Błąd połączenia z serwerem</div>';
+        });
+    }
+
+    function updatePinStats() {
+      const totalAttempts = pinLogsData.length;
+      const correctPins = pinLogsData.filter(log => log.pin_correct).length;
+      const accessGranted = pinLogsData.filter(log => log.access_granted).length;
+      const uniqueUsers = new Set(pinLogsData.map(log => log.worker_id)).size;
+
+      document.getElementById('totalAttempts').textContent = totalAttempts;
+      document.getElementById('correctPins').textContent = correctPins;
+      document.getElementById('accessGranted').textContent = accessGranted;
+      document.getElementById('uniqueUsers').textContent = uniqueUsers;
+    }
+
+    function displayPinLogs(logs) {
+      const container = document.getElementById('pinLogsContainer');
+      
+      if (logs.length === 0) {
+        container.innerHTML = '<div class="no-data">Brak logów PIN</div>';
+        return;
+      }
+
+      let html = `
+        <table class="pin-table">
+          <thead>
+            <tr>
+              <th>Data/Czas</th>
+              <th>ID Pracownika</th>
+              <th>Urządzenie</th>
+              <th>PIN</th>
+              <th>Status PIN</th>
+              <th>Dostęp</th>
+              <th>Lokalizacja</th>
+              <th>Model/OS</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      logs.forEach(log => {
+        const pinStatus = log.pin_correct 
+          ? '<span class="status-badge status-correct">Poprawny</span>'
+          : '<span class="status-badge status-incorrect">Błędny</span>';
+        
+        const accessStatus = log.access_granted
+          ? '<span class="status-badge status-granted">Udzielony</span>'
+          : '<span class="status-badge status-denied">Odmówiony</span>';
+
+        const locationLink = log.location && log.location !== '' 
+          ? `<a href="https://maps.google.com/?q=${log.location}" target="_blank">${log.location}</a>`
+          : '-';
+
+        html += `
+          <tr>
+            <td>${log.created_at}</td>
+            <td><strong>${log.worker_id}</strong></td>
+            <td><small>${log.device_id}</small></td>
+            <td><span class="pin-attempt">${log.pin_entered}</span></td>
+            <td>${pinStatus}</td>
+            <td>${accessStatus}</td>
+            <td>${locationLink}</td>
+            <td><small>${log.device_model || '-'}<br>${log.os_version || '-'}</small></td>
+          </tr>
+        `;
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function filterLogs() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const statusFilter = document.getElementById('statusFilter').value;
+
+      let filteredLogs = pinLogsData.filter(log => {
+        const matchesSearch = log.worker_id.toLowerCase().includes(searchTerm) ||
+                             log.device_id.toLowerCase().includes(searchTerm);
+        
+        let matchesStatus = true;
+        if (statusFilter === 'correct') matchesStatus = log.pin_correct;
+        else if (statusFilter === 'incorrect') matchesStatus = !log.pin_correct;
+        else if (statusFilter === 'granted') matchesStatus = log.access_granted;
+        else if (statusFilter === 'denied') matchesStatus = !log.access_granted;
+
+        return matchesSearch && matchesStatus;
+      });
+
+      displayPinLogs(filteredLogs);
+    }
+
+    // Event listeners
+    document.getElementById('searchInput').addEventListener('input', filterLogs);
+    document.getElementById('statusFilter').addEventListener('change', filterLogs);
+
+    // Auto-refresh co 30 sekund
+    setInterval(loadPinLogs, 30000);
+
+    // Załaduj dane przy starcie
+    loadPinLogs();
+
+    // Dodaj submenu bezpieczeństwa
+    document.getElementById('showSecuritySubmenu').addEventListener('click', function(e) {
+      e.preventDefault();
+      const submenu = document.getElementById('securitySubmenuPanel');
+      const icon = this.querySelector('.fa-chevron-right');
+      
+      if (submenu.style.display === 'block') {
+        submenu.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+      } else {
+        // Ukryj inne submenus
+        document.getElementById('submenuPanel').style.display = 'none';
+        document.querySelector('#showSubmenu .fa-chevron-right').style.transform = 'rotate(0deg)';
+        
+        submenu.style.display = 'block';
+        icon.style.transform = 'rotate(90deg)';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Szczegóły pracownika - Lista Obecności</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Si    async function deleteLog(logId) {
+      if(!confirm('Czy na pewno chcesz usunąć ten wpis?')) return;
+      
+      // Użyj uniwersalnej funkcji do budowania URL API
+      let apiUrl = getApiUrl(`/logs/${logId}`);
+      
+      const res = await fetch(apiUrl, { method: 'DELETE' });
+      if (res.ok) {
+        alert("Usunięto wpis");
+        location.reload();
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        alert(`Błąd podczas usuwania: ${errorData.detail || res.statusText}`);
+      }
+    }
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html"><i class="fas fa-users"></i> Zespół</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecności -->
+          <div id="submenuPanel">
+            <a href="attendance_day.html">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+            <a href="#" onclick="alert('Funkcja w przygotowaniu')">
+              <i class="fas fa-code-branch"></i> Zarządzanie wersji mobilnej
+            </a>
+          </div>
+        </li>
+      </ul>
+      
+      <!-- Kalendarz w sidebarze -->
+      <div class="sidebar-widget mt-4" id="calendarWidget">
+        <h3 class="widget-title" id="calendarTitle">
+          <i class="fas fa-calendar-alt"></i>
+          Kalendarz
+          <i class="fas fa-expand-alt expand-icon"></i>
+        </h3>
+        <div id="calendar" class="calendar-widget"></div>
+      </div>
+    </aside>
+
+    <!-- Overlay dla rozszerzonego kalendarza -->
+    <div class="calendar-overlay" id="calendarOverlay"></div>
+
+    <!-- Main content -->
+    <main class="content">
+      <div class="card">
+        <div class="card-header">
+          <button onclick="goBack()" class="btn btn-secondary mb-3">
+            <i class="fas fa-arrow-left"></i>
+            Wstecz
+          </button>
+          <h1 class="card-title">
+            <i class="fas fa-user-circle text-primary"></i>
+            <span id="workerNameTitle">Szczegóły pracownika</span>
+          </h1>
+          <p class="card-subtitle">Szczegółowe informacje o czasie pracy i obecności</p>
+        <div class="card-body">
+          <!-- Informacje o pracowniku -->
+          <div id="profileBox" class="alert alert-info mb-4">
+            <div id="profileDesc" style="font-size: 1.1em;"></div>
+          </div>
+          
+          <div id="workerDetailsBox" class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <div>
+                <h2 id="workerName" class="card-title mb-2"></h2>
+                <div id="workerDetails"></div>
+              </div>
+              <a id="editProfileBtn" href="#" title="Edytuj ustawienia" class="btn btn-outline-primary">
+                <i class="fas fa-cog"></i>
+                Edytuj
+              </a>
+            </div>
+          </div>
+          
+          <div id="summaryPanel" class="mb-4"></div>
+          
+          <!-- Dodaj nowy dzień pracy -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-plus text-success"></i>
+                Dodaj nowy dzień pracy
+              </h3>
+            </div>
+            <div class="card-body">
+              <form id="add-log-form" class="form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="new-date" class="form-label">Data:</label>
+                    <input type="date" id="new-date" class="form-control" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="new-start" class="form-label">Początek:</label>
+                    <input type="time" id="new-start" class="form-control" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="new-stop" class="form-label">Koniec:</label>
+                    <input type="time" id="new-stop" class="form-control" required />
+                  </div>
+                  <div class="form-group">
+                    <button type="submit" class="btn btn-success">
+                      <i class="fas fa-plus"></i>
+                      Dodaj
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          
+          <!-- Hurtowa edycja -->
+          <div id="bulkEditPanel" class="card mb-4" style="display:none;">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-edit text-warning"></i>
+                Hurtowa edycja zaznaczonych
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="bulkStart" class="form-label">Nowa godzina wejścia:</label>
+                  <input type="time" id="bulkStart" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label for="bulkStop" class="form-label">Nowa godzina wyjścia:</label>
+                  <input type="time" id="bulkStop" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label for="bulkType" class="form-label">Typ dnia:</label>
+                  <select id="bulkType" class="form-control">
+                    <option value="zwykly">Zwykły dzień</option>
+                    <option value="urlop">Urlop</option>
+                    <option value="chorobowe">Chorobowe</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <button id="bulkEditBtn" class="btn btn-warning">
+                    <i class="fas fa-check"></i>
+                    Zatwierdź zmiany
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Akcje grupowe -->
+          <div id="groupActions" class="mb-3" style="display:none;">
+            <button id="deleteSelectedSick" class="btn btn-danger">
+              <i class="fas fa-trash"></i>
+              Usuń zaznaczone chorobowe
+            </button>
+          </div>
+          
+          <!-- Panel eksportu -->
+          <div id="exportPanel" class="mb-4">
+            <div class="form-row">
+              <button id="exportExcelBtn" class="btn btn-success">
+                <i class="fas fa-file-excel"></i>
+                Export do Excel
+              </button>
+              <button id="exportPdfBtn" class="btn btn-danger">
+                <i class="fas fa-file-pdf"></i>
+                Export do PDF
+              </button>
+              <button id="printBtn" class="btn btn-info">
+                <i class="fas fa-print"></i>
+                Drukuj
+              </button>
+            </div>
+          </div>
+          
+          <!-- Tabela szczegółów -->
+          <div id="detailsTable"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="sidebar.js"></script>
+  <script>
+    // Funkcja do tworzenia API URL z fallback'ami dla Firefox
+    function getApiUrl(endpoint) {
+      const currentUrl = window.location;
+      
+      // Sprawdź czy endpoint zaczyna się od /api/
+      if (!endpoint.startsWith('/api/') && !endpoint.startsWith('/employees_without_logs')) {
+        // Dodaj prefiks /api/ jeśli go nie ma
+        endpoint = `/api${endpoint}`;
+      }
+      
+      // Firefox fallback: sprawdź czy jesteśmy na localhost z portem
+      if (currentUrl.hostname === 'localhost' || currentUrl.hostname === '127.0.0.1') {
+        return `http://${currentUrl.hostname}:8000${endpoint}`;
+      } else if (currentUrl.port && currentUrl.port !== '80' && currentUrl.port !== '443') {
+        return `http://${currentUrl.hostname}:${currentUrl.port}${endpoint}`;
+      } else {
+        // Fallback dla względnych URL
+        return endpoint;
+      }
+    }
+
+    function goBack() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('start') && params.has('end')) {
+        sessionStorage.setItem('attendance_summary_last', JSON.stringify({start: params.get('start'), end: params.get('end')}));
+        window.location.href = `attendance_summary.html?start=${params.get('start')}&end=${params.get('end')}`;
+      } else {
+        window.history.back();
+      }
+    }
+    
+    // Po załadowaniu strony, jeśli są parametry start/end, zapisz do sessionStorage
+    (function(){
+      const params = new URLSearchParams(window.location.search);
+      if(params.has('start') && params.has('end')){
+        sessionStorage.setItem('attendance_summary_last', JSON.stringify({start: params.get('start'), end: params.get('end')}));
+      }
+    })();
+    
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+    
+    // Obsługa formularza dodawania dnia pracy
+    const addLogForm = document.getElementById('add-log-form');
+    if(addLogForm) {
+      addLogForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const date = document.getElementById('new-date').value;
+        const startTime = document.getElementById('new-start').value;
+        const stopTime = document.getElementById('new-stop').value;
+        const workerId = new URLSearchParams(window.location.search).get('worker_id');
+        const startDateTime = `${date}T${startTime}:00`;
+        const stopDateTime = `${date}T${stopTime}:00`;
+        
+        await fetch(getApiUrl('/logs'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            worker_id: workerId,
+            start_time: startDateTime,
+            stop_time: stopDateTime,
+            start_lat: 0.0,
+            start_lon: 0.0,
+            stop_lat: 0.0,
+            stop_lon: 0.0,
+          })
+        });
+        location.reload();
+      });
+    }
+    
+    const workerId = getParam('worker_id');
+    const editBtn = document.getElementById('editProfileBtn');
+    if(editBtn && workerId){
+      editBtn.href = `employee_edit.html?id=${workerId}`;
+    }
+    
+    const start = getParam('start');
+    const end = getParam('end');
+    
+    // Jeśli nie ma parametrów dat, używamy bieżącego miesiąca
+    const today = new Date();
+    const startDate = start || `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const endDate = end || `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${lastDayOfMonth}`;
+    
+    console.log(`Pobieranie danych dla pracownika ${workerId} za okres ${startDate} do ${endDate}`);
+    
+    fetch(getApiUrl(`/api/attendance_details?worker_id=${workerId}&date_from=${startDate}&date_to=${endDate}`))
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        // Nowy format: data.logs (tablica), data.summary (obiekt)
+        const logs = data.logs || [];
+        const sum = data.summary || null;
+        if (!logs.length) {
+          document.getElementById('detailsTable').innerHTML = '<p>Brak danych dla wybranego okresu.</p>';
+          document.getElementById('summaryPanel').innerHTML = '';
+          return;
+        }
+        document.getElementById('workerName').innerText = `Szczegóły: ${logs[0].name || ''}`;
+        // Poprawione renderowanie tabeli z lepszą strukturą i stylami
+        let html = `
+          <style>
+            .employee-table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            .employee-table th, .employee-table td {
+              padding: 8px;
+              text-align: left;
+              border-bottom: 1px solid #ddd;
+            }
+            .employee-table th {
+              background-color: #f2f2f2;
+            }
+            .employee-table input[type="time"], .employee-table select {
+              width: 100%;
+              padding: 4px;
+              box-sizing: border-box;
+            }
+            .employee-table .action-buttons button {
+              margin: 2px;
+              padding: 4px 8px;
+            }
+            .typ-nieobecny {
+              color: #dc3545;
+              font-weight: bold;
+            }
+            .typ-obecny {
+              color: #28a745;
+              font-weight: bold;
+            }
+          </style>
+          <table class='employee-table'>
+            <thead>
+              <tr>
+                <th><input type='checkbox' id='selectAll' /></th>
+                <th>Data</th>
+                <th>Wejście</th>
+                <th>Wyjście</th>
+                <th>Czas pracy</th>
+                <th>Status</th>
+                <th>Kwota</th>
+                <th>Rodzaj dnia</th>
+                <th>Lokalizacja wejścia</th>
+                <th>Lokalizacja wyjścia</th>
+                <th>Manualny</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        logs.forEach(item => {
+          const dayOfWeek = new Date(item.date).toLocaleDateString('pl-PL', { weekday: 'long' });
+          // Określenie typu dnia z klasy CSS dla lepszej widoczności
+          const typDnia = item.typ || '';
+          const typDniaClass = typDnia === 'Nieobecny' ? 'typ-nieobecny' : 'typ-obecny';
+          const kwota = (item.kwota !== undefined && item.kwota !== null) ? item.kwota.toFixed(2) + ' zł' : '-';
+          const wejscie = (item.start_lat && item.start_lon) ? `<a href='https://maps.google.com/?q=${item.start_lat},${item.start_lon}' target='_blank'>${item.start_lat},${item.start_lon}</a>` : '-';
+          const wyjscie = (item.stop_lat && item.stop_lon) ? `<a href='https://maps.google.com/?q=${item.stop_lat},${item.stop_lon}' target='_blank'>${item.stop_lat},${item.stop_lon}</a>` : '-';
+          const manualny = (!item.start_lat && !item.start_lon && !item.stop_lat && !item.stop_lon) || (item.start === '08:00' && item.stop === '16:00') ? '✔️' : '';
+          
+          // Ustawienie rodzaju dnia
+          let rodzajDnia = 'zwykly';
+          if(item.is_holiday === 'tak') rodzajDnia = 'urlop';
+          else if(item.is_sick === 'tak') rodzajDnia = 'chorobowe';
+          
+          // Dodanie obecny/nieobecny do wyboru rodzaju dnia
+          let obecnyStatus = typDnia === 'Nieobecny' ? 'nieobecny' : 'obecny';
+          
+          html += `
+            <tr data-isHoliday="${item.is_holiday}" data-isSick="${item.is_sick}" data-logId="${item.log_id}" data-status="${obecnyStatus}">
+              <td><input type='checkbox' class='rowSelect' data-logid='${item.log_id}' data-rodzaj='${rodzajDnia}' /></td>
+              <td data-date="${item.date}">${item.date} <span style='color:#888;font-size:0.95em;'>(${dayOfWeek})</span></td>
+              <td><input type="time" value="${item.start.slice(0,5)}" id="start-${item.log_id}" ${obecnyStatus === 'nieobecny' ? 'disabled' : ''} /></td>
+              <td><input type="time" value="${item.stop.slice(0,5)}" id="stop-${item.log_id}" ${obecnyStatus === 'nieobecny' ? 'disabled' : ''} /></td>
+              <td>${item.duration}</td>
+              <td class="${typDniaClass}">${typDnia}</td>
+              <td>${kwota}</td>
+              <td>
+                <select id="rodzaj-${item.log_id}" onchange="handleRodzajChange(${item.log_id}, this.value)">
+                  <option value="obecny" ${obecnyStatus === 'obecny' ? 'selected' : ''}>Obecny</option>
+                  <option value="nieobecny" ${obecnyStatus === 'nieobecny' ? 'selected' : ''}>Nieobecny</option>
+                  <option value="urlop" ${rodzajDnia === 'urlop' ? 'selected' : ''}>Urlop</option>
+                  <option value="chorobowe" ${rodzajDnia === 'chorobowe' ? 'selected' : ''}>Chorobowe</option>
+                </select>
+              </td>
+            <td>${wejscie}</td>
+            <td>${wyjscie}</td>
+            <td>${manualny}</td>
+            <td class='action-buttons'>
+              <button onclick="saveEdit(${item.log_id})">💾 Zapisz</button>
+              <button class="delete" onclick="deleteLog(${item.log_id})">❌ Usuń</button>
+            </td>
+          </tr>`;
+        });
+        html += "</tbody></table>";
+        document.getElementById('detailsTable').innerHTML = html;
+        attachExportHandlers();
+        // Obsługa zaznaczania wszystkich
+        document.getElementById('selectAll').addEventListener('change', function(){
+          document.querySelectorAll('.rowSelect').forEach(cb => cb.checked = this.checked);
+          showGroupActions();
+        });
+        document.querySelectorAll('.rowSelect').forEach(cb => {
+          cb.addEventListener('change', showGroupActions);
+        });
+        function showGroupActions() {
+          const anyChecked = Array.from(document.querySelectorAll('.rowSelect')).some(cb => cb.checked);
+          document.getElementById('groupActions').style.display = anyChecked ? 'block' : 'none';
+          document.getElementById('bulkEditPanel').style.display = anyChecked ? 'block' : 'none';
+        }
+        // Podsumowanie na dole w formie tabeli z tooltipami
+        if(sum) {
+          let godzinySoboty = 0, godzinyNiedziele = 0, godzinySwieta = 0, godzinyZwykle = 0;
+          logs.forEach(item => {
+            const d = new Date(item.date);
+            const duration = parseFloat(item.duration);
+            if (window.PL_HOLIDAYS && window.PL_HOLIDAYS.includes(item.date)) godzinySwieta += duration;
+            else if (d.getDay() === 0) godzinyNiedziele += duration;
+            else if (d.getDay() === 6) godzinySoboty += duration;
+            else godzinyZwykle += duration;
+          });
+          document.getElementById('summaryPanel').innerHTML = `<div class='summary-box'>
+            <h3>Podsumowanie za okres</h3>
+            <table class='summary-table' style='max-width:700px;background:#fff;border-radius:10px;box-shadow:0 2px 8px #0001;border-collapse:collapse;overflow:hidden;'>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;width:40%;font-weight:600;' title='Liczba wszystkich dni pracy w wybranym okresie'>Liczba dni <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Liczba wszystkich dni pracy w wybranym okresie'>${sum.dni}</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Suma wszystkich godzin pracy w wybranym okresie'>Godzin <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Suma wszystkich godzin pracy w wybranym okresie'>${sum.godziny.toFixed(2)}</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Liczba sobót, suma godzin i kwota za soboty w okresie'>Soboty <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Liczba sobót, suma godzin i kwota za soboty w okresie'>${sum.soboty} &mdash; ${godzinySoboty.toFixed(2)}h &mdash; ${sum.kwota_soboty.toFixed(2)} zł</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Liczba niedziel, suma godzin i kwota za niedziele w okresie'>Niedziele <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Liczba niedziel, suma godzin i kwota za niedziele w okresie'>${sum.niedziele} &mdash; ${godzinyNiedziele.toFixed(2)}h &mdash; ${sum.kwota_niedziele.toFixed(2)} zł</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Liczba świąt, suma godzin i kwota za święta w okresie'>Święta <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Liczba świąt, suma godzin i kwota za święta w okresie'>${sum.swieta} &mdash; ${godzinySwieta.toFixed(2)}h &mdash; ${sum.kwota_swieta.toFixed(2)} zł</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Dni pracujące pon-pt, suma godzin i kwota za zwykłe dni'>Zwykłe dni <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Dni pracujące pon-pt, suma godzin i kwota za zwykłe dni'>${godzinyZwykle.toFixed(2)}h &mdash; ${sum.kwota_zwykle.toFixed(2)} zł</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Urlop: liczba dni i kwota'>Urlop <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Urlop: liczba dni i kwota'>${sum.urlop_dni} dni &mdash; ${sum.urlop_kwota.toFixed(2)} zł</td></tr>
+              <tr><th style='background:#f8f9fa;padding:12px 16px;border-bottom:1px solid #e9ecef;text-align:left;font-weight:600;' title='Chorobowe: liczba dni i kwota'>Chorobowe <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;border-bottom:1px solid #e9ecef;' title='Chorobowe: liczba dni i kwota'>${sum.chorobowe_dni} dni &mdash; ${sum.chorobowe_kwota.toFixed(2)} zł</td></tr>
+              <tr style='font-weight:bold;background:#e3f2fd;'><th style='background:#e3f2fd;padding:12px 16px;text-align:left;font-weight:700;font-size:1.1em;' title='Suma wszystkich kwot za okres'>SUMA <span class='tooltip-icon'>🛈</span></th><td style='padding:12px 16px;font-weight:700;font-size:1.1em;color:#1976d2;' title='Suma wszystkich kwot za okres'>${sum.kwota.toFixed(2)} zł</td></tr>
+            </table>
+            <div style='font-size:0.95em;color:#666;margin-top:8px;'>Wszystkie wartości dotyczą wybranego zakresu dat.</div>
+          </div>`;
+          // Dodaj styl CSS dla tooltipów
+          const style = document.createElement('style');
+          style.innerHTML = `.tooltip-icon { cursor: help; color: #0077cc; font-size: 1.1em; }
+.tooltip-table th[title], .tooltip-table td[title] { position: relative; }
+.tooltip-table th[title]:hover:after, .tooltip-table td[title]:hover:after {
+  content: attr(title);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #222;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 10;
+  font-size: 0.95em;
+  margin-left: 8px;
+}`;
+          document.head.appendChild(style);
+        } else {
+          document.getElementById('summaryPanel').innerHTML = '';
+        }
+        attachExportHandlers();
+      });
+    // sidebar obsługa
+    // Dodaj funkcje JS do PATCH i DELETE
+    function getRowDate(logId) {
+      // Poprawka: data jest w drugiej kolumnie (children[1])
+      return document.querySelector(`#start-${logId}`).closest('tr').children[1].dataset.date;
+    }
+    // Funkcja do obsługi zmiany rodzaju dnia
+    function handleRodzajChange(logId, value) {
+      const startInput = document.getElementById(`start-${logId}`);
+      const stopInput = document.getElementById(`stop-${logId}`);
+      const row = startInput.closest('tr');
+      
+      // Aktualizuj stan formularza w zależności od wyboru
+      if (value === 'nieobecny') {
+        startInput.disabled = true;
+        stopInput.disabled = true;
+        row.setAttribute('data-status', 'nieobecny');
+        row.querySelector('td:nth-child(6)').innerHTML = '<span class="typ-nieobecny">Nieobecny</span>';
+      } else {
+        startInput.disabled = false;
+        stopInput.disabled = false;
+        row.setAttribute('data-status', 'obecny');
+        row.querySelector('td:nth-child(6)').innerHTML = '<span class="typ-obecny">Obecny</span>';
+      }
+    }
+
+    async function saveEdit(logId) {
+      const start = document.getElementById(`start-${logId}`).value;
+      const stop = document.getElementById(`stop-${logId}`).value;
+      const rowDate = getRowDate(logId);
+      const startDateTime = `${rowDate}T${start}:00`;
+      const stopDateTime = `${rowDate}T${stop}:00`;
+      const rodzaj = document.getElementById(`rodzaj-${logId}`).value;
+      // Pobierz aktualne wartości z wiersza (data-*)
+      const tr = document.getElementById(`start-${logId}`).closest('tr');
+      let isHoliday = rodzaj === 'urlop' ? 'tak' : 'nie';
+      let isSick = rodzaj === 'chorobowe' ? 'tak' : (rodzaj === 'urlop' ? 'nie' : 'nie');
+      let isPresent = rodzaj !== 'nieobecny';
+      
+      // Payload zawsze zawiera godziny i typ dnia
+      let payload = {
+        start_time: startDateTime,
+        stop_time: stopDateTime,
+        is_holiday: isHoliday,
+        is_sick: isSick,
+        is_present: isPresent
+      };
+      // Użyj uniwersalnej funkcji do budowania URL API
+      let apiUrl = getApiUrl(`/logs/${logId}`);
+      
+      const res = await fetch(apiUrl, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (res.ok) {
+        alert("Zapisano zmiany");
+        location.reload();
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        alert(`Błąd zapisu: ${errorData.detail || res.statusText}`);
+      }
+    }
+    async function deleteLog(logId) {
+      if (!confirm("Na pewno chcesz usunąć ten wpis?")) return;
+      const res = await fetch(`/logs/${logId}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert("Usunięto wpis");
+        location.reload();
+      } else {
+        alert("Błąd usuwania");
+      }
+    }
+    // Przycisk usuwania zaznaczonych chorobowych
+    document.getElementById('deleteSelectedSick').onclick = async function(){
+      const selected = Array.from(document.querySelectorAll('.rowSelect:checked'));
+      const sickIds = selected.filter(cb => cb.dataset.rodzaj === 'chorobowe').map(cb => cb.dataset.logid);
+      if(sickIds.length === 0){ alert('Nie zaznaczono żadnych chorobowych!'); return; }
+      if(!confirm(`Na pewno usunąć ${sickIds.length} chorobowych?`)) return;
+      for(const id of sickIds){ await fetch(`/logs/${id}`, {method:'DELETE'}); }
+      location.reload();
+    };
+    // Przycisk hurtowej edycji
+    document.getElementById('bulkEditBtn').onclick = async function(){
+      const selected = Array.from(document.querySelectorAll('.rowSelect:checked'));
+      if(selected.length === 0){ alert('Zaznacz wiersze do edycji!'); return; }
+      const start = document.getElementById('bulkStart').value;
+      const stop = document.getElementById('bulkStop').value;
+      const typ = document.getElementById('bulkType').value;
+      for(const cb of selected){
+        const logId = cb.dataset.logid;
+        const row = cb.closest('tr');
+        const rowDate = row.children[1].dataset.date;
+        // Jeśli nie podano nowych godzin, pobierz z wiersza
+        let startVal = start ? start : document.getElementById(`start-${logId}`).value;
+        let stopVal = stop ? stop : document.getElementById(`stop-${logId}`).value;
+        let isHoliday = typ === 'urlop' ? 'tak' : 'nie';
+        let isSick = typ === 'chorobowe' ? 'tak' : (typ === 'urlop' ? 'nie' : 'nie');
+        let payload = {
+          start_time: `${rowDate}T${startVal}:00`,
+          stop_time: `${rowDate}T${stopVal}:00`,
+          is_holiday: isHoliday,
+          is_sick: isSick
+        };
+        await fetch(`/logs/${logId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+      alert('Zmieniono dane dla zaznaczonych!');
+      location.reload();
+    };
+    // Przekierowanie do ustawień pracownika
+    document.getElementById('goToSettings').onclick = function(){
+      const workerId = new URLSearchParams(window.location.search).get('worker_id');
+      window.location.href = `employee_edit.html?id=${workerId}`;
+    };
+    // Szczegóły pracownika na górze + opis + link do edycji
+    // Użyj już istniejącej zmiennej workerId
+    fetch(getApiUrl(`/worker/${workerId}`))
+      .then(res => res.json())
+      .then(data => {
+        // Opis pracownika
+        let desc = `<b>${data.first_name} ${data.last_name}</b> <span style='color:#888;'>ID: ${data.id}</span>`;
+        desc += `<div style='margin-top:8px;'>Stawka godzinowa: <b>${data.hourly_rate} zł</b></div>`;
+        desc += `<div style='margin-top:8px;'>Soboty: <b>${data.rate_saturday} zł</b>, niedziele: <b>${data.rate_sunday} zł</b></div>`;
+        desc += `<div style='margin-top:8px;'>Noc: <b>${data.rate_night} zł</b>, nadgodziny: <b>${data.rate_overtime} zł</b></div>`;
+        document.getElementById('profileDesc').innerHTML = desc;
+        document.getElementById('editProfileBtn').href = `employee_edit.html?id=${data.id}`;
+        // Szczegóły pracownika (panel poniżej)
+        let html = `<div style='font-size:1.1em;'><b>${data.first_name} ${data.last_name}</b> <span style='color:#888;'>ID: ${data.id}</span></div>`;
+        html += `<div style='margin-top:8px;'>Stawka godzinowa: <b>${data.hourly_rate} zł</b></div>`;
+        html += `<div style='margin-top:8px;'>Stawka sobota: <b>${data.rate_saturday} zł</b>, niedziela: <b>${data.rate_sunday} zł</b></div>`;
+        html += `<div style='margin-top:8px;'>Stawka noc: <b>${data.rate_night} zł</b>, nadgodziny: <b>${data.rate_overtime} zł</b></div>`;
+        document.getElementById('workerDetails').innerHTML = html;
+      });
+    // Kalendarz 3-miesięczny
+    let calendarMonth = (new Date()).getMonth();
+let calendarYear = (new Date()).getFullYear();
+function renderCalendar() {
+  const now = new Date();
+  const m = new Date(calendarYear, calendarMonth, 1);
+  let calHtml = `<div style='text-align:center;margin-bottom:8px;'>
+    <button id='calPrev' style='margin-right:12px;'>&lt;</button>
+    <span style='font-weight:bold;font-size:1.1em;'>${m.toLocaleString('pl-PL', {month:'long', year:'numeric'})}</span>
+    <button id='calNext' style='margin-left:12px;'>&gt;</button>
+  </div>`;
+  calHtml += `<table style='border-collapse:collapse;width:100%;background:#fff;border-radius:8px;'>`;
+  calHtml += `<tr>`;
+  ['Pn','Wt','Śr','Cz','Pt','So','Nd'].forEach(d => calHtml += `<th style='padding:4px;color:#0077cc;'>${d}</th>`);
+  calHtml += `</tr>`;
+  let firstDay = m.getDay();
+  if(firstDay===0) firstDay=7;
+  let daysInMonth = new Date(m.getFullYear(), m.getMonth()+1, 0).getDate();
+  let day = 1;
+  calHtml += `<tr>`;
+  for(let i=1;i<firstDay;i++) calHtml += `<td></td>`;
+  for(let i=firstDay;i<=7;i++){
+    let isToday = (day === now.getDate() && m.getMonth() === now.getMonth() && m.getFullYear() === now.getFullYear());
+    calHtml += `<td${isToday ? ' class="today"' : ''}>${day}</td>`; day++;
+  }
+  calHtml += `</tr>`;
+  while(day<=daysInMonth){
+    calHtml += `<tr>`;
+    for(let i=1;i<=7;i++){
+      let isToday = (day === now.getDate() && m.getMonth() === now.getMonth() && m.getFullYear() === now.getFullYear());
+      if(day<=daysInMonth) calHtml += `<td${isToday ? ' class="today"' : ''}>${day}</td>`;
+      else calHtml += `<td></td>`;
+      day++;
+    }
+    calHtml += `</tr>`;
+  }
+  calHtml += `</table>`;
+  document.getElementById('calendar').innerHTML = calHtml;
+  document.getElementById('calPrev').onclick = function(){
+    calendarMonth--;
+    if(calendarMonth<0){ calendarMonth=11; calendarYear--; }
+    renderCalendar();
+  };
+  document.getElementById('calNext').onclick = function(){
+    calendarMonth++;
+    if(calendarMonth>11){ calendarMonth=0; calendarYear++; }
+    renderCalendar();
+  };
+}
+renderCalendar();
+// Renderowanie kalendarza w sidebarze pod MENU
+function renderSidebarCalendar(targetId) {
+  const now = new Date();
+  const m = new Date(now.getFullYear(), now.getMonth(), 1);
+  let calHtml = `<table style='border-collapse:collapse;width:100%;background:#fff;border-radius:8px;'>`;
+  calHtml += `<tr>`;
+  ['Pn','Wt','Śr','Cz','Pt','So','Nd'].forEach(d => calHtml += `<th style='padding:4px;color:#0077cc;'>${d}</th>`);
+  calHtml += `</tr>`;
+  let firstDay = m.getDay();
+  if(firstDay===0) firstDay=7;
+  let daysInMonth = new Date(m.getFullYear(), m.getMonth()+1, 0).getDate();
+  let day = 1;
+  calHtml += `<tr>`;
+  for(let i=1;i<firstDay;i++) calHtml += `<td></td>`;
+  for(let i=firstDay;i<=7;i++){
+    let isToday = (day === now.getDate());
+    calHtml += `<td${isToday ? ' class="today"' : ''}>${day}</td>`; day++;
+  }
+  calHtml += `</tr>`;
+  while(day<=daysInMonth){
+    calHtml += `<tr>`;
+    for(let i=1;i<=7;i++){
+      let isToday = (day === now.getDate());
+      if(day<=daysInMonth) calHtml += `<td${isToday ? ' class="today"' : ''}>${day}</td>`;
+      else calHtml += `<td></td>`;
+      day++;
+    }
+    calHtml += `</tr>`;
+  }
+  calHtml += `</table>`;
+  document.getElementById(targetId).innerHTML = calHtml;
+}
+renderSidebarCalendar('calendar');
+// Export do CSV
+function exportTableToCSV(tableId, filename = '') {
+    var tableSelect = document.querySelector('#detailsTable table');
+    if(!tableSelect){ alert('Brak danych do eksportu!'); return; }
+    var rows = Array.from(tableSelect.rows);
+    var csv = rows.map(row =>
+        Array.from(row.cells).map(cell => '"' + cell.innerText.replace(/"/g, '""') + '"').join(',')
+    ).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    var url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename ? filename + '.csv' : 'dane.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+// Export do Excel
+function exportTableToPDF(tableId, filename = '') {
+    var tableSelect = document.querySelector('#detailsTable table');
+    if(!tableSelect){ alert('Brak danych do eksportu!'); return; }
+    
+    try {
+        // Sprawdź czy jsPDF jest dostępne
+        if (typeof window.jspdf === 'undefined') {
+            console.error('jsPDF nie została załadowana');
+            alert('Biblioteka PDF nie została załadowana. Eksportuję jako tekst...');
+            exportAsText(tableSelect, filename);
+            return;
+        }
+        
+        console.log('Rozpoczynam eksport PDF...');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        console.log('jsPDF utworzone pomyślnie');
+        
+        // Prostszy start - tylko podstawowe informacje
+        doc.setFontSize(16);
+        doc.text('EWIDENCJA CZASU PRACY', 20, 20);
+        
+        doc.setFontSize(12);
+        const workerName = document.querySelector('#profileDesc')?.innerText || 'Nieznany pracownik';
+        // Usuń polskie znaki dla testów
+        const cleanWorkerName = workerName.replace(/[ąćęłńóśźż]/g, function(match) {
+            const map = {'ą':'a','ć':'c','ę':'e','ł':'l','ń':'n','ó':'o','ś':'s','ź':'z','ż':'z'};
+            return map[match] || match;
+        });
+        
+        doc.text('Pracownik: ' + cleanWorkerName, 20, 35);
+        doc.text('Data eksportu: ' + new Date().toLocaleDateString(), 20, 45);
+        
+        console.log('Nagłówek dodany pomyślnie');
+        
+        // Uproszczona tabela
+        const rows = Array.from(tableSelect.rows);
+        if(rows.length > 1) {
+            doc.setFontSize(10);
+            let yPos = 60;
+            
+            // Tylko kilka pierwszych wierszy dla testów
+            const maxRows = Math.min(10, rows.length);
+            for(let i = 1; i < maxRows; i++) {
+                const cells = Array.from(rows[i].cells);
+                let xPos = 20;
+                
+                // Data
+                if(cells[1]) {
+                    doc.text(cells[1].innerText.substring(0,10), xPos, yPos);
+                    xPos += 40;
+                }
+                
+                // Czas pracy
+                if(cells[4]) {
+                    doc.text(cells[4].innerText, xPos, yPos);
+                    xPos += 40;
+                }
+                
+                // Kwota (usuń polskie znaki)
+                if(cells[6]) {
+                    const amount = cells[6].innerText.replace(/[ąćęłńóśźż]/g, function(match) {
+                        const map = {'ą':'a','ć':'c','ę':'e','ł':'l','ń':'n','ó':'o','ś':'s','ź':'z','ż':'z'};
+                        return map[match] || match;
+                    });
+                    doc.text(amount, xPos, yPos);
+                }
+                
+                yPos += 8;
+                if(yPos > 250) break; // Zatrzymaj się przed końcem strony
+            }
+        }
+        
+        console.log('Tabela dodana pomyślnie');
+        
+        // Zapisz PDF
+        doc.save((filename || 'ewidencja') + '.pdf');
+        console.log('PDF został wygenerowany pomyślnie');
+        
+    } catch(error) {
+        console.error('Szczegóły błędu eksportu PDF:', error);
+        console.error('Stack trace:', error.stack);
+        console.error('Typ błędu:', typeof error);
+        
+        // Fallback - eksport jako tekst
+        alert('Błąd eksportu PDF: ' + error.message + '. Eksportuję jako tekst...');
+        exportAsText(tableSelect, filename);
+    }
+}
+
+// Funkcja fallback dla eksportu tekstowego
+function exportAsText(tableSelect, filename) {
+    try {
+        var rows = Array.from(tableSelect.rows);
+        var content = '';
+        
+        content += 'EWIDENCJA CZASU PRACY\n\n';
+        content += 'Pracownik: ' + (document.querySelector('#profileDesc')?.innerText || 'Nieznany') + '\n';
+        content += 'Data eksportu: ' + new Date().toLocaleDateString('pl-PL') + '\n\n';
+        
+        if(rows.length > 0) {
+            var headers = Array.from(rows[0].cells).map(cell => cell.innerText).join('\t');
+            content += headers + '\n';
+            content += '-'.repeat(80) + '\n';
+            
+            for(var i=1; i<rows.length; i++) {
+                content += Array.from(rows[i].cells).map(cell => cell.innerText).join('\t') + '\n';
+            }
+        }
+        
+        var blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+        var link = document.createElement('a');
+        var url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', (filename || 'ewidencja') + '.txt');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch(fallbackError) {
+        console.error('Błąd fallback eksportu:', fallbackError);
+        alert('Nie można wyeksportować danych');
+    }
+}
+
+function exportTableToXLS(tableId, filename = '') {
+    var tableSelect = document.querySelector('#detailsTable table');
+    if(!tableSelect){ alert('Brak danych do eksportu!'); return; }
+    var rows = Array.from(tableSelect.rows);
+    // Dodaj nagłówki
+    var csv = '';
+    if(rows.length > 0) {
+        var headers = Array.from(rows[0].cells).map(cell => '"' + cell.innerText.replace(/"/g, '""') + '"').join(',');
+        csv += headers + '\n';
+        for(var i=1; i<rows.length; i++) {
+            csv += Array.from(rows[i].cells).map(cell => '"' + cell.innerText.replace(/"/g, '""') + '"').join(',') + '\n';
+        }
+    }
+    // Dodaj BOM dla polskich znaków
+    var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    var url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename ? filename + '.xls' : 'dane.xls');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+function attachExportHandlers() {
+  if(document.getElementById('exportExcelBtn')){
+    document.getElementById('exportExcelBtn').onclick = function(){
+      exportTableToXLS('detailsTable', 'obecnosc');
+    };
+  }
+  if(document.getElementById('exportPdfBtn')){
+    document.getElementById('exportPdfBtn').onclick = function(){
+      exportTableToPDF('detailsTable', 'obecnosc');
+    };
+  }
+  if(document.getElementById('printBtn')){
+    document.getElementById('printBtn').onclick = function(){
+      window.print();
+    };
+  }
+}
+attachExportHandlers();
+
+// Sprawdź dostępność biblioteki jsPDF
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    if (typeof window.jspdf === 'undefined') {
+      console.warn('jsPDF nie została załadowana. Eksport PDF będzie działał jako fallback tekstowy.');
+    } else {
+      console.log('jsPDF załadowana pomyślnie');
+    }
+  }, 1000);
+});
+  </script>
+</body>
+</html>

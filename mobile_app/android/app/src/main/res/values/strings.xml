@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lista Obecności</string>
+    <string name="widget_title">Lista Obecności</string>
+    <string name="widget_start">START</string>
+    <string name="widget_stop">STOP</string>
+    <string name="widget_status_offline">Offline</string>
+    <string name="statistics_title">Statystyki Pracy</string>
+    <string name="summary_tab">Podsumowanie</string>
+    <string name="daily_tab">Dzienne</string>
+    <string name="weekly_tab">Tygodniowe</string>
+    <string name="monthly_tab">Miesięczne</string>
+    <string name="total_hours">Łącznie godzin</string>
+    <string name="work_days">Dni pracy</string>
+    <string name="this_week">Ten tydzień</string>
+    <string name="this_month">Ten miesiąc</string>
+</resources>

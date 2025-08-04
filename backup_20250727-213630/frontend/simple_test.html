@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prosty Test</title>
+</head>
+<body>
+    <h1>Test prostego fetch</h1>
+    <div id="result">Ładowanie...</div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded');
+        
+        fetch('http://localhost:8000/active_workers')
+        .then(function(response) {
+            console.log('Got response:', response.status);
+            return response.text();
+        })
+        .then(function(text) {
+            console.log('Got text:', text);
+            document.getElementById('result').innerHTML = '<pre>' + text + '</pre>';
+        })
+        .catch(function(error) {
+            console.log('Got error:', error);
+            document.getElementById('result').innerHTML = 'ERROR: ' + error.message;
+        });
+    });
+    </script>
+</body>
+</html>

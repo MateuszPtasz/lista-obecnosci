@@ -1,0 +1,117 @@
+// employee_edit.js
+
+// Upewnij się, że DOM jest załadowany
+document.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const originalId = urlParams.get('id');
+  
+  if (!originalId) {
+    alert('Brak ID pracownika w URL');
+    window.location.href = 'employees.html';
+    return;
+  }
+
+  // Bardziej niezawodne wykrywanie URL API z fallback'ami dla Firefox
+  function getApiUrl(endpoint) {
+    const currentUrl = window.location;
+    
+    // Debug dla Firefox
+    console.log('Firefox Debug - window.location:', {
+      hostname: currentUrl.hostname,
+      port: currentUrl.port,
+      protocol: currentUrl.protocol,
+      href: currentUrl.href,
+      origin: currentUrl.origin
+    });
+    
+    // Firefox fallback: sprawdź czy jesteśmy na localhost z portem
+    if (currentUrl.hostname === 'localhost' || currentUrl.hostname === '127.0.0.1') {
+      return `http://${currentUrl.hostname}:8000${endpoint}`;
+    } else if (currentUrl.port && currentUrl.port !== '80' && currentUrl.port !== '443') {
+      return `http://${currentUrl.hostname}:${currentUrl.port}${endpoint}`;
+    } else {
+      // Fallback dla względnych URL
+      return endpoint;
+    }
+  }
+
+  const apiUrl = getApiUrl(`/worker/${originalId}`);
+  console.log('Trying API URL for fetch:', apiUrl); // Debug dla Firefox
+
+  fetch(apiUrl)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    document.getElementById('firstName').value = data.first_name;
+    document.getElementById('lastName').value = data.last_name;
+    document.getElementById('workerId').value = data.id;
+    document.getElementById('pin').value = data.pin || '';
+    document.getElementById('hourlyRate').value = data.hourly_rate;
+    document.getElementById('rate_saturday').value = data.rate_saturday || 0;
+    document.getElementById('rate_sunday').value = data.rate_sunday || 0;
+    document.getElementById('rate_night').value = data.rate_night || 0;
+    document.getElementById('rate_overtime').value = data.rate_overtime || 0;
+  })
+  .catch(error => {
+    console.error('Błąd pobierania danych pracownika:', error);
+    alert('Błąd pobierania danych pracownika');
+  });
+
+  // Event listener dla formularza edycji
+  const editForm = document.getElementById("editForm");
+  if (!editForm) {
+    console.error('Formularz editForm nie został znaleziony!');
+    return;
+  }
+
+  editForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const newId = document.getElementById("workerId").value;
+    const updatedWorker = {
+      first_name: document.getElementById("firstName").value,
+      last_name: document.getElementById("lastName").value,
+      pin: document.getElementById("pin").value,
+      rate: parseFloat(document.getElementById("hourlyRate").value),
+      new_id: newId,
+      rate_saturday: parseFloat(document.getElementById('rate_saturday').value),
+      rate_sunday: parseFloat(document.getElementById('rate_sunday').value),
+      rate_night: parseFloat(document.getElementById('rate_night').value),
+      rate_overtime: parseFloat(document.getElementById('rate_overtime').value)
+    };
+
+    // Dynamiczna konfiguracja URL API dla PUT
+    const updateApiUrl = getApiUrl(`/worker/${originalId}`);
+  console.log('Trying API URL for PUT:', updateApiUrl); // Debug dla Firefox
+
+  try {
+    const response = await fetch(updateApiUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedWorker),
+    });
+
+    if (response.ok) {
+      alert("Zapisano zmiany!");
+      window.location.href = "employees.html";
+    } else {
+      const errorData = await response.text();
+      console.error('Błąd zapisu:', errorData);
+      alert("Błąd zapisu: " + response.status);
+    }
+  } catch (error) {
+    console.error('Błąd zapisu:', error);
+    alert("Błąd zapisu - sprawdź połączenie z serwerem");
+  }
+  });
+});
+
+function goBack() {
+  window.location.href = "employees.html";
+}

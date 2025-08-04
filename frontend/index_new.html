@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulpit - Lista Obecności</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>Lista Obecności</h2>
+      <nav>
+        <a href="index.html" class="active">🏠 Pulpit</a>
+        <a href="employees.html">👥 Mój zespół</a>
+        <a href="#" id="showSubmenu">📊 Obecność ▼</a>
+        <a href="mobile_config.html">📱 Konfiguracja Aplikacji</a>
+      </nav>
+    </aside>
+    <div id="submenuPanel" class="submenu-panel">
+      <h3>Obecność</h3>
+      <a href="attendance_day.html">Obecność – Dzień</a>
+      <a href="attendance_summary.html">Obecność – Ewidencja</a>
+    </div>
+    <main class="main-content" style="margin-left:200px;">
+      <h1>Pulpit</h1>
+      
+      <button onclick="loadActiveWorkers()" style="margin-bottom: 10px;">🔄 Odśwież listę aktywnych pracowników</button>
+      <div id="worker-list">Kliknij przycisk powyżej aby załadować dane</div>
+      
+      <script>
+      function loadActiveWorkers() {
+        console.log('Loading active workers...');
+        document.getElementById('worker-list').innerHTML = 'Ładowanie...';
+        
+        fetch('/api/active_workers')
+        .then(res => res.json())
+        .then(data => {
+          console.log('Got data:', data);
+          const container = document.getElementById('worker-list');
+          
+          if (!data || data.length === 0) {
+            container.innerHTML = '<p>Brak aktywnych pracowników.</p>';
+            return;
+          }
+          
+          let html = "<table class='employee-table'><thead><tr><th></th><th>Imię i nazwisko</th><th>Start</th><th>Czas pracy</th><th>Lokalizacja wejścia</th></tr></thead><tbody>";
+          data.forEach(worker => {
+            const dot = `<span style='color:${worker.online ? 'green' : 'red'};font-size:1.5em;'>&#9679;</span>`;
+            let startLoc = '-';
+            if (worker.start_lat && worker.start_lon) {
+              const lat = parseFloat(worker.start_lat).toFixed(5);
+              const lon = parseFloat(worker.start_lon).toFixed(5);
+              startLoc = `<a href='https://www.google.com/maps?q=${lat},${lon}' target='_blank'>Pokaż na mapie</a>`;
+            }
+            html += `<tr>
+                        <td style='text-align:center;'>${dot}</td>
+                        <td>${worker.name}</td>
+                        <td>${worker.start_time}</td>
+                        <td>${worker.duration}</td>
+                        <td>${startLoc}</td>
+                     </tr>`;
+          });
+          html += "</tbody></table>";
+          container.innerHTML = html;
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          document.getElementById('worker-list').innerHTML = 'Błąd: ' + err.message;
+        });
+      }
+      
+      // Auto-load przy starcie strony
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(loadActiveWorkers, 1000);
+      });
+      </script>
+    </main>
+  </div>
+  
+  <script src="sidebar.js?v=20250125"></script>
+</body>
+</html>

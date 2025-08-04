@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista pracowników - Lista Obecności</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="employees.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html" class="active"><i class="fas fa-users"></i> Zespół</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecności - przeniesione do środka listy -->
+          <div id="submenuPanel">
+            <a href="attendance_day.html">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+          </div>
+        </li>
+      </ul>
+      
+      <!-- Kalendarz w sidebarze -->
+      <div class="sidebar-widget" id="calendarWidget">
+        <h3 class="widget-title" id="calendarTitle">
+          <i class="fas fa-calendar-alt"></i>
+          Kalendarz
+          <i class="fas fa-expand-alt expand-icon"></i>
+        </h3>
+        <div id="calendar" class="calendar-widget"></div>
+      </div>
+    </aside>
+
+    <!-- Overlay dla rozszerzonego kalendarza -->
+    <div class="calendar-overlay" id="calendarOverlay"></div>
+
+    <!-- Main content -->
+    <main class="content">
+      <div class="card">
+        <div class="card-header">
+          <h1 class="card-title">
+            <i class="fas fa-users text-primary"></i>
+            Zarządzanie zespołem
+          </h1>
+          <p class="card-subtitle">Lista wszystkich pracowników w systemie</p>
+        </div>
+        
+        <div class="mb-3" style="display: flex; flex-wrap: wrap;">
+          <button onclick="loadEmployees()" class="btn btn-primary" style="margin-right: 1rem; margin-bottom: 0.5rem;">
+            <i class="fas fa-sync-alt"></i>
+            Odśwież listę
+          </button>
+          <a href="employee_add.html" class="btn btn-success" style="margin-bottom: 0.5rem;">
+            <i class="fas fa-plus"></i>
+            Dodaj pracownika
+          </a>
+        </div>
+        
+        <div id="employeeListContainer" class="card">
+          <table class="table" id="employeeTable">
+            <thead>
+              <tr>
+                <th><i class="fas fa-user"></i> Pracownik</th>
+                <th><i class="fas fa-id-card"></i> ID</th>
+                <th><i class="fas fa-key"></i> PIN</th>
+                <th><i class="fas fa-money-bill-wave"></i> Stawka</th>
+                <th><i class="fas fa-cogs"></i> Akcje</th>
+              </tr>
+            </thead>
+            <tbody id="employeeList">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem;">
+                  <i class="fas fa-spinner fa-spin text-primary" style="font-size: 2rem;"></i>
+                  <p class="mt-2 text-muted">Ładowanie pracowników...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="calendar.js?v=20250125"></script>
+  <script src="sidebar.js?v=20250125"></script>
+</body>
+</html>

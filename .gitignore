@@ -1,0 +1,10 @@
+# Ignore large files
+*.apk
+*.zip
+*.db
+*.pyc
+__pycache__/
+*.log
+database_backup_*
+venv_new/
+python_local/
