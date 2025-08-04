@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulpit - Lista Obecności</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #34495e;
+            --light: #f8f9fa;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        .header {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-link {
+            padding: 10px 15px;
+            margin: 0 5px;
+            text-decoration: none;
+            color: #555;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        
+        .content {
+            padding: 30px 0;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover:not(.employee-card) {
+            transform: translateY(-5px);
+        }
+        
+        /* Karta pracownika nie przesuwa się przy najechaniu */
+        .employee-card:hover {
+            box-shadow: 0 5px 10px rgba(52, 152, 219, 0.2);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .card h3 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+        
+        .card p {
+            color: #777;
+        }
+        
+        .card-big-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+            color: var(--dark);
+        }
+        
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #777;
+        }
+        
+        .badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success);
+        }
+        
+        .badge-warning {
+            background-color: rgba(243, 156, 18, 0.2);
+            color: var(--warning);
+        }
+        
+        .badge-danger {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger);
+        }
+        
+        .badge-primary {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: var(--primary);
+        }
+        
+        /* Style dla sekcji wyboru pracownika */
+        #employee-selection {
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        #employee-selection.active-session {
+            border-color: var(--success);
+            background-color: rgba(46, 204, 113, 0.05);
+        }
+        
+        #active-employee-name {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin: 0;
+            padding: 5px 0;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin: 0;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: #fff;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .table-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .status {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 50px;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .status-online {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success);
+        }
+        
+        .status-offline {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger);
+        }
+        
+        .status i {
+            margin-right: 5px;
+            font-size: 0.7rem;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+            outline: none;
+        }
+        
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        
+        /* Dropdown menu */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #fff;
+            min-width: 180px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            z-index: 1000;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+            color: var(--primary);
+        }
+        
+        .dropdown-content a i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-inner {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-link {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index_top.html" class="logo">
+                <i class="fas fa-clipboard-list"></i>
+                Lista Obecności
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="index_top.html" class="nav-link active">Pulpit</a></li>
+                <li><a href="employees_top.html" class="nav-link">Zespół</a></li>
+                <li class="dropdown">
+                    <a href="#" class="nav-link">Obecność</a>
+                    <div class="dropdown-content">
+                        <a href="attendance_day_top.html"><i class="fas fa-calendar-day"></i> Dzień</a>
+                        <a href="attendance_summary_top.html"><i class="fas fa-chart-bar"></i> Ewidencja</a>
+                    </div>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="nav-link">Konfiguracja</a>
+                    <div class="dropdown-content">
+                        <a href="mobile_config_top.html"><i class="fas fa-mobile-alt"></i> Aplikacja mobilna</a>
+                        <a href="time_rounding_top.html"><i class="fas fa-clock"></i> Zaokrąglanie czasu</a>
+                        <a href="api_terminal_top.html"><i class="fas fa-terminal"></i> Terminal diagnostyczny</a>
+                    </div>
+                </li>
+                <li><a href="#" class="nav-link" onclick="logout()">Wyloguj</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <main class="content">
+        <div class="container">
+            <div class="dashboard">
+                <div class="card" onclick="window.location.href='employees_top.html'" style="cursor: pointer;">
+                    <div class="card-header">
+                        <div class="card-icon" style="background-color: #3498db;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Zespół</h3>
+                    </div>
+                    <div id="employeesCount" class="card-big-number">-</div>
+                    <div class="card-footer">
+                        <span>Łącznie w systemie</span>
+                        <a href="employees_top.html" class="badge badge-success">Zarządzaj zespołem</a>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background-color: #2ecc71;">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <h3>Aktywni</h3>
+                    </div>
+                    <div id="activeCount" class="card-big-number">-</div>
+                    <div class="card-footer">
+                        <span>Aktualnie w pracy</span>
+                        <span id="activePercentage" class="badge badge-success">-</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background-color: #e74c3c;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3>Błędy</h3>
+                    </div>
+                    <div id="errorCount" class="card-big-number">-</div>
+                    <div class="card-footer">
+                        <span>Ostatnie 24h</span>
+                        <span id="errorStatus" class="badge badge-danger">-</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background-color: #f39c12;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>Średni czas</h3>
+                    </div>
+                    <div id="avgTime" class="card-big-number">-</div>
+                    <div class="card-footer">
+                        <span>Czas pracy dziś</span>
+                        <span id="avgTimeChange" class="badge badge-warning">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <h2>Rozpocznij / zakończ pracę</h2>
+                    <div>
+                        <button class="btn btn-success" id="startWorkBtn" onclick="startWork()">
+                            <i class="fas fa-play"></i>
+                            Rozpocznij pracę
+                        </button>
+                        <button class="btn btn-danger" id="endWorkBtn" onclick="endWork()" disabled>
+                            <i class="fas fa-stop"></i>
+                            Zakończ pracę
+                        </button>
+                        <button class="btn btn-warning" id="emergencyEndBtn" onclick="emergencyEndSession()">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Awaryjne zamknięcie sesji
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card employee-card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <div class="card-icon" style="background-color: #3498db;">
+                            <i class="fas fa-user-edit"></i>
+                        </div>
+                        <h3>Wybór pracownika</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
+                            <div style="flex: 1; min-width: 250px;">
+                                <label for="employee-select" style="display: block; margin-bottom: 8px; font-weight: bold;">Wybierz pracownika:</label>
+                                <select id="employee-select" class="form-control" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                                    <option value="">-- Wybierz pracownika --</option>
+                                    <!-- Opcje będą dodane przez JavaScript -->
+                                </select>
+                            </div>
+                            <div style="flex: 1; min-width: 250px;">
+                                <label for="employee-id" style="display: block; margin-bottom: 8px; font-weight: bold;">Lub wprowadź ID pracownika:</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="employee-id" placeholder="ID pracownika" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                                    <button class="btn btn-primary" onclick="findEmployeeById()">
+                                        <i class="fas fa-search"></i>
+                                        Znajdź
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <p><strong>Aktywny pracownik: </strong><span id="active-employee-name">Nie wybrano</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" id="work-status-card" style="display: none;">
+                    <div class="card-header">
+                        <div class="card-icon" style="background-color: #2ecc71;">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                        <h3>Status twojej pracy</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                            <span style="font-weight: bold;">Rozpoczęcie pracy:</span>
+                            <span id="work-start-time">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                            <span style="font-weight: bold;">Czas trwania:</span>
+                            <span id="work-duration">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="font-weight: bold;">Status:</span>
+                            <span class="status status-online" id="work-status">
+                                <i class="fas fa-circle"></i> Aktywny
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>Status pracowników</h2>
+                    <button class="btn btn-primary" onclick="loadActiveWorkers()">
+                        <i class="fas fa-sync-alt"></i>
+                        Odśwież listę
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Imię i nazwisko</th>
+                                <th>Rozpoczęcie</th>
+                                <th>Czas pracy</th>
+                                <th>Lokalizacja</th>
+                            </tr>
+                        </thead>
+                        <tbody id="worker-list">
+                            <tr>
+                                <td colspan="5" style="text-align: center;">
+                                    <i class="fas fa-spinner fa-spin" style="color: var(--primary); margin-right: 10px;"></i>
+                                    Ładowanie danych...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-header">
+                    <h2>Terminal diagnostyczny</h2>
+                    <button class="btn btn-warning" onclick="clearTerminal()">
+                        <i class="fas fa-eraser"></i>
+                        Wyczyść terminal
+                    </button>
+                </div>
+                
+                <div style="background-color: #1e1e1e; color: #f0f0f0; border-radius: 10px; font-family: 'Consolas', 'Courier New', monospace; padding: 15px; height: 300px; overflow-y: auto;" id="terminal-output">
+                    <div style="color: #3498db;">Terminal diagnostyczny systemu Lista Obecności v1.0.0</div>
+                    <div style="color: #3498db;">Wpisz 'help' aby zobaczyć dostępne komendy.</div>
+                </div>
+                <div style="display: flex; background-color: #1e1e1e; padding: 10px; border-radius: 0 0 10px 10px;">
+                    <span style="color: #2ecc71; margin-right: 8px;">$</span>
+                    <input type="text" id="command-input" placeholder="Wpisz komendę..." 
+                           style="flex: 1; background-color: transparent; border: none; color: #f0f0f0; font-family: 'Consolas', 'Courier New', monospace;"
+                           onkeydown="if(event.key === 'Enter') executeCommand()">
+                    <button class="btn btn-primary" style="margin-left: 10px;" onclick="executeCommand()">
+                        <i class="fas fa-play"></i> Wykonaj
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Zmienne globalne
+        let workSession = null;
+        let workUpdateTimer = null;
+        let commandHistory = [];
+        let historyIndex = -1;
+        let selectedEmployeeId = null;
+        let employeesList = [];
+        
+        // Funkcja do ładowania aktywnych pracowników
+        function loadActiveWorkers() {
+            console.log('Loading active workers...');
+            document.getElementById('worker-list').innerHTML = '<tr><td colspan="5" style="text-align: center;"><i class="fas fa-spinner fa-spin" style="color: var(--primary); margin-right: 10px;"></i>Ładowanie danych...</td></tr>';
+            
+            fetch('/api/active_workers')
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`Błąd podczas pobierania danych: HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    console.log('Got data:', data);
+                    const container = document.getElementById('worker-list');
+                    
+                    // Upewniamy się, że dane są tablicą
+                    const workers = Array.isArray(data) ? data : [];
+                    
+                    if (!workers || workers.length === 0) {
+                        container.innerHTML = '<tr><td colspan="5" style="text-align: center;">Brak aktywnych pracowników.</td></tr>';
+                        return;
+                    }
+                    
+                    let html = "";
+                    workers.forEach(worker => {
+                        const statusClass = worker.online ? 'status-online' : 'status-offline';
+                        const statusIcon = worker.online ? 'fa-circle' : 'fa-circle';
+                        const statusText = worker.online ? 'Online' : 'Offline';
+                        
+                        let startLoc = '-';
+                        if (worker.start_lat && worker.start_lon) {
+                            const lat = parseFloat(worker.start_lat).toFixed(5);
+                            const lon = parseFloat(worker.start_lon).toFixed(5);
+                            startLoc = `<a href='https://www.google.com/maps?q=${lat},${lon}' target='_blank' style="color:var(--primary)">Pokaż na mapie</a>`;
+                        }
+                        
+                        // Sprawdź poprawność nazwy pracownika
+                        let displayName = worker.name;
+                        if (!displayName || displayName === "undefined undefined" || displayName.includes("undefined")) {
+                            displayName = worker.id || "Nieznany pracownik";
+                        }
+                        
+                        html += `<tr>
+                            <td>
+                                <span class="status ${statusClass}">
+                                    <i class="fas ${statusIcon}"></i> ${statusText}
+                                </span>
+                            </td>
+                            <td>
+                                ${displayName}
+                                <a href="employees_edit.html?id=${worker.employee_id || worker.id}" class="badge badge-primary" style="margin-left: 8px;">
+                                    <i class="fas fa-edit"></i> Edytuj
+                                </a>
+                            </td>
+                            <td>${worker.start_time}</td>
+                            <td>${worker.duration}</td>
+                            <td>${startLoc}</td>
+                        </tr>`;
+                        
+                        // Sprawdź czy to ja jestem aktywny
+                        if (worker.is_current_user) {
+                            updateWorkSessionStatus(worker);
+                        }
+                    });
+                    
+                    container.innerHTML = html;
+                    
+                    // Aktualizacja liczników
+                    document.getElementById('activeCount').innerText = data.length;
+                    
+                    // Pobierz łączną liczbę pracowników
+                    fetch('/api/employees/count')
+                        .then(res => res.json())
+                        .then(countData => {
+                            document.getElementById('employeesCount').innerText = countData.count;
+                            const percentage = Math.round((data.length / countData.count) * 100);
+                            document.getElementById('activePercentage').innerText = `${percentage}% zespołu`;
+                        })
+                        .catch(err => {
+                            console.error('Error fetching employee count:', err);
+                            document.getElementById('employeesCount').innerText = '?';
+                            document.getElementById('activePercentage').innerText = 'Brak danych';
+                        });
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    document.getElementById('worker-list').innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">
+                        <i class="fas fa-exclamation-circle" style="margin-right: 10px;"></i>
+                        Błąd: ${err.message}</td></tr>`;
+                });
+            
+            // Pobierz dane o błędach
+            fetch('/api/system/errors')
+                .then(res => res.json())
+                .then(errorData => {
+                    document.getElementById('errorCount').innerText = errorData.count;
+                    
+                    const badgeClass = errorData.count > 0 ? 'badge-danger' : 'badge-success';
+                    const statusText = errorData.count > 0 ? 'Wymaga uwagi' : 'System OK';
+                    
+                    const errorStatus = document.getElementById('errorStatus');
+                    errorStatus.innerText = statusText;
+                    errorStatus.className = `badge ${badgeClass}`;
+                })
+                .catch(err => {
+                    console.error('Error fetching error count:', err);
+                    document.getElementById('errorCount').innerText = '?';
+                    document.getElementById('errorStatus').innerText = 'Brak danych';
+                });
+            
+            // Pobierz dane o średnim czasie pracy
+            fetch('/api/statistics/avg_work_time')
+                .then(res => res.json())
+                .then(timeData => {
+                    document.getElementById('avgTime').innerText = timeData.avg_time;
+                    
+                    const changeClass = timeData.change >= 0 ? 'badge-success' : 'badge-warning';
+                    const changeText = timeData.change >= 0 ? `+${timeData.change}h` : `${timeData.change}h`;
+                    
+                    const avgTimeChange = document.getElementById('avgTimeChange');
+                    avgTimeChange.innerText = changeText;
+                    avgTimeChange.className = `badge ${changeClass}`;
+                })
+                .catch(err => {
+                    console.error('Error fetching average time:', err);
+                    document.getElementById('avgTime').innerText = '?';
+                    document.getElementById('avgTimeChange').innerText = 'Brak danych';
+                });
+        }
+        
+        // Funkcja do rozpoczynania pracy
+        function startWork() {
+            // Sprawdź czy pracownik został wybrany
+            if (!selectedEmployeeId) {
+                alert('Wybierz pracownika przed rozpoczęciem pracy');
+                addToTerminal('Błąd: Nie wybrano pracownika', 'error');
+                return;
+            }
+            
+            addToTerminal(`Rozpoczynanie pracy dla pracownika ID: ${selectedEmployeeId}...`, 'info');
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    // Sprawdź, która ścieżka API jest używana
+                    const endpoint = '/api/work/start';
+                    
+                    // Format zgodny z nowym API
+                    const data = {
+                        employee_id: selectedEmployeeId,
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude
+                    };
+                    
+                    console.log('Sending data to:', endpoint, data);
+                    
+                    fetch('/api/work/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error(`HTTP error! Status: ${res.status}`);
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        const employeeName = document.getElementById('active-employee-name').textContent;
+                        addToTerminal(`Praca rozpoczęta pomyślnie dla: ${employeeName}!`, 'success');
+                        workSession = data;
+                        updateWorkSessionUI();
+                        loadActiveWorkers();
+                        
+                        // Uruchom timer aktualizujący czas pracy co minutę
+                        if (workUpdateTimer) clearInterval(workUpdateTimer);
+                        workUpdateTimer = setInterval(updateWorkDuration, 60000);
+                    })
+                    .catch(err => {
+                        addToTerminal(`Błąd rozpoczynania pracy: ${err.message}`, 'error');
+                        console.error('Error starting work:', err);
+                    });
+                },
+                function(error) {
+                    addToTerminal(`Błąd lokalizacji: ${error.message}. Próba rozpoczęcia pracy bez lokalizacji...`, 'warning');
+                    
+                    // Spróbuj bez lokalizacji
+                    fetch('/api/work/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            employee_id: selectedEmployeeId
+                        })
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error(`HTTP error! Status: ${res.status}`);
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        const employeeName = document.getElementById('active-employee-name').textContent;
+                        addToTerminal(`Praca rozpoczęta pomyślnie dla: ${employeeName} (bez lokalizacji)!`, 'success');
+                        workSession = data;
+                        updateWorkSessionUI();
+                        loadActiveWorkers();
+                        
+                        // Uruchom timer aktualizujący czas pracy co minutę
+                        if (workUpdateTimer) clearInterval(workUpdateTimer);
+                        workUpdateTimer = setInterval(updateWorkDuration, 60000);
+                    })
+                    .catch(err => {
+                        addToTerminal(`Błąd rozpoczynania pracy: ${err.message}`, 'error');
+                        console.error('Error starting work:', err);
+                    });
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+        }
+        
+        // Funkcja do zakończenia pracy
+        function endWork() {
+            if (!workSession || !workSession.id) {
+                addToTerminal('Błąd: Brak aktywnej sesji pracy do zakończenia', 'error');
+                return;
+            }
+            
+            if (!selectedEmployeeId) {
+                addToTerminal('Błąd: Nie wybrano pracownika', 'error');
+                return;
+            }
+            
+            addToTerminal('Kończenie pracy...', 'info');
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    // Sprawdź, która ścieżka API jest używana
+                    const endpoint = '/api/work/end';
+                    
+                    // Format zgodny z nowym API
+                    const data = {
+                        session_id: workSession.id,
+                        employee_id: selectedEmployeeId,
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude
+                    };
+                    
+                    console.log('Sending data to:', endpoint, data);
+                    
+                    fetch('/api/work/end', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error(`HTTP error! Status: ${res.status}`);
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        const employeeName = document.getElementById('active-employee-name').textContent;
+                        addToTerminal(`Praca zakończona pomyślnie dla: ${employeeName}!`, 'success');
+                        workSession = null;
+                        updateWorkSessionUI();
+                        loadActiveWorkers();
+                        
+                        // Zatrzymaj timer
+                        if (workUpdateTimer) {
+                            clearInterval(workUpdateTimer);
+                            workUpdateTimer = null;
+                        }
+                    })
+                    .catch(err => {
+                        addToTerminal(`Błąd kończenia pracy: ${err.message}`, 'error');
+                        console.error('Error ending work:', err);
+                    });
+                },
+                function(error) {
+                    addToTerminal(`Błąd lokalizacji: ${error.message}. Próba zakończenia pracy bez lokalizacji...`, 'warning');
+                    
+                    // Spróbuj bez lokalizacji
+                    fetch('/api/work/end', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            session_id: workSession.id,
+                            employee_id: selectedEmployeeId 
+                        })
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error(`HTTP error! Status: ${res.status}`);
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        const employeeName = document.getElementById('active-employee-name').textContent;
+                        addToTerminal(`Praca zakończona pomyślnie dla: ${employeeName} (bez lokalizacji)!`, 'success');
+                        workSession = null;
+                        updateWorkSessionUI();
+                        loadActiveWorkers();
+                        
+                        // Zatrzymaj timer
+                        if (workUpdateTimer) {
+                            clearInterval(workUpdateTimer);
+                            workUpdateTimer = null;
+                        }
+                    })
+                    .catch(err => {
+                        addToTerminal(`Błąd kończenia pracy: ${err.message}`, 'error');
+                        console.error('Error ending work:', err);
+                    });
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+        }
+        
+        // Funkcja do awaryjnego zamknięcia sesji
+        function emergencyEndSession() {
+            if (!confirm('Czy na pewno chcesz awaryjnie zamknąć sesję? Ta operacja może spowodować utratę danych o czasie pracy.')) {
+                return;
+            }
+            
+            addToTerminal('Awaryjne zamykanie sesji...', 'warning');
+            
+            fetch('/api/work/emergency_end', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! Status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                addToTerminal('Sesja została awaryjnie zamknięta!', 'success');
+                workSession = null;
+                updateWorkSessionUI();
+                loadActiveWorkers();
+                
+                // Zatrzymaj timer
+                if (workUpdateTimer) {
+                    clearInterval(workUpdateTimer);
+                    workUpdateTimer = null;
+                }
+            })
+            .catch(err => {
+                addToTerminal(`Błąd awaryjnego zamykania sesji: ${err.message}`, 'error');
+                console.error('Error during emergency session end:', err);
+            });
+        }
+        
+        // Funkcja aktualizująca UI statusu pracy
+        function updateWorkSessionUI() {
+            const startWorkBtn = document.getElementById('startWorkBtn');
+            const endWorkBtn = document.getElementById('endWorkBtn');
+            const workStatusCard = document.getElementById('work-status-card');
+            const employeeInfoSection = document.getElementById('employee-selection');
+            
+            if (workSession) {
+                startWorkBtn.disabled = true;
+                endWorkBtn.disabled = false;
+                workStatusCard.style.display = 'block';
+                employeeInfoSection.classList.add('active-session');
+                
+                document.getElementById('work-start-time').textContent = workSession.start_time;
+                document.getElementById('work-duration').textContent = workSession.duration || '0h 0m';
+                
+                // Jeśli mamy informację o pracowniku w sesji, aktualizuj też to
+                if (workSession.employee_name) {
+                    document.getElementById('active-employee-name').textContent = workSession.employee_name;
+                    if (workSession.employee_id) {
+                        selectedEmployeeId = workSession.employee_id;
+                    }
+                }
+                
+                // Aktualizuj też status
+                const workStatusElement = document.getElementById('work-status');
+                workStatusElement.className = 'status status-online';
+                workStatusElement.innerHTML = '<i class="fas fa-circle"></i> Aktywny';
+            } else {
+                startWorkBtn.disabled = (selectedEmployeeId === null);
+                endWorkBtn.disabled = true;
+                workStatusCard.style.display = 'none';
+                employeeInfoSection.classList.remove('active-session');
+            }
+        }
+        
+        // Funkcja aktualizująca czas trwania pracy
+        function updateWorkDuration() {
+            if (!workSession) return;
+            
+            const startTime = new Date(workSession.start_timestamp);
+            const now = new Date();
+            const diffMs = now - startTime;
+            const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            
+            const duration = `${diffHrs}h ${diffMins}m`;
+            document.getElementById('work-duration').textContent = duration;
+        }
+        
+        // Funkcja aktualizująca status sesji pracy z danych pracownika
+        function updateWorkSessionStatus(worker) {
+            if (worker && worker.is_current_user) {
+                workSession = {
+                    id: worker.session_id,
+                    start_time: worker.start_time,
+                    start_timestamp: worker.start_timestamp,
+                    duration: worker.duration
+                };
+                updateWorkSessionUI();
+                
+                // Uruchom timer aktualizujący czas pracy co minutę
+                if (workUpdateTimer) clearInterval(workUpdateTimer);
+                workUpdateTimer = setInterval(updateWorkDuration, 60000);
+                
+                addToTerminal('Wykryto aktywną sesję pracy', 'info');
+            }
+        }
+        
+        // Funkcja sprawdzająca status pracy przy starcie
+        function checkWorkStatus() {
+            fetch('/api/work/status')
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! Status: ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.active) {
+                        workSession = {
+                            id: data.session_id,
+                            start_time: data.start_time,
+                            start_timestamp: data.start_timestamp,
+                            duration: data.duration,
+                            employee_id: data.employee_id,
+                            employee_name: data.employee_name
+                        };
+                        
+                        // Ustaw wybranego pracownika
+                        selectedEmployeeId = data.employee_id;
+                        localStorage.setItem('selectedEmployeeId', data.employee_id);
+                        
+                        // Aktualizuj UI
+                        updateWorkSessionUI();
+                        updateActiveEmployeeName();
+                        
+                        // Ustaw wartość w select
+                        if (selectedEmployeeId) {
+                            const select = document.getElementById('employee-select');
+                            select.value = selectedEmployeeId;
+                        }
+                        
+                        // Uruchom timer aktualizujący czas pracy co minutę
+                        if (workUpdateTimer) clearInterval(workUpdateTimer);
+                        workUpdateTimer = setInterval(updateWorkDuration, 60000);
+                        
+                        addToTerminal(`Wykryto aktywną sesję pracy dla pracownika ID: ${data.employee_id}`, 'info');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error checking work status:', err);
+                    addToTerminal(`Błąd sprawdzania statusu pracy: ${err.message}`, 'error');
+                });
+        }
+        
+        // Funkcja ładująca sesję pracy dla konkretnego pracownika
+        function loadWorkSession(employeeId) {
+            if (!employeeId) return;
+            
+            addToTerminal(`Sprawdzanie aktywnej sesji dla pracownika ID: ${employeeId}...`, 'info');
+            
+            fetch(`/api/work/employee/${employeeId}/status`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! Status: ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.active) {
+                        workSession = {
+                            id: data.session_id,
+                            start_time: data.start_time,
+                            start_timestamp: data.start_timestamp,
+                            duration: data.duration,
+                            employee_id: data.employee_id,
+                            employee_name: data.employee_name
+                        };
+                        updateWorkSessionUI();
+                        
+                        // Uruchom timer aktualizujący czas pracy co minutę
+                        if (workUpdateTimer) clearInterval(workUpdateTimer);
+                        workUpdateTimer = setInterval(updateWorkDuration, 60000);
+                        
+                        addToTerminal(`Wykryto aktywną sesję pracy dla: ${data.employee_name}`, 'info');
+                    } else {
+                        // Resetuj sesję, jeśli nie ma aktywnej
+                        workSession = null;
+                        updateWorkSessionUI();
+                        
+                        // Zatrzymaj timer aktualizujący czas pracy
+                        if (workUpdateTimer) {
+                            clearInterval(workUpdateTimer);
+                            workUpdateTimer = null;
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Error checking employee work status:', err);
+                    addToTerminal(`Błąd podczas sprawdzania statusu pracy pracownika: ${err.message}`, 'error');
+                });
+        }
+        
+        // Funkcje terminala
+        function addToTerminal(text, className = '') {
+            const terminal = document.getElementById('terminal-output');
+            const output = document.createElement('div');
+            
+            if (className) {
+                switch(className) {
+                    case 'success':
+                        output.style.color = '#2ecc71';
+                        break;
+                    case 'error':
+                        output.style.color = '#e74c3c';
+                        break;
+                    case 'warning':
+                        output.style.color = '#f39c12';
+                        break;
+                    case 'info':
+                        output.style.color = '#3498db';
+                        break;
+                    default:
+                        break;
+                }
+            }
+            
+            output.textContent = text;
+            terminal.appendChild(output);
+            
+            // Auto-scroll do najnowszej wiadomości
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        function clearTerminal() {
+            const terminal = document.getElementById('terminal-output');
+            terminal.innerHTML = '';
+            addToTerminal('Terminal diagnostyczny systemu Lista Obecności v1.0.0', 'info');
+            addToTerminal('Wpisz \'help\' aby zobaczyć dostępne komendy.', 'info');
+        }
+        
+        function executeCommand() {
+            const input = document.getElementById('command-input');
+            const command = input.value.trim();
+            
+            if (command === '') return;
+            
+            // Dodanie komendy do historii
+            commandHistory.unshift(command);
+            historyIndex = -1;
+            
+            // Wyświetlenie komendy w terminalu
+            addToTerminal(`$ ${command}`);
+            
+            // Czyszczenie pola wprowadzania
+            input.value = '';
+            
+            // Parsowanie i wykonanie komendy
+            parseCommand(command);
+        }
+        
+        function parseCommand(command) {
+            const parts = command.split(' ');
+            const cmd = parts[0].toLowerCase();
+            
+            switch(cmd) {
+                case 'help':
+                    addToTerminal('Dostępne komendy:', 'info');
+                    addToTerminal('  help                - Wyświetla tę pomoc');
+                    addToTerminal('  status              - Pokazuje status pracy');
+                    addToTerminal('  refresh             - Odświeża dane pracowników');
+                    addToTerminal('  start               - Rozpoczyna pracę');
+                    addToTerminal('  end                 - Kończy pracę');
+                    addToTerminal('  emergency           - Awaryjnie zamyka sesję');
+                    addToTerminal('  clear               - Czyści terminal');
+                    break;
+                case 'status':
+                    if (workSession) {
+                        addToTerminal('Status pracy:', 'info');
+                        addToTerminal(`  Rozpoczęcie: ${workSession.start_time}`);
+                        addToTerminal(`  Czas trwania: ${document.getElementById('work-duration').textContent}`);
+                        addToTerminal(`  ID sesji: ${workSession.id}`);
+                        addToTerminal(`  Status: Aktywny`, 'success');
+                    } else {
+                        addToTerminal('Brak aktywnej sesji pracy', 'info');
+                    }
+                    break;
+                case 'refresh':
+                    addToTerminal('Odświeżanie danych pracowników...', 'info');
+                    loadActiveWorkers();
+                    break;
+                case 'start':
+                    if (!workSession) {
+                        startWork();
+                    } else {
+                        addToTerminal('Masz już aktywną sesję pracy!', 'warning');
+                    }
+                    break;
+                case 'end':
+                    if (workSession) {
+                        endWork();
+                    } else {
+                        addToTerminal('Nie masz aktywnej sesji pracy do zakończenia!', 'warning');
+                    }
+                    break;
+                case 'emergency':
+                    emergencyEndSession();
+                    break;
+                case 'clear':
+                    clearTerminal();
+                    break;
+                default:
+                    addToTerminal(`Nieznana komenda: ${cmd}. Wpisz 'help' aby zobaczyć dostępne komendy.`, 'error');
+            }
+        }
+        
+        // Funkcja ładująca listę pracowników do wyboru
+        function loadEmployeesList() {
+            fetch('/api/employees')
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! Status: ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    // Upewniamy się, że dane są tablicą
+                    employeesList = Array.isArray(data) ? data : [];
+                    const select = document.getElementById('employee-select');
+                    
+                    // Usunięcie istniejących opcji (poza pierwszą "Wybierz pracownika")
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+                    
+                    if (employeesList.length === 0) {
+                        addToTerminal('Nie znaleziono żadnych pracowników w bazie', 'warning');
+                        return;
+                    }
+                    
+                    // Dodanie opcji dla każdego pracownika
+                    employeesList.forEach(employee => {
+                        const option = document.createElement('option');
+                        option.value = employee.id;
+                        
+                        // Obsługa różnych formatów danych
+                        let displayName = employee.name;
+                        if (!displayName || displayName === "undefined undefined" || displayName.includes("undefined")) {
+                            displayName = `${employee.first_name || ''} ${employee.last_name || ''}`.trim();
+                            if (!displayName) {
+                                displayName = employee.id; // Jeśli nic nie zadziała, pokaż chociaż ID
+                            }
+                        }
+                        option.textContent = `${displayName} (ID: ${employee.id})`;
+                        select.appendChild(option);
+                    });
+
+                    // Ustaw zapisanego pracownika jeśli istnieje
+                    if (localStorage.getItem('selectedEmployeeId')) {
+                        const savedId = localStorage.getItem('selectedEmployeeId');
+                        select.value = savedId;
+                        selectedEmployeeId = savedId;
+                        updateActiveEmployeeName();
+                        
+                        // Sprawdź, czy pracownik ma aktywną sesję pracy
+                        loadWorkSession(savedId);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading employees:', err);
+                    addToTerminal(`Błąd ładowania listy pracowników: ${err.message}`, 'error');
+                });
+        }
+
+        // Funkcja wyszukiwania pracownika po ID
+        function findEmployeeById() {
+            const idInput = document.getElementById('employee-id');
+            const employeeId = idInput.value.trim();
+            
+            if (!employeeId) {
+                alert('Wprowadź ID pracownika');
+                return;
+            }
+            
+            fetch(`/api/employees/${employeeId}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`Nie znaleziono pracownika o ID: ${employeeId}`);
+                    }
+                    return res.json();
+                })
+                .then(employee => {
+                    // Ustaw wybór w select
+                    const select = document.getElementById('employee-select');
+                    select.value = employee.id;
+                    
+                    // Zapisz wybranego pracownika
+                    selectedEmployeeId = employee.id;
+                    localStorage.setItem('selectedEmployeeId', employee.id);
+                    
+                    // Zaktualizuj wyświetlaną nazwę
+                    updateActiveEmployeeName();
+                    
+                    // Sprawdź, czy pracownik ma aktywną sesję pracy
+                    loadWorkSession(employee.id);
+                    
+                    // Obsługa różnych formatów danych
+                    let displayName = employee.name;
+                    if (!displayName || displayName === "undefined undefined" || displayName.includes("undefined")) {
+                        displayName = `${employee.first_name || ''} ${employee.last_name || ''}`.trim();
+                        if (!displayName) {
+                            displayName = employee.id; // Jeśli nic nie zadziała, pokaż chociaż ID
+                        }
+                    }
+                    
+                    addToTerminal(`Wybrano pracownika: ${displayName} (ID: ${employee.id})`, 'success');
+                })
+                .catch(err => {
+                    console.error('Error finding employee:', err);
+                    addToTerminal(err.message, 'error');
+                    alert(err.message);
+                });
+        }
+
+        // Funkcja aktualizująca wyświetlaną nazwę aktywnego pracownika
+        function updateActiveEmployeeName() {
+            const nameElement = document.getElementById('active-employee-name');
+            
+            if (selectedEmployeeId) {
+                const employee = employeesList.find(emp => emp.id == selectedEmployeeId);
+                if (employee) {
+                    // Upewnij się, że name istnieje i nie jest undefined
+                    let displayName = employee.name;
+                    if (!displayName || displayName === "undefined undefined" || displayName.includes("undefined")) {
+                        displayName = `${employee.first_name || ''} ${employee.last_name || ''}`.trim();
+                        if (!displayName) {
+                            displayName = employee.id; // Jeśli nic nie zadziała, pokaż chociaż ID
+                        }
+                    }
+                    nameElement.textContent = `${displayName} (ID: ${employee.id})`;
+                    
+                    // Aktualizacja stanu przycisku rozpoczęcia pracy
+                    document.getElementById('startWorkBtn').disabled = false;
+                    return;
+                }
+            }
+            
+            nameElement.textContent = 'Nie wybrano';
+            document.getElementById('startWorkBtn').disabled = true;
+        }
+
+        // Auto-load przy starcie strony
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ustawienie obsługi historii komend w terminalu
+            document.getElementById('command-input').addEventListener('keydown', function(event) {
+                if (event.key === 'ArrowUp') {
+                    if (commandHistory.length > 0) {
+                        historyIndex = (historyIndex + 1) % commandHistory.length;
+                        this.value = commandHistory[historyIndex];
+                    }
+                    event.preventDefault();
+                } else if (event.key === 'ArrowDown') {
+                    if (historyIndex > 0) {
+                        historyIndex--;
+                        this.value = commandHistory[historyIndex];
+                    } else if (historyIndex === 0) {
+                        historyIndex = -1;
+                        this.value = '';
+                    }
+                    event.preventDefault();
+                }
+            });
+            
+            // Obsługa zmiany pracownika w selekcie
+            document.getElementById('employee-select').addEventListener('change', function() {
+                selectedEmployeeId = this.value;
+                if (selectedEmployeeId) {
+                    localStorage.setItem('selectedEmployeeId', selectedEmployeeId);
+                    updateActiveEmployeeName();
+                    addToTerminal(`Wybrano pracownika o ID: ${selectedEmployeeId}`, 'info');
+                    
+                    // Sprawdź, czy pracownik ma aktywną sesję pracy
+                    loadWorkSession(selectedEmployeeId);
+                } else {
+                    localStorage.removeItem('selectedEmployeeId');
+                    updateActiveEmployeeName();
+                    
+                    // Wyczyść sesję pracy
+                    workSession = null;
+                    updateWorkSessionUI();
+                }
+            });
+            
+            // Sprawdzenie statusu pracy
+            checkWorkStatus();
+            
+            // Załadowanie listy pracowników
+            loadEmployeesList();
+            
+            // Załadowanie aktywnych pracowników
+            setTimeout(loadActiveWorkers, 500);
+            
+            // Inicjalizacja stanu UI dla sesji pracy
+            updateWorkSessionUI();
+        });
+
+        // Funkcja wylogowania
+        function logout() {
+            fetch('/api/logout', {
+                method: 'POST',
+                credentials: 'include'
+            }).then(() => {
+                window.location.href = '/login.html';
+            }).catch(err => {
+                console.error('Error during logout:', err);
+                alert('Wystąpił błąd podczas wylogowywania');
+            });
+        }
+    </script>
+</body>
+</html>

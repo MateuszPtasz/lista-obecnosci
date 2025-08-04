@@ -1,0 +1,166 @@
+<!-- frontend/employee_add.html -->
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Dodaj pracownika - Lista Obecności</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="employee_add.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html"><i class="fas fa-users"></i> Zespół</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecności - przeniesione do środka listy -->
+          <div id="submenuPanel">
+            <a href="attendance_day.html">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+          </div>
+        </li>
+      </ul>
+      
+      <!-- Kalendarz w sidebarze -->
+      <div class="sidebar-widget" id="calendarWidget">
+        <h3 class="widget-title" id="calendarTitle">
+          <i class="fas fa-calendar-alt"></i>
+          Kalendarz
+          <i class="fas fa-expand-alt expand-icon"></i>
+        </h3>
+        <div id="calendar" class="calendar-widget"></div>
+      </div>
+    </aside>
+
+    <!-- Overlay dla rozszerzonego kalendarza -->
+    <div class="calendar-overlay" id="calendarOverlay"></div>
+
+    <!-- Main content -->
+    <main class="content">
+      <div class="card">
+        <div class="card-header">
+          <button onclick="goBack()" class="btn btn-secondary mb-3">
+            <i class="fas fa-arrow-left"></i>
+            Wstecz
+          </button>
+          <h1 class="card-title">
+            <i class="fas fa-user-plus text-success"></i>
+            Dodaj nowego pracownika
+          </h1>
+          <p class="card-subtitle">Wypełnij formularz, aby dodać pracownika do systemu</p>
+        </div>
+        
+        <form id="addForm" class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-user"></i>
+              Dane podstawowe
+            </h3>
+          </div>
+          
+          <div class="form-group">
+            <label for="firstName" class="form-label">Imię:</label>
+            <input type="text" id="firstName" class="form-control" required placeholder="Wprowadź imię" />
+          </div>
+          
+          <div class="form-group">
+            <label for="lastName" class="form-label">Nazwisko:</label>
+            <input type="text" id="lastName" class="form-control" required placeholder="Wprowadź nazwisko" />
+          </div>
+          
+          <div class="form-group">
+            <label for="workerId" class="form-label">ID pracownika:</label>
+            <input type="text" id="workerId" class="form-control" required placeholder="Wprowadź ID (np. JAN001)" />
+            <small class="form-text text-muted">Unikalny identyfikator pracownika (może zawierać litery i cyfry)</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="pin" class="form-label">PIN do logowania:</label>
+            <input type="text" id="pin" class="form-control" required placeholder="4-6 cyfr" maxlength="6" pattern="[0-9]{4,6}" />
+            <small class="form-text text-muted">PIN składający się z 4-6 cyfr do logowania w aplikacji mobilnej</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="hourlyRate" class="form-label">Stawka godzinowa (zł/h):</label>
+            <input type="number" id="hourlyRate" class="form-control" required placeholder="0.00" step="0.01" />
+          </div>
+          
+          <div class="card-header mt-4">
+            <h3 class="card-title">
+              <i class="fas fa-coins"></i>
+              Stawki specjalne
+            </h3>
+          </div>
+          
+          <div class="form-group">
+            <label for="rate_saturday" class="form-label">Stawka za soboty (zł/h):</label>
+            <input type="number" step="0.01" id="rate_saturday" name="rate_saturday" class="form-control" required placeholder="0.00" />
+          </div>
+          
+          <div class="form-group">
+            <label for="rate_sunday" class="form-label">Stawka za niedziele i święta (zł/h):</label>
+            <input type="number" step="0.01" id="rate_sunday" name="rate_sunday" class="form-control" required placeholder="0.00" />
+          </div>
+          
+          <div class="form-group">
+            <label for="rate_night" class="form-label">Stawka za godziny nocne (zł/h):</label>
+            <input type="number" step="0.01" id="rate_night" name="rate_night" class="form-control" required placeholder="0.00" />
+          </div>
+          
+          <div class="form-group">
+            <label for="rate_overtime" class="form-label">Stawka za nadgodziny (zł/h):</label>
+            <input type="number" step="0.01" id="rate_overtime" name="rate_overtime" class="form-control" required placeholder="0.00" />
+          </div>
+          
+          <div class="form-group" style="text-align: center; margin-top: 2rem;">
+            <button type="submit" class="btn btn-success btn-lg">
+              <i class="fas fa-user-plus"></i>
+              Dodaj pracownika
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Funkcja wstecz
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+  
+  <script src="calendar.js"></script>
+  <script src="sidebar.js?v=20250125"></script>
+</body>
+</html>

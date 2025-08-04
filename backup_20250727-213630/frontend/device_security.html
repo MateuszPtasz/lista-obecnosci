@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitorowanie Bezpieczeństwa Urządzeń</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .security-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .security-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .security-icon {
+            font-size: 28px;
+            margin-right: 10px;
+            color: #ff9800;
+        }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .stat-approved { color: #4caf50; }
+        .stat-pending { color: #ff9800; }
+        .stat-rejected { color: #f44336; }
+        .stat-suspicious { color: #e91e63; }
+        
+        .device-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .device-table th {
+            background: #2196f3;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .device-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .device-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-approved {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .status-pending {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .status-rejected {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .status-suspicious {
+            background: #fce4ec;
+            color: #ad1457;
+        }
+        
+        .device-id {
+            font-family: monospace;
+            font-size: 11px;
+            background: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .refresh-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        .refresh-btn:hover {
+            background: #45a049;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="security-container">
+        <div class="security-header">
+            <span class="security-icon">🛡️</span>
+            <div>
+                <h1>Monitorowanie Bezpieczeństwa Urządzeń</h1>
+                <p>System śledzenia i autoryzacji urządzeń mobilnych pracowników</p>
+            </div>
+        </div>
+        
+        <button class="refresh-btn" onclick="loadDeviceLogs()">🔄 Odśwież dane</button>
+        
+        <div class="stats-row" id="stats-container">
+            <div class="stat-card">
+                <div class="stat-number stat-approved" id="stat-approved">-</div>
+                <div class="stat-label">Zatwierdzone</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number stat-pending" id="stat-pending">-</div>
+                <div class="stat-label">Oczekujące</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number stat-rejected" id="stat-rejected">-</div>
+                <div class="stat-label">Odrzucone</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number stat-suspicious" id="stat-suspicious">-</div>
+                <div class="stat-label">Podejrzane</div>
+            </div>
+        </div>
+        
+        <div id="content-area">
+            <div class="loading">Ładowanie danych urządzeń...</div>
+        </div>
+    </div>
+
+    <script>
+        let deviceLogs = [];
+        
+        async function loadDeviceLogs() {
+            try {
+                document.getElementById('content-area').innerHTML = '<div class="loading">Ładowanie danych urządzeń...</div>';
+                
+                const response = await fetch('/device_logs');
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                deviceLogs = data.logs || [];
+                
+                updateStats();
+                renderDeviceTable();
+                
+            } catch (error) {
+                console.error('Błąd ładowania danych:', error);
+                document.getElementById('content-area').innerHTML = 
+                    `<div class="error">❌ Błąd ładowania danych: ${error.message}</div>`;
+            }
+        }
+        
+        function updateStats() {
+            const stats = {
+                approved: 0,
+                pending: 0,
+                rejected: 0,
+                suspicious: 0
+            };
+            
+            deviceLogs.forEach(log => {
+                if (log.is_approved) stats.approved++;
+                else if (log.user_rejected) stats.rejected++;
+                else stats.pending++;
+                
+                if (log.is_suspicious) stats.suspicious++;
+            });
+            
+            document.getElementById('stat-approved').textContent = stats.approved;
+            document.getElementById('stat-pending').textContent = stats.pending;
+            document.getElementById('stat-rejected').textContent = stats.rejected;
+            document.getElementById('stat-suspicious').textContent = stats.suspicious;
+        }
+        
+        function renderDeviceTable() {
+            if (deviceLogs.length === 0) {
+                document.getElementById('content-area').innerHTML = 
+                    '<div class="loading">Brak zarejestrowanych urządzeń</div>';
+                return;
+            }
+            
+            const table = `
+                <table class="device-table">
+                    <thead>
+                        <tr>
+                            <th>ID Pracownika</th>
+                            <th>ID Urządzenia</th>
+                            <th>Model</th>
+                            <th>System</th>
+                            <th>Status</th>
+                            <th>Lokalizacja</th>
+                            <th>Data rejestracji</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${deviceLogs.map(log => `
+                            <tr>
+                                <td><strong>${log.worker_id}</strong></td>
+                                <td><span class="device-id">${log.device_id}</span></td>
+                                <td>${log.device_model || 'Nieznany'}</td>
+                                <td>${log.os_version || 'Nieznany'}</td>
+                                <td>${getStatusBadge(log)}</td>
+                                <td>${log.location || 'Brak danych'}</td>
+                                <td>${formatDate(log.created_at)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('content-area').innerHTML = table;
+        }
+        
+        function getStatusBadge(log) {
+            if (log.is_approved) {
+                return '<span class="status-badge status-approved">✅ Zatwierdzone</span>';
+            } else if (log.user_rejected) {
+                return '<span class="status-badge status-rejected">❌ Odrzucone</span>';
+            } else {
+                let badge = '<span class="status-badge status-pending">⏳ Oczekujące</span>';
+                if (log.is_suspicious) {
+                    badge += ' <span class="status-badge status-suspicious">🚨 Podejrzane</span>';
+                }
+                return badge;
+            }
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return 'Brak danych';
+            const date = new Date(dateStr);
+            return date.toLocaleString('pl-PL');
+        }
+        
+        // Automatyczne ładowanie danych przy starcie
+        window.addEventListener('load', loadDeviceLogs);
+        
+        // Automatyczne odświeżanie co 30 sekund
+        setInterval(loadDeviceLogs, 30000);
+    </script>
+</body>
+</html>

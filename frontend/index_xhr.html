@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulpit - Lista Obecności</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>Lista Obecności</h2>
+      <nav>
+        <a href="index.html" class="active">🏠 Pulpit</a>
+        <a href="employees.html">👥 Mój zespół</a>
+        <a href="#" id="showSubmenu">📊 Obecność ▼</a>
+        <a href="mobile_config.html">📱 Konfiguracja Aplikacji</a>
+      </nav>
+    </aside>
+    <div id="submenuPanel" class="submenu-panel">
+      <h3>Obecność</h3>
+      <a href="attendance_day.html">Obecność – Dzień</a>
+      <a href="attendance_summary.html">Obecność – Ewidencja</a>
+    </div>
+    <main class="main-content" style="margin-left:200px;">
+      <h1>Pulpit</h1>
+      <div id="active-workers">Ładowanie danych...</div>
+      
+      <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, starting data fetch...');
+        
+        // Użyj XMLHttpRequest zamiast fetch
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/active_workers', true);
+        
+        xhr.onreadystatechange = function() {
+          console.log('XHR state:', xhr.readyState, 'status:', xhr.status);
+          
+          if (xhr.readyState === 4) {
+            const container = document.getElementById('active-workers');
+            
+            if (xhr.status === 200) {
+              try {
+                const data = JSON.parse(xhr.responseText);
+                console.log('Parsed data:', data);
+                
+                if (data.length === 0) {
+                  container.innerHTML = "<p>Brak pracowników z dzisiaj.</p>";
+                  return;
+                }
+                
+                let html = "<table class='employee-table'><thead><tr><th></th><th>Imię i nazwisko</th><th>Start</th><th>Czas pracy</th><th>Lokalizacja wejścia</th></tr></thead><tbody>";
+                
+                data.forEach(worker => {
+                  console.log('Processing worker:', worker);
+                  const dot = `<span style='color:${worker.online ? 'green' : 'red'};font-size:1.5em;'>&#9679;</span>`;
+                  let startLoc = '-';
+                  
+                  if (worker.start_lat && worker.start_lon) {
+                    try {
+                      const lat = parseFloat(worker.start_lat).toFixed(5);
+                      const lon = parseFloat(worker.start_lon).toFixed(5);
+                      startLoc = `<a href='https://www.google.com/maps?q=${lat},${lon}' target='_blank'>Pokaż na mapie</a>`;
+                    } catch (err) {
+                      console.error('Error processing location:', err);
+                      startLoc = 'Błąd lokalizacji';
+                    }
+                  }
+                  
+                  html += `<tr>
+                              <td style='text-align:center;'>${dot}</td>
+                              <td>${worker.name}</td>
+                              <td>${worker.start_time}</td>
+                              <td>${worker.duration}</td>
+                              <td>${startLoc}</td>
+                           </tr>`;
+                });
+                
+                html += "</tbody></table>";
+                container.innerHTML = html;
+                console.log('Table updated successfully');
+                
+              } catch (e) {
+                console.error('JSON parse error:', e);
+                container.innerHTML = "Błąd podczas parsowania danych: " + e.message;
+              }
+            } else {
+              console.error('HTTP error:', xhr.status, xhr.statusText);
+              container.innerHTML = "Błąd HTTP: " + xhr.status + " " + xhr.statusText;
+            }
+          }
+        };
+        
+        xhr.onerror = function() {
+          console.error('Network error');
+          document.getElementById('active-workers').innerHTML = "Błąd sieci";
+        };
+        
+        xhr.send();
+      });
+      </script>
+    </main>
+  </div>
+  
+  <script src="sidebar.js?v=20250125"></script>
+</body>
+</html>

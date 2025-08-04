@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Zaokrąglanie Czasu - Lista Obecności</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .rounding-section {
+      background: var(--card-bg);
+      padding: 2rem;
+      margin: 1rem 0;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      border: var(--card-border);
+    }
+    .rounding-row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid #eee;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .rounding-row:last-child {
+      border-bottom: none;
+    }
+    .rounding-label {
+      flex: 0 0 auto;
+      font-weight: 500;
+      min-width: 200px;
+    }
+    .rounding-description {
+      flex: 0 0 auto;
+      color: #666;
+      font-size: 14px;
+      margin-right: 15px;
+      min-width: 300px;
+      max-width: 400px;
+    }
+    .rounding-control {
+      flex: 0 0 auto;
+      margin-left: auto;
+    }
+    
+    /* Toggle switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .toggle-slider {
+      background-color: #4CAF50;
+    }
+    input:checked + .toggle-slider:before {
+      transform: translateX(26px);
+    }
+    
+    /* Select i input */
+    .rounding-select, .rounding-input {
+      padding: 8px 12px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      min-width: 120px;
+    }
+    .rounding-select:focus, .rounding-input:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+    
+    /* Przykłady */
+    .example-box {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 10px;
+      border-left: 4px solid #007bff;
+    }
+    .example-time {
+      font-family: monospace;
+      font-weight: bold;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html"><i class="fas fa-users"></i> Zespół</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecności -->
+          <div id="submenuPanel">
+            <a href="attendance_day.html">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html" class="active">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+          </div>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <main class="content">
+      <div class="content-header">
+        <div class="header-actions">
+          <a href="index.html" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Powrót
+          </a>
+        </div>
+        <h1><i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy</h1>
+        <p class="subtitle">Konfiguruj automatyczne zaokrąglanie czasu wejść i wyjść pracowników</p>
+        <div style="margin-top: 10px;">
+          <small style="background: #f8f9fa; padding: 5px 10px; border-radius: 5px; color: #666;">
+            <i class="fas fa-info-circle"></i> Funkcja pozwala na automatyczne korygowanie czasu pracy według ustalonych reguł
+          </small>
+        </div>
+      </div>
+      
+      <div id="statusMessage" class="status-message"></div>
+      
+      <div class="rounding-section">
+        <h2><i class="fas fa-toggle-on"></i> Główne Ustawienia</h2>
+        
+        <div class="rounding-row">
+          <div class="rounding-label">Zaokrąglanie włączone</div>
+          <div class="rounding-description">Aktywuje system automatycznego zaokrąglania czasu</div>
+          <div class="rounding-control">
+            <label class="toggle-switch">
+              <input type="checkbox" id="enabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounding-section">
+        <h2><i class="fas fa-cogs"></i> Parametry Zaokrąglania</h2>
+        
+        <div class="rounding-row">
+          <div class="rounding-label">Interwał zaokrąglania</div>
+          <div class="rounding-description">Co ile minut zaokrąglać czas (5, 10, 15, 30, 60 minut)</div>
+          <div class="rounding-control">
+            <select class="rounding-select" id="rounding_minutes">
+              <option value="5">5 minut</option>
+              <option value="10">10 minut</option>
+              <option value="15">15 minut</option>
+              <option value="30">30 minut</option>
+              <option value="60">60 minut (1 godzina)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="rounding-row">
+          <div class="rounding-label">Kierunek zaokrąglania</div>
+          <div class="rounding-description">W górę - zawsze w górę, W dół - zawsze w dół, Najbliższy - do najbliższego</div>
+          <div class="rounding-control">
+            <select class="rounding-select" id="rounding_direction">
+              <option value="up">W górę</option>
+              <option value="down">W dół</option>
+              <option value="nearest">Najbliższy</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounding-section">
+        <h2><i class="fas fa-clock"></i> Rodzaje Czasu</h2>
+        
+        <div class="rounding-row">
+          <div class="rounding-label">Zaokrąglaj czas rozpoczęcia</div>
+          <div class="rounding-description">Automatycznie koryguj czas logowania do pracy</div>
+          <div class="rounding-control">
+            <label class="toggle-switch">
+              <input type="checkbox" id="start_time_rounding">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="rounding-row">
+          <div class="rounding-label">Zaokrąglaj czas zakończenia</div>
+          <div class="rounding-description">Automatycznie koryguj czas wylogowania z pracy</div>
+          <div class="rounding-control">
+            <label class="toggle-switch">
+              <input type="checkbox" id="end_time_rounding">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounding-section">
+        <h2><i class="fas fa-exclamation-triangle"></i> Limity Tolerancji</h2>
+        
+        <div class="rounding-row">
+          <div class="rounding-label">Maksymalnie wcześniej (minuty)</div>
+          <div class="rounding-description">Ile minut wcześniej pracownik może się zalogować</div>
+          <div class="rounding-control">
+            <input type="number" class="rounding-input" id="max_early_minutes" min="0" max="120" value="30">
+          </div>
+        </div>
+
+        <div class="rounding-row">
+          <div class="rounding-label">Maksymalnie później (minuty)</div>
+          <div class="rounding-description">Ile minut później pracownik może się zalogować</div>
+          <div class="rounding-control">
+            <input type="number" class="rounding-input" id="max_late_minutes" min="0" max="120" value="30">
+          </div>
+        </div>
+      </div>
+
+      <div class="rounding-section">
+        <h2><i class="fas fa-coffee"></i> Dodatkowe Opcje</h2>
+        
+        <div class="rounding-row">
+          <div class="rounding-label">Zaokrąglaj przerwy</div>
+          <div class="rounding-description">Stosuj zaokrąglanie także do przerw i wyjść podczas dnia</div>
+          <div class="rounding-control">
+            <label class="toggle-switch">
+              <input type="checkbox" id="apply_to_breaks">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Przykłady zaokrąglania -->
+      <div class="rounding-section">
+        <h2><i class="fas fa-lightbulb"></i> Przykłady Zaokrąglania</h2>
+        <div id="roundingExamples">
+          <!-- Dynamicznie generowane przykłady -->
+        </div>
+      </div>
+
+      <!-- Przyciski akcji -->
+      <div class="rounding-section">
+        <button class="btn btn-primary" onclick="saveRoundingConfiguration()">
+          <i class="fas fa-save"></i> Zapisz Konfigurację
+        </button>
+        <button class="btn btn-secondary" onclick="resetToDefaults()">
+          <i class="fas fa-undo"></i> Przywróć Domyślne
+        </button>
+        <button class="btn btn-info" onclick="testRounding()">
+          <i class="fas fa-calculator"></i> Testuj Zaokrąglanie
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <script src="sidebar.js"></script>
+  <script>
+    let currentRoundingConfig = {};
+    
+    // Załaduj aktualną konfigurację zaokrąglania
+    async function loadRoundingConfiguration() {
+      try {
+        const response = await fetch('http://localhost:8000/time-rounding-config');
+        if (!response.ok) throw new Error('Błąd serwera');
+        
+        const data = await response.json();
+        currentRoundingConfig = data.config;
+        
+        // Wypełnij formularz
+        Object.keys(currentRoundingConfig).forEach(key => {
+          const element = document.getElementById(key);
+          if (element) {
+            if (element.type === 'checkbox') {
+              element.checked = currentRoundingConfig[key] === true;
+            } else {
+              element.value = currentRoundingConfig[key];
+            }
+          }
+        });
+        
+        // Aktualizuj przykłady
+        updateRoundingExamples();
+        
+        showMessage('✅ Konfiguracja zaokrąglania załadowana pomyślnie', 'success');
+        
+      } catch (error) {
+        console.error('Błąd ładowania konfiguracji zaokrąglania:', error);
+        showMessage('❌ Błąd ładowania konfiguracji: ' + error.message, 'error');
+      }
+    }
+    
+    // Zapisz konfigurację zaokrąglania
+    async function saveRoundingConfiguration() {
+      const saveButton = document.querySelector('.btn-primary');
+      saveButton.disabled = true;
+      saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Zapisywanie...';
+      
+      try {
+        // Zbierz dane z formularza
+        const newConfig = {};
+        
+        // Checkboxy
+        ['enabled', 'start_time_rounding', 'end_time_rounding', 'apply_to_breaks'].forEach(key => {
+          const element = document.getElementById(key);
+          if (element) {
+            newConfig[key] = element.checked;
+          }
+        });
+        
+        // Selecty i inputy numeryczne
+        ['rounding_minutes', 'max_early_minutes', 'max_late_minutes'].forEach(key => {
+          const element = document.getElementById(key);
+          if (element) {
+            newConfig[key] = parseInt(element.value);
+          }
+        });
+        
+        // Select tekstowy
+        const directionElement = document.getElementById('rounding_direction');
+        if (directionElement) {
+          newConfig['rounding_direction'] = directionElement.value;
+        }
+        
+        // Wyślij do serwera
+        const response = await fetch('http://localhost:8000/time-rounding-config', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newConfig)
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Błąd serwera');
+        }
+        
+        const result = await response.json();
+        const newVersion = result.new_version || result.version || 'Nieznana';
+        showMessage(`✅ Konfiguracja zaokrąglania została zapisana! Wersja: ${newVersion}`, 'success');
+        
+        // Aktualizuj przykłady
+        currentRoundingConfig = newConfig;
+        updateRoundingExamples();
+        
+      } catch (error) {
+        console.error('Błąd zapisywania:', error);
+        showMessage('❌ Błąd podczas zapisywania konfiguracji: ' + error.message, 'error');
+      } finally {
+        saveButton.disabled = false;
+        saveButton.innerHTML = '<i class="fas fa-save"></i> Zapisz Konfigurację';
+      }
+    }
+    
+    // Przywróć ustawienia domyślne
+    function resetToDefaults() {
+      if (!confirm('Czy na pewno chcesz przywrócić ustawienia domyślne?')) return;
+      
+      document.getElementById('enabled').checked = false;
+      document.getElementById('rounding_minutes').value = 15;
+      document.getElementById('rounding_direction').value = 'nearest';
+      document.getElementById('start_time_rounding').checked = true;
+      document.getElementById('end_time_rounding').checked = true;
+      document.getElementById('max_early_minutes').value = 30;
+      document.getElementById('max_late_minutes').value = 30;
+      document.getElementById('apply_to_breaks').checked = false;
+      
+      updateRoundingExamples();
+      showMessage('🔄 Przywrócono ustawienia domyślne', 'info');
+    }
+    
+    // Aktualizuj przykłady zaokrąglania
+    function updateRoundingExamples() {
+      const roundingMinutes = parseInt(document.getElementById('rounding_minutes').value);
+      const direction = document.getElementById('rounding_direction').value;
+      const enabled = document.getElementById('enabled').checked;
+      
+      const examplesDiv = document.getElementById('roundingExamples');
+      
+      if (!enabled) {
+        examplesDiv.innerHTML = '<div class="example-box">⚠️ Zaokrąglanie jest wyłączone - czas będzie rejestrowany dokładnie</div>';
+        return;
+      }
+      
+      const examples = [
+        { original: "06:53", description: "Pracownik przyszedł 7 minut przed czasem" },
+        { original: "07:02", description: "Pracownik przyszedł 2 minuty po czasie" },
+        { original: "07:08", description: "Pracownik przyszedł 8 minut po czasie" },
+        { original: "07:12", description: "Pracownik przyszedł 12 minut po czasie" },
+        { original: "16:47", description: "Pracownik wyszedł 13 minut przed czasem" },
+        { original: "17:03", description: "Pracownik wyszedł 3 minuty po czasie" }
+      ];
+      
+      let html = '';
+      examples.forEach(example => {
+        const rounded = roundTimeExample(example.original, roundingMinutes, direction);
+        const diff = getTimeDifference(example.original, rounded);
+        html += `
+          <div class="example-box">
+            <strong>${example.description}</strong><br>
+            Oryginalny czas: <span class="example-time">${example.original}</span> 
+            → Zaokrąglony: <span class="example-time">${rounded}</span>
+            <small style="color: #666;"> (${diff})</small>
+          </div>
+        `;
+      });
+      
+      examplesDiv.innerHTML = html;
+    }
+    
+    // Pomocnicza funkcja do zaokrąglania czasu (dla przykładów)
+    function roundTimeExample(timeStr, roundingMinutes, direction) {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      const totalMinutes = hours * 60 + minutes;
+      
+      let roundedMinutes;
+      if (direction === 'up') {
+        roundedMinutes = Math.ceil(totalMinutes / roundingMinutes) * roundingMinutes;
+      } else if (direction === 'down') {
+        roundedMinutes = Math.floor(totalMinutes / roundingMinutes) * roundingMinutes;
+      } else { // nearest
+        roundedMinutes = Math.round(totalMinutes / roundingMinutes) * roundingMinutes;
+      }
+      
+      const roundedHours = Math.floor(roundedMinutes / 60);
+      const remainingMinutes = roundedMinutes % 60;
+      
+      return `${String(roundedHours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}`;
+    }
+    
+    // Oblicz różnicę czasu
+    function getTimeDifference(original, rounded) {
+      const [oh, om] = original.split(':').map(Number);
+      const [rh, rm] = rounded.split(':').map(Number);
+      
+      const originalTotal = oh * 60 + om;
+      const roundedTotal = rh * 60 + rm;
+      const diff = roundedTotal - originalTotal;
+      
+      if (diff === 0) return 'bez zmian';
+      if (diff > 0) return `+${diff} min`;
+      return `${diff} min`;
+    }
+    
+    // Test zaokrąglania
+    function testRounding() {
+      const testTime = prompt('Podaj czas do przetestowania (format HH:MM):', '07:03');
+      if (!testTime || !/^\d{2}:\d{2}$/.test(testTime)) {
+        showMessage('❌ Nieprawidłowy format czasu! Użyj HH:MM', 'error');
+        return;
+      }
+      
+      const roundingMinutes = parseInt(document.getElementById('rounding_minutes').value);
+      const direction = document.getElementById('rounding_direction').value;
+      const enabled = document.getElementById('enabled').checked;
+      
+      if (!enabled) {
+        showMessage(`⚠️ Zaokrąglanie wyłączone: ${testTime} → ${testTime} (bez zmian)`, 'info');
+        return;
+      }
+      
+      const rounded = roundTimeExample(testTime, roundingMinutes, direction);
+      const diff = getTimeDifference(testTime, rounded);
+      
+      showMessage(`🧮 Test: ${testTime} → ${rounded} (${diff})`, 'info');
+    }
+    
+    // Pokaż wiadomość status
+    function showMessage(message, type = 'info') {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.textContent = message;
+      statusDiv.className = `status-message ${type}`;
+      statusDiv.style.display = 'block';
+      
+      setTimeout(() => {
+        statusDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Event listenery dla zmian
+    document.addEventListener('DOMContentLoaded', function() {
+      loadRoundingConfiguration();
+      
+      // Aktualizuj przykłady przy zmianie ustawień
+      ['rounding_minutes', 'rounding_direction', 'enabled'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('change', updateRoundingExamples);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

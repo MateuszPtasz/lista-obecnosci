@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .error { background-color: #ffe6e6; }
+        .success { background-color: #e6ffe6; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Test API Debug</h1>
+    
+    <button onclick="testActiveWorkers()">Test /active_workers</button>
+    <button onclick="testWorkers()">Test /workers</button>
+    <button onclick="testEmployees()">Test /employees</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        function addResult(message, isError = false) {
+            const div = document.createElement('div');
+            div.className = 'result ' + (isError ? 'error' : 'success');
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        async function testActiveWorkers() {
+            try {
+                addResult('Rozpoczynam test /active_workers...');
+                const response = await fetch('http://localhost:8002/active_workers');
+                addResult(`Status odpowiedzi: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`Dane otrzymane: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    addResult(`Błąd HTTP: ${response.status}`, true);
+                }
+            } catch (error) {
+                addResult(`Błąd JavaScript: ${error.message}`, true);
+                console.error('Błąd w testActiveWorkers:', error);
+            }
+        }
+        
+        async function testWorkers() {
+            try {
+                addResult('Rozpoczynam test /workers...');
+                const response = await fetch('http://localhost:8002/workers');
+                addResult(`Status odpowiedzi: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`Liczba pracowników: ${data.length}`);
+                    addResult(`Przykładowy pracownik: ${JSON.stringify(data[0] || {}, null, 2)}`);
+                } else {
+                    addResult(`Błąd HTTP: ${response.status}`, true);
+                }
+            } catch (error) {
+                addResult(`Błąd JavaScript: ${error.message}`, true);
+                console.error('Błąd w testWorkers:', error);
+            }
+        }
+        
+        async function testEmployees() {
+            try {
+                addResult('Rozpoczynam test /employees...');
+                const response = await fetch('http://localhost:8002/employees');
+                addResult(`Status odpowiedzi: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`Liczba pracowników: ${data.length}`);
+                    addResult(`Przykładowy pracownik: ${JSON.stringify(data[0] || {}, null, 2)}`);
+                } else {
+                    addResult(`Błąd HTTP: ${response.status}`, true);
+                }
+            } catch (error) {
+                addResult(`Błąd JavaScript: ${error.message}`, true);
+                console.error('Błąd w testEmployees:', error);
+            }
+        }
+        
+        // Automatyczny test przy załadowaniu strony
+        window.addEventListener('DOMContentLoaded', function() {
+            addResult('Strona załadowana, rozpoczynam automatyczny test...');
+            setTimeout(() => {
+                testActiveWorkers();
+                setTimeout(() => testWorkers(), 1000);
+                setTimeout(() => testEmployees(), 2000);
+            }, 500);
+        });
+    </script>
+</body>
+</html>

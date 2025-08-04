@@ -1,0 +1,239 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Obecność – Dzień - Lista Obecności</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html"><i class="fas fa-users"></i> Zespół</a></li>
+        <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Wyloguj</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecnoÅ›ci -->
+          <div id="submenuPanel" class="active">
+            <a href="attendance_day.html" class="active">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html">
+                  <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+            <a href="app_version_management.html">
+              <i class="fas fa-code-branch"></i> Zarządzanie wersji mobilnej
+            </a>
+          </div>
+        </li>
+      </ul>
+      
+      <!-- Kalendarz w sidebarze -->
+      <div class="sidebar-widget" id="calendarWidget">
+        <h3 class="widget-title" id="calendarTitle">
+          <i class="fas fa-calendar-alt"></i>
+          Kalendarz
+          <i class="fas fa-expand-alt expand-icon"></i>
+        </h3>
+        <div id="calendar" class="calendar-widget"></div>
+      </div>
+    </aside>
+
+    <!-- Overlay dla rozszerzonego kalendarza -->
+    <div class="calendar-overlay" id="calendarOverlay"></div>
+
+    <!-- Main content -->
+    <main class="content">
+      <div class="card">
+        <div class="card-header">
+          <button onclick="goBack()" class="btn btn-secondary mb-3">
+            <i class="fas fa-arrow-left"></i>
+            Wstecz
+          </button>
+          <h1 class="card-title">
+            <i class="fas fa-calendar-day text-primary"></i>
+            Obecność – wybrany dzień
+          </h1>
+          <p class="card-subtitle">Zarządzaj obecnością pracowników w wybranym dniu</p>
+        <div class="card-body">
+          <div class="form-group mb-4">
+            <label for="selectedDate" class="form-label">
+              <i class="fas fa-calendar"></i>
+              Wybierz datę:
+            </label>
+            <div class="form-row">
+              <input type="date" id="selectedDate" class="form-control" style="max-width: 200px;">
+              <button onclick="loadAttendance()" class="btn btn-primary">
+                <i class="fas fa-search"></i>
+                Pokaż obecność
+              </button>
+            </div>
+          </div>
+
+          <div id="attendanceResults"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="sidebar.js"></script>
+  <script>
+    function loadAttendance() {
+      const date = document.getElementById('selectedDate').value;
+      if (!date) return alert("Wybierz datÄ™");
+
+      // Używamy ścieżki względnej do API
+      let apiUrl = `/api/attendance_by_date?date=${date}`;
+
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('attendanceResults');
+          if (data.length === 0) {
+            container.innerHTML = `
+              <div class="card">
+                <div class="card-body text-center">
+                  <i class="fas fa-calendar-times text-muted" style="font-size: 3rem;"></i>
+                  <h3 class="mt-3 text-muted">Brak danych</h3>
+                  <p class="text-muted">Brak danych obecności dla wybranego dnia.</p>
+                </div>
+              </div>
+            `;
+            return;
+          }
+
+          let html = `
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-users text-success"></i>
+                  Obecność na dzień ${date}
+                </h3>
+                <p class="card-subtitle">${data.length} rekordów obecności</p>
+              </div>
+              <div class="card-body">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Pracownik</th>
+                      <th>Wejście</th>
+                      <th>Wyjście</th>
+                      <th>Czas pracy</th>
+                      <th>Lokalizacja wejścia</th>
+                      <th>Lokalizacja wyjścia</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+          `;
+          data.forEach(item => {
+            let startLoc = '<span class="text-muted">-</span>';
+            let stopLoc = '<span class="text-muted">-</span>';
+            if (item.start_lat && item.start_lon) {
+              const lat = item.start_lat.toFixed(5);
+              const lon = item.start_lon.toFixed(5);
+              startLoc = `<a href='https://www.google.com/maps?q=${lat},${lon}' target='_blank' class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-map-marker-alt"></i> Mapa
+              </a>`;
+            }
+            if (item.stop_lat && item.stop_lon) {
+              const lat = item.stop_lat.toFixed(5);
+              const lon = item.stop_lon.toFixed(5);
+              stopLoc = `<a href='https://www.google.com/maps?q=${lat},${lon}' target='_blank' class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-map-marker-alt"></i> Mapa
+              </a>`;
+            }
+            html += `<tr>
+              <td><strong>${item.name}</strong></td>
+              <td>
+                <i class="fas fa-sign-in-alt text-success"></i>
+                ${item.start_time || '<span class="text-muted">-</span>'}
+              </td>
+              <td>
+                <i class="fas fa-sign-out-alt text-danger"></i>
+                ${item.stop_time || '<span class="text-muted">-</span>'}
+              </td>
+              <td>
+                <i class="fas fa-clock text-primary"></i>
+                <strong>${item.duration || '<span class="text-muted">-</span>'}</strong>
+              </td>
+              <td>${startLoc}</td>
+              <td>${stopLoc}</td>
+            </tr>`;
+          });
+          html += `
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+          container.innerHTML = html;
+        })
+        .catch(err => {
+          const container = document.getElementById('attendanceResults');
+          container.innerHTML = `
+            <div class="card">
+              <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+                <h3 class="mt-3 text-danger">Błąd połączenia</h3>
+                <p class="text-muted">Nie udało się pobrać danych obecności.</p>
+                <button onclick="loadAttendance()" class="btn btn-primary">
+                  <i class="fas fa-refresh"></i> Spróbuj ponownie
+                </button>
+              </div>
+            </div>
+          `;
+          console.error(err);
+        });
+    }
+    
+    function goBack() {
+      window.location.href = "index.html";
+    }
+  </script>
+  
+  <script src="calendar.js"></script>
+  
+  <script>
+    // Funkcja wylogowania
+    async function logout() {
+      try {
+        const response = await fetch('/api/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        if (response.ok) {
+          window.location.href = '/frontend/login.html';
+        }
+      } catch (error) {
+        console.error('Błąd podczas wylogowania:', error);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zarządzanie Wersjami Aplikacji</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Layout dla sidebar + main content */
+        body {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            overflow-y: auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1000;
+        }
+        
+        .content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .version-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .current-version {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        .version-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+        .feature-list {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .feature-item input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .btn-danger {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .btn-add {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .btn-save {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        .btn-force {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 10px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #856404;
+        }
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #155724;
+        }
+        .error-box {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #721c24;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html"><i class="fas fa-users"></i> Zespół</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecności -->
+          <div id="submenuPanel">
+            <a href="attendance_day.html">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+            <a href="app_version_management.html" class="active">
+              <i class="fas fa-code-branch"></i> Zarządzanie wersji mobilnej
+            </a>
+          </div>
+        </li>
+      </ul>
+      <!-- Kalendarz w sidebarze -->
+      <div class="sidebar-widget" id="calendarWidget">
+        <h3 class="widget-title" id="calendarTitle">
+          <i class="fas fa-calendar-alt"></i>
+          Kalendarz
+          <i class="fas fa-expand-alt expand-icon"></i>
+        </h3>
+        <div id="calendar" class="calendar-widget"></div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="content">
+        <div class="header">
+            <h1>🔄 Zarządzanie Wersjami Aplikacji Mobilnej</h1>
+            <p>Kontroluj aktualizacje aplikacji mobilnej dla wszystkich użytkowników</p>
+        </div>
+
+        <!-- Aktualny status -->
+        <div class="version-card current-version">
+            <h2>📱 Aktualny Status Aplikacji</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="current-version-display">-</div>
+                    <div class="stat-label">Aktualna Wersja</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="minimum-version-display">-</div>
+                    <div class="stat-label">Minimalna Wersja</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="update-status-display">-</div>
+                    <div class="stat-label">Status Aktualizacji</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="config-version-display">-</div>
+                    <div class="stat-label">Wersja Konfiguracji</div>
+                </div>
+            </div>
+            <button class="btn-add" onclick="loadCurrentVersion()">🔄 Odśwież Status</button>
+        </div>
+
+        <!-- Formularz zarządzania -->
+        <div class="version-card">
+            <h2>⚙️ Konfiguracja Nowej Wersji</h2>
+            
+            <div class="form-group">
+                <label for="new-version">🆕 Nowa Wersja Aplikacji:</label>
+                <input type="text" id="new-version" class="version-input" placeholder="np. 1.1.0" pattern="[0-9]+\.[0-9]+\.[0-9]+">
+                <small>Format: major.minor.patch (np. 1.2.3)</small>
+            </div>
+
+            <div class="form-group">
+                <label for="min-version">🔒 Minimalna Obsługiwana Wersja:</label>
+                <input type="text" id="min-version" class="version-input" placeholder="np. 1.0.0" pattern="[0-9]+\.[0-9]+\.[0-9]+">
+                <small>Wersje poniżej tej wartości będą zmuszone do aktualizacji</small>
+            </div>
+
+            <div class="form-group">
+                <label for="play-store-url">🏪 Link do Google Play Store:</label>
+                <input type="url" id="play-store-url" class="version-input" placeholder="https://play.google.com/store/apps/details?id=com.your.app">
+                <small>Pełny link do aplikacji w Google Play Store</small>
+            </div>
+
+            <div class="form-group">
+                <label for="update-message">💬 Wiadomość o Aktualizacji:</label>
+                <textarea id="update-message" class="version-input" rows="3" placeholder="Opisz co nowego w tej wersji..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>✨ Nowe Funkcje i Ulepszenia:</label>
+                <div class="feature-list" id="feature-list">
+                    <!-- Dynamicznie dodawane funkcje -->
+                </div>
+                <button type="button" class="btn-add" onclick="addFeature()">➕ Dodaj Funkcję</button>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="force-update" onchange="toggleForceUpdate()">
+                <label for="force-update">⚠️ <strong>Wymusz aktualizację</strong> (użytkownicy z starszymi wersjami nie będą mogli korzystać z aplikacji)</label>
+            </div>
+
+            <div id="force-warning" class="warning-box" style="display: none;">
+                <strong>⚠️ UWAGA!</strong> Wymuszenie aktualizacji sprawi, że użytkownicy z wersjami starszymi niż "Minimalna Obsługiwana Wersja" nie będą mogli korzystać z aplikacji do momentu aktualizacji!
+            </div>
+        </div>
+
+        <!-- Akcje -->
+        <div class="version-card">
+            <h2>🚀 Zastosuj Zmiany</h2>
+            <p>Zapisz nową konfigurację i zaktualizuj ustawienia aplikacji dla wszystkich użytkowników.</p>
+            
+            <button class="btn-save" onclick="saveVersion()">💾 Zapisz Konfigurację</button>
+            <button class="btn-force" onclick="testVersion()">🧪 Przetestuj Konfigurację</button>
+            
+            <div id="result-message"></div>
+        </div>
+
+        <!-- Historia wersji -->
+        <div class="version-card">
+            <h2>📋 Historia Zmian</h2>
+            <div id="version-history">
+                <p>Ładowanie historii wersji...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let features = [''];
+
+        // Ładowanie aktualnej wersji przy starcie
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentVersion();
+            addFeature(); // Dodaj pierwszy input dla funkcji
+        });
+
+        async function loadCurrentVersion() {
+            try {
+                const response = await fetch('/app-version');
+                const data = await response.json();
+                
+                document.getElementById('current-version-display').textContent = data.version_info.current_version;
+                document.getElementById('minimum-version-display').textContent = data.version_info.minimum_version;
+                document.getElementById('config-version-display').textContent = data.config_version;
+                
+                const updateStatus = data.version_info.update_required ? 'WYMAGANA' : 'OPCJONALNA';
+                document.getElementById('update-status-display').textContent = updateStatus;
+                
+                // Wypełnij formularz aktualnymi danymi
+                document.getElementById('new-version').value = data.version_info.current_version;
+                document.getElementById('min-version').value = data.version_info.minimum_version;
+                document.getElementById('play-store-url').value = data.version_info.play_store_url;
+                document.getElementById('update-message').value = data.version_info.update_message;
+                document.getElementById('force-update').checked = data.version_info.update_required;
+                
+                // Załaduj funkcje
+                features = data.version_info.update_features || [''];
+                renderFeatures();
+                
+                showMessage('✅ Załadowano aktualną konfigurację', 'success');
+            } catch (error) {
+                showMessage('❌ Błąd ładowania konfiguracji: ' + error.message, 'error');
+            }
+        }
+
+        function addFeature() {
+            features.push('');
+            renderFeatures();
+        }
+
+        function removeFeature(index) {
+            features.splice(index, 1);
+            if (features.length === 0) {
+                features.push('');
+            }
+            renderFeatures();
+        }
+
+        function renderFeatures() {
+            const container = document.getElementById('feature-list');
+            container.innerHTML = '';
+            
+            features.forEach((feature, index) => {
+                const div = document.createElement('div');
+                div.className = 'feature-item';
+                div.innerHTML = `
+                    <input type="text" value="${feature}" placeholder="Opisz nową funkcję..." 
+                           onchange="updateFeature(${index}, this.value)">
+                    <button type="button" class="btn-danger" onclick="removeFeature(${index})">🗑️</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateFeature(index, value) {
+            features[index] = value;
+        }
+
+        function toggleForceUpdate() {
+            const checkbox = document.getElementById('force-update');
+            const warning = document.getElementById('force-warning');
+            warning.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        async function saveVersion() {
+            const newVersion = document.getElementById('new-version').value;
+            const minVersion = document.getElementById('min-version').value;
+            const playStoreUrl = document.getElementById('play-store-url').value;
+            const updateMessage = document.getElementById('update-message').value;
+            const forceUpdate = document.getElementById('force-update').checked;
+            
+            // Walidacja
+            if (!newVersion || !minVersion || !playStoreUrl || !updateMessage) {
+                showMessage('❌ Wypełnij wszystkie wymagane pola!', 'error');
+                return;
+            }
+            
+            if (!isValidVersion(newVersion) || !isValidVersion(minVersion)) {
+                showMessage('❌ Nieprawidłowy format wersji! Użyj formatu X.Y.Z (np. 1.2.3)', 'error');
+                return;
+            }
+            
+            const filteredFeatures = features.filter(f => f.trim() !== '');
+            if (filteredFeatures.length === 0) {
+                showMessage('❌ Dodaj przynajmniej jedną nową funkcję!', 'error');
+                return;
+            }
+            
+            const configData = {
+                APP_VERSION_INFO: {
+                    current_version: newVersion,
+                    minimum_version: minVersion,
+                    update_required: forceUpdate,
+                    update_message: updateMessage,
+                    play_store_url: playStoreUrl,
+                    update_features: filteredFeatures
+                }
+            };
+            
+            try {
+                showMessage('💾 Zapisywanie konfiguracji...', 'info');
+                
+                const response = await fetch('/mobile-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(configData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('✅ Konfiguracja została zapisana! Nowe ustawienia są już aktywne.', 'success');
+                    loadCurrentVersion(); // Odśwież status
+                    loadVersionHistory(); // Odśwież historię
+                } else {
+                    showMessage('❌ Błąd zapisywania: ' + (result.detail || 'Nieznany błąd'), 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Błąd sieci: ' + error.message, 'error');
+            }
+        }
+
+        async function testVersion() {
+            const newVersion = document.getElementById('new-version').value;
+            
+            if (!newVersion || !isValidVersion(newVersion)) {
+                showMessage('❌ Wprowadź prawidłową wersję do testowania!', 'error');
+                return;
+            }
+            
+            try {
+                showMessage('🧪 Testowanie konfiguracji...', 'info');
+                
+                const response = await fetch('/app-version/check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        current_version: newVersion
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    let message = `🧪 Test dla wersji ${newVersion}:\n`;
+                    message += `• Aktualizacja dostępna: ${result.update_available ? 'TAK' : 'NIE'}\n`;
+                    message += `• Aktualizacja wymagana: ${result.update_required ? 'TAK' : 'NIE'}\n`;
+                    message += `• Najnowsza wersja: ${result.latest_version}`;
+                    
+                    showMessage(message, 'info');
+                } else {
+                    showMessage('❌ Błąd testowania: ' + (result.detail || 'Nieznany błąd'), 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Błąd testowania: ' + error.message, 'error');
+            }
+        }
+
+        function isValidVersion(version) {
+            return /^[0-9]+\.[0-9]+\.[0-9]+$/.test(version);
+        }
+
+        function showMessage(message, type) {
+            const container = document.getElementById('result-message');
+            const className = type === 'success' ? 'success-box' : 
+                            type === 'error' ? 'error-box' : 'warning-box';
+            
+            container.innerHTML = `<div class="${className}">${message.replace(/\n/g, '<br>')}</div>`;
+            
+            // Auto-hide po 5 sekundach dla success
+            if (type === 'success') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        async function loadVersionHistory() {
+            // Placeholder dla historii wersji
+            const historyContainer = document.getElementById('version-history');
+            historyContainer.innerHTML = `
+                <div style="color: #666; font-style: italic;">
+                    Historia wersji będzie dostępna w przyszłych aktualizacjach.
+                    <br>Aktualnie zapisywane są zmiany w plikach konfiguracyjnych.
+                </div>
+            `;
+        }
+    </script>
+    <script src="sidebar.js"></script>
+    <script src="calendar.js"></script>
+</body>
+</html>

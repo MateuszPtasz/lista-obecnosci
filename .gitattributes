@@ -1,0 +1,5 @@
+*.apk filter=lfs diff=lfs merge=lfs -text
+*.db filter=lfs diff=lfs merge=lfs -text
+*.so filter=lfs diff=lfs merge=lfs -text
+mobile_app/build/** filter=lfs diff=lfs merge=lfs -text
+mobile_app/.dart_tool/** filter=lfs diff=lfs merge=lfs -text

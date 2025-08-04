@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfiguracja Aplikacji - Lista Obecności</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #34495e;
+            --light: #f8f9fa;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        .header {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-link {
+            padding: 10px 15px;
+            margin: 0 5px;
+            text-decoration: none;
+            color: #555;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        
+        .content {
+            padding: 30px 0;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin: 0;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: #fff;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: #fff;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        /* Config Card */
+        .config-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .config-card-header {
+            background-color: #f5f5f5;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .config-card-body {
+            padding: 20px;
+        }
+        
+        .config-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .config-row:last-child {
+            border-bottom: none;
+        }
+        
+        .config-label {
+            flex: 0 0 180px;
+            font-weight: 600;
+            margin-right: 20px;
+        }
+        
+        .config-description {
+            flex: 0 0 300px;
+            color: #777;
+            font-size: 0.9rem;
+            margin-right: 20px;
+        }
+        
+        .config-control {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .config-control input[type="text"],
+        .config-control input[type="number"],
+        .config-control select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .config-control input:focus,
+        .config-control select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+            outline: none;
+        }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--success);
+        }
+        
+        input:focus + .toggle-slider {
+            box-shadow: 0 0 1px var(--success);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* Alert */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .alert-danger {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        .alert-info {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+        
+        .alert-warning {
+            background-color: rgba(243, 156, 18, 0.2);
+            color: #e67e22;
+            border: 1px solid rgba(243, 156, 18, 0.3);
+        }
+        
+        /* Dropdown menu */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #fff;
+            min-width: 180px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            z-index: 1000;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+            color: var(--primary);
+        }
+        
+        .dropdown-content a i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-inner {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-link {
+                margin-bottom: 5px;
+            }
+            
+            .config-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .config-label, .config-description, .config-control {
+                flex: 0 0 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index_top.html" class="logo">
+                <i class="fas fa-clipboard-list"></i>
+                Lista Obecności
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="index_top.html" class="nav-link">Pulpit</a></li>
+                <li><a href="employees_top.html" class="nav-link">Zespół</a></li>
+                <li class="dropdown">
+                    <a href="#" class="nav-link">Obecność</a>
+                    <div class="dropdown-content">
+                        <a href="attendance_day_top.html"><i class="fas fa-calendar-day"></i> Dzień</a>
+                        <a href="attendance_summary_top.html"><i class="fas fa-chart-bar"></i> Ewidencja</a>
+                    </div>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="nav-link active">Konfiguracja</a>
+                    <div class="dropdown-content">
+                        <a href="mobile_config_top.html"><i class="fas fa-mobile-alt"></i> Aplikacja mobilna</a>
+                        <a href="time_rounding_top.html"><i class="fas fa-clock"></i> Zaokrąglanie czasu</a>
+                        <a href="api_terminal.html"><i class="fas fa-terminal"></i> Terminal diagnostyczny</a>
+                    </div>
+                </li>
+                <li><a href="#" class="nav-link" onclick="logout()">Wyloguj</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <main class="content">
+        <div class="container">
+            <div id="statusMessage" style="display: none;"></div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <h2><i class="fas fa-mobile-alt"></i> Konfiguracja aplikacji mobilnej</h2>
+                    <div>
+                        <button class="btn btn-primary" id="saveConfigBtn">
+                            <i class="fas fa-save"></i> Zapisz konfigurację
+                        </button>
+                        <button class="btn btn-warning" id="testConfigBtn">
+                            <i class="fas fa-vial"></i> Testuj połączenie
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="config-card">
+                    <div class="config-card-header">
+                        <h3>Podstawowa konfiguracja</h3>
+                    </div>
+                    <div class="config-card-body">
+                        <div class="config-row">
+                            <div class="config-label">Adres serwera</div>
+                            <div class="config-description">Adres IP lub nazwa domeny serwera API</div>
+                            <div class="config-control">
+                                <input type="text" id="serverAddress" placeholder="np. 192.168.1.100 lub api.firma.pl">
+                            </div>
+                        </div>
+                        
+                        <div class="config-row">
+                            <div class="config-label">Port serwera</div>
+                            <div class="config-description">Port, na którym nasłuchuje serwer API</div>
+                            <div class="config-control">
+                                <input type="number" id="serverPort" placeholder="np. 8000">
+                            </div>
+                        </div>
+                        
+                        <div class="config-row">
+                            <div class="config-label">Protokół</div>
+                            <div class="config-description">Protokół komunikacji z serwerem</div>
+                            <div class="config-control">
+                                <select id="serverProtocol">
+                                    <option value="http">HTTP</option>
+                                    <option value="https">HTTPS</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="config-card">
+                    <div class="config-card-header">
+                        <h3>Ustawienia zaawansowane</h3>
+                    </div>
+                    <div class="config-card-body">
+                        <div class="config-row">
+                            <div class="config-label">Wymuszaj PIN</div>
+                            <div class="config-description">Wymagaj PIN do logowania w aplikacji</div>
+                            <div class="config-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="requirePin">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="config-row">
+                            <div class="config-label">Weryfikacja lokalizacji</div>
+                            <div class="config-description">Sprawdzaj lokalizację podczas rozpoczęcia pracy</div>
+                            <div class="config-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="locationVerification">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="config-row">
+                            <div class="config-label">Interwał synchronizacji</div>
+                            <div class="config-description">Częstotliwość sprawdzania statusu z serwerem (w sekundach)</div>
+                            <div class="config-control">
+                                <input type="number" id="syncInterval" placeholder="np. 300">
+                            </div>
+                        </div>
+                        
+                        <div class="config-row">
+                            <div class="config-label">Tryb debugowania</div>
+                            <div class="config-description">Włącz szczegółowe logi w aplikacji</div>
+                            <div class="config-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="debugMode">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="config-row">
+                            <div class="config-label">Autosynchronizacja</div>
+                            <div class="config-description">Automatyczna synchronizacja po powrocie online</div>
+                            <div class="config-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="autoSync">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Załaduj konfigurację
+            loadMobileConfig();
+            
+            // Przypisz zdarzenia przycisków
+            document.getElementById('saveConfigBtn').addEventListener('click', saveMobileConfig);
+            document.getElementById('testConfigBtn').addEventListener('click', testConnection);
+        });
+        
+        // Funkcja ładowania konfiguracji
+        function loadMobileConfig() {
+            fetch('/api/mobile_config')
+                .then(response => response.json())
+                .then(config => {
+                    // Uzupełnij formularz danymi
+                    document.getElementById('serverAddress').value = config.server_address || '';
+                    document.getElementById('serverPort').value = config.server_port || 8000;
+                    document.getElementById('serverProtocol').value = config.protocol || 'http';
+                    document.getElementById('requirePin').checked = config.require_pin || false;
+                    document.getElementById('locationVerification').checked = config.verify_location || false;
+                    document.getElementById('syncInterval').value = config.sync_interval || 300;
+                    document.getElementById('debugMode').checked = config.debug_mode || false;
+                    document.getElementById('autoSync').checked = config.auto_sync || true;
+                })
+                .catch(error => {
+                    console.error('Error loading config:', error);
+                    showStatus('danger', 'Błąd podczas ładowania konfiguracji: ' + error.message);
+                });
+        }
+        
+        // Funkcja zapisu konfiguracji
+        function saveMobileConfig() {
+            const config = {
+                server_address: document.getElementById('serverAddress').value,
+                server_port: parseInt(document.getElementById('serverPort').value) || 8000,
+                protocol: document.getElementById('serverProtocol').value,
+                require_pin: document.getElementById('requirePin').checked,
+                verify_location: document.getElementById('locationVerification').checked,
+                sync_interval: parseInt(document.getElementById('syncInterval').value) || 300,
+                debug_mode: document.getElementById('debugMode').checked,
+                auto_sync: document.getElementById('autoSync').checked
+            };
+            
+            fetch('/api/mobile_config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(config)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Błąd podczas zapisywania konfiguracji');
+                }
+                return response.json();
+            })
+            .then(data => {
+                showStatus('success', 'Konfiguracja zapisana pomyślnie!');
+            })
+            .catch(error => {
+                console.error('Save error:', error);
+                showStatus('danger', 'Błąd podczas zapisywania: ' + error.message);
+            });
+        }
+        
+        // Funkcja testowania połączenia
+        function testConnection() {
+            const serverAddress = document.getElementById('serverAddress').value;
+            const serverPort = document.getElementById('serverPort').value;
+            const protocol = document.getElementById('serverProtocol').value;
+            
+            if (!serverAddress || !serverPort) {
+                showStatus('warning', 'Podaj adres i port serwera!');
+                return;
+            }
+            
+            showStatus('info', 'Testowanie połączenia...');
+            
+            fetch('/api/test_connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    server_address: serverAddress,
+                    server_port: serverPort,
+                    protocol: protocol
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showStatus('success', 'Połączenie działa poprawnie! Odpowiedź serwera: ' + data.message);
+                } else {
+                    showStatus('danger', 'Test połączenia nieudany: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Connection test error:', error);
+                showStatus('danger', 'Błąd podczas testu połączenia: ' + error.message);
+            });
+        }
+        
+        // Funkcja wyświetlania komunikatu statusu
+        function showStatus(type, message) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.className = 'alert';
+            statusEl.classList.add(`alert-${type}`);
+            statusEl.innerHTML = message;
+            statusEl.style.display = 'block';
+            
+            // Ukryj komunikat po 5 sekundach (tylko dla sukcesu)
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        // Funkcja wylogowania
+        function logout() {
+            fetch('/api/logout', {
+                method: 'POST',
+                credentials: 'include'
+            }).then(() => {
+                window.location.href = '/login.html';
+            }).catch(err => {
+                console.error('Error during logout:', err);
+                alert('Wystąpił błąd podczas wylogowywania');
+            });
+        }
+    </script>
+</body>
+</html>

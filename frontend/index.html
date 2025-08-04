@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Panel Administracyjny - Lista Obecności</title>
+  <link rel="stylesheet" href="style.css?v=20250127">
+  <style>
+    /* Stylowanie dla kompaktowego układu zarządzania pracą */
+    .work-management-container {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .work-module {
+      flex: 1;
+      background-color: #fafbfc;
+      border-radius: 10px;
+      padding: 1rem;
+      border: 2px solid #e9ecef;
+      transition: all 0.3s ease;
+      min-height: 200px;
+    }
+    
+    .work-module:hover {
+      border-color: #dee2e6;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .work-module.start-module {
+      border-color: #d1ecf1;
+    }
+    
+    .work-module.stop-module {
+      border-color: #f8d7da;
+    }
+    
+    .work-module-header {
+      text-align: center;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e9ecef;
+      margin-bottom: 1rem;
+    }
+    
+    .work-module-header h4 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .work-module-header i {
+      font-size: 1.2rem;
+      margin-right: 0.5rem;
+    }
+    
+    .work-form-compact {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .form-group-compact {
+      margin-bottom: 1rem;
+    }
+    
+    .form-group-compact label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    
+    .form-group-compact input {
+      font-size: 0.95rem;
+      padding: 0.6rem;
+    }
+    
+    .btn-compact {
+      padding: 0.7rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    
+    .btn-secondary-compact {
+      padding: 0.5rem 0.8rem;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+      .work-management-container {
+        flex-direction: column;
+      }
+    }
+    
+    .work-module-title {
+      padding: 12px 20px;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .form-divider {
+      border-right: 2px solid #e9ecef;
+    }
+    
+    /* Dodatkowe wyrównanie */
+    .start-section, .stop-section {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .form-content {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .form-fields {
+      flex-grow: 1;
+      margin-bottom: 1rem;
+    }
+    
+    .form-buttons {
+      margin-top: auto;
+      width: 100%;
+    }
+    
+    .form-control-lg {
+      padding: 0.75rem 1rem;
+      font-size: 1.1rem;
+    }
+    
+    .form-label {
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    /* Style dla sekcji statusu pracowników */
+    #worker-status-container table {
+      font-size: 0.9rem;
+    }
+    
+    #worker-status-container .badge {
+      font-size: 0.85rem;
+      padding: 0.35em 0.65em;
+    }
+    
+    #worker-status-container .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+    
+    #worker-status-container tr.table-success {
+      background-color: rgba(25, 135, 84, 0.1);
+    }
+    
+    #worker-status-container tr:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html" class="active"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html"><i class="fas fa-users"></i> Zespół</a></li>
+        <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Wyloguj</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecności -->
+          <div id="submenuPanel">
+            <a href="attendance_day.html">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+            <a href="app_version_management.html">
+              <i class="fas fa-code-branch"></i> Zarządzanie wersji mobilnej
+            </a>
+          </div>
+        </li>
+        <!-- Przycisk wylogowania -->
+        <li class="mt-auto">
+          <a href="#" onclick="logout()" style="color: #dc3545;">
+            <i class="fas fa-sign-out-alt"></i> 
+            Wyloguj
+          </a>
+        </li>
+      </ul>
+      
+      <!-- Kalendarz w sidebarze -->
+      <div class="sidebar-widget" id="calendarWidget">
+        <h3 class="widget-title" id="calendarTitle">
+          <i class="fas fa-calendar-alt"></i>
+          Kalendarz
+          <i class="fas fa-expand-alt expand-icon"></i>
+        </h3>
+        <div id="calendar" class="calendar-widget"></div>
+      </div>
+    </aside>
+
+    <!-- Overlay dla rozszerzonego kalendarza -->
+    <div class="calendar-overlay" id="calendarOverlay"></div>
+
+    <!-- Main content -->
+    <main class="content">
+      <!-- Widget logowania pracownika -->
+      <!-- Karta zarządzania pracą -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-clock text-primary"></i>
+            Zarządzanie czasem pracy
+          </h3>
+          <p class="card-subtitle">Rozpoczynanie i zakończanie pracy pracowników</p>
+        </div>
+        <div class="card-body">
+          <!-- Sekcja zarządzania pracą -->
+          <div class="work-management-container">
+            <!-- Moduł ROZPOCZNIJ -->
+            <div class="work-module start-module">
+              <div class="work-module-header">
+                <h4><i class="fas fa-play text-success"></i>Rozpocznij pracę</h4>
+              </div>
+              <form id="startWorkForm" class="work-form-compact">
+                <div class="form-group-compact">
+                  <label for="workerId" class="form-label">
+                    <i class="fas fa-id-card text-success me-1"></i>ID Pracownika:
+                  </label>
+                  <input type="text" id="workerId" name="workerId" class="form-control" 
+                         placeholder="np. 001, 002..." required autocomplete="off">
+                </div>
+                <div class="mt-auto">
+                  <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-compact">
+                      <i class="fas fa-play me-2"></i>Rozpocznij pracę
+                    </button>
+                    <button type="button" onclick="clearForm()" class="btn btn-outline-secondary btn-secondary-compact">
+                      <i class="fas fa-times me-1"></i>Wyczyść
+                    </button>
+                  </div>
+                </div>
+                <div id="startWorkResult" class="mt-2"></div>
+              </form>
+            </div>
+
+            <!-- Moduł ZAKOŃCZ -->
+            <div class="work-module stop-module">
+              <div class="work-module-header">
+                <h4><i class="fas fa-stop text-danger"></i>Zakończ pracę</h4>
+              </div>
+              <form id="stopWorkForm" class="work-form-compact">
+                <div class="form-group-compact">
+                  <label for="stopWorkerId" class="form-label">
+                    <i class="fas fa-id-card text-danger me-1"></i>ID Pracownika:
+                  </label>
+                  <input type="text" id="stopWorkerId" name="stopWorkerId" class="form-control" 
+                         placeholder="np. 001, 002..." required autocomplete="off">
+                </div>
+                <div class="mt-auto">
+                  <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-danger btn-compact">
+                      <i class="fas fa-stop me-2"></i>Zakończ pracę
+                    </button>
+                    <button type="button" onclick="clearStopForm()" class="btn btn-outline-secondary btn-secondary-compact">
+                      <i class="fas fa-times me-1"></i>Wyczyść
+                    </button>
+                  </div>
+                </div>
+                <div id="stopWorkResult" class="mt-2"></div>
+              </form>
+            </div>
+            
+            <!-- Moduł awaryjnego zakończenia pracy -->
+            <div class="work-module emergency-stop-module mt-4">
+              <div class="work-module-header">
+                <h4><i class="fas fa-exclamation-triangle text-warning"></i>Awaryjne zakończenie pracy</h4>
+                <p class="text-muted small">Używaj tylko w przypadku problemów z normalnym zakończeniem pracy</p>
+              </div>
+              <form id="emergencyStopForm" class="work-form-compact">
+                <div class="form-group-compact">
+                  <label for="emergencyWorkerId" class="form-label">
+                    <i class="fas fa-id-card text-warning me-1"></i>ID Pracownika:
+                  </label>
+                  <input type="text" id="emergencyWorkerId" name="emergencyWorkerId" class="form-control" 
+                         placeholder="np. 001, 002..." required autocomplete="off">
+                </div>
+                <div class="form-group-compact">
+                  <label for="emergencyReason" class="form-label">
+                    <i class="fas fa-comment-alt text-warning me-1"></i>Powód:
+                  </label>
+                  <input type="text" id="emergencyReason" name="emergencyReason" class="form-control" 
+                         value="Problem z zakończeniem sesji" autocomplete="off">
+                </div>
+                <div class="mt-auto">
+                  <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-warning btn-compact">
+                      <i class="fas fa-exclamation-triangle me-2"></i>Awaryjne zakończenie
+                    </button>
+                    <button type="button" onclick="clearEmergencyStopForm()" class="btn btn-outline-secondary btn-secondary-compact">
+                      <i class="fas fa-times me-1"></i>Wyczyść
+                    </button>
+                  </div>
+                </div>
+                <div id="emergencyStopResult" class="mt-2"></div>
+              </form>
+            </div>
+        </div>
+                              </button>
+      </div>
+
+      <!-- Status pracowników - nowa sekcja -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-user-clock text-info"></i>
+            Status pracowników
+          </h3>
+          <p class="card-subtitle">Bieżący status pracowników i aktywne zmiany</p>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <button onclick="refreshWorkerStatus()" class="btn btn-info">
+              <i class="fas fa-sync-alt"></i>
+              Odśwież status
+            </button>
+          </div>
+          <div id="worker-status-container">
+            <div style="text-align: center; padding: 2rem;">
+              <i class="fas fa-spinner fa-spin text-info" style="font-size: 2rem;"></i>
+              <p class="mt-2 text-muted">Ładowanie statusu pracowników...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h1 class="card-title">
+            <i class="fas fa-tachometer-alt text-primary"></i>
+            Pulpit główny
+          </h1>
+          <p class="card-subtitle">Aktywni pracownicy na dziś</p>
+        </div>
+        
+        <div class="mb-3">
+          <button onclick="loadActiveWorkers()" class="btn btn-primary">
+            <i class="fas fa-sync-alt"></i>
+            Odśwież listę
+          </button>
+        </div>
+        
+        <div id="active-workers" class="card">
+          <div style="text-align: center; padding: 2rem;">
+            <i class="fas fa-spinner fa-spin text-primary" style="font-size: 2rem;"></i>
+            <p class="mt-2 text-muted">Ładowanie danych...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    // Funkcja rozpoczynania pracy
+    async function startWork(workerId) {
+      try {
+        console.log('Starting work for worker ID:', workerId);
+        
+        const now = new Date();
+        const requestData = {
+          worker_id: workerId,
+          employee_id: workerId,
+          czas_start: now.toISOString(),
+          lokalizacja_start: {
+            lat: 0.0,
+            lon: 0.0
+          }
+        };
+        
+        console.log('Sending data:', requestData);
+        
+        const response = await fetch('/api/start', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        console.log('Start work response status:', response.status);
+        const data = await response.json();
+        console.log('Start work response data:', data);
+        
+        if (response.ok) {
+          document.getElementById('startWorkResult').innerHTML = `
+            <div class="alert alert-success">
+              <i class="fas fa-check-circle"></i>
+              <strong>Sukces!</strong> Pracownik ${workerId} rozpoczął pracę o ${data.start_time || 'teraz'}.
+            </div>
+          `;
+          // Odśwież listę aktywnych pracowników
+          setTimeout(loadActiveWorkers, 1000);
+          // Wyczyść formularz
+          document.getElementById('workerId').value = '';
+        } else {
+          throw new Error(data.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+      } catch (error) {
+        console.error("Błąd podczas rozpoczynania pracy:", error);
+        document.getElementById('startWorkResult').innerHTML = `
+          <div class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Błąd:</strong> ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // Funkcja zakończenia pracy
+    async function stopWork(workerId) {
+      try {
+        console.log('Stopping work for worker ID:', workerId);
+        
+        const now = new Date();
+        const requestData = {
+          worker_id: workerId,
+          employee_id: workerId,
+          czas_stop: now.toISOString(),
+          location: "Panel administratora",
+          lat: 0.0,
+          lon: 0.0
+        };
+        
+        console.log('Sending stop data:', requestData);
+        
+        const response = await fetch('/api/stop', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        console.log('Stop work response status:', response.status);
+        const data = await response.json();
+        console.log('Stop work response data:', data);
+        
+        if (response.ok) {
+          document.getElementById('stopWorkResult').innerHTML = `
+            <div class="alert alert-success">
+              <i class="fas fa-check-circle"></i>
+              <strong>Sukces!</strong> Pracownik ${workerId} zakończył pracę. Czas pracy: ${data.duration || "0 min"}.
+            </div>
+          `;
+          // Odśwież listę aktywnych pracowników
+          setTimeout(loadActiveWorkers, 1000);
+          // Wyczyść formularz
+          document.getElementById('stopWorkerId').value = '';
+        } else {
+          throw new Error(data.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+      } catch (error) {
+        console.error("Błąd podczas kończenia pracy:", error);
+        document.getElementById('stopWorkResult').innerHTML = `
+          <div class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Błąd:</strong> ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // Obsługa formularza
+    document.addEventListener('DOMContentLoaded', function() {
+      const startForm = document.getElementById('startWorkForm');
+      startForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const workerId = document.getElementById('workerId').value.trim();
+        if (workerId) {
+          startWork(workerId);
+        }
+      });
+
+      const stopForm = document.getElementById('stopWorkForm');
+      stopForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const workerId = document.getElementById('stopWorkerId').value.trim();
+        if (workerId) {
+          stopWork(workerId);
+        }
+      });
+      
+      const emergencyStopForm = document.getElementById('emergencyStopForm');
+      emergencyStopForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const workerId = document.getElementById('emergencyWorkerId').value.trim();
+        const reason = document.getElementById('emergencyReason').value.trim() || 'Problem z zakończeniem sesji';
+        if (workerId) {
+          // Dodaj potwierdzenie przed awaryjnym zakończeniem
+          if (confirm(`Czy na pewno chcesz awaryjnie zakończyć pracę dla pracownika ${workerId}?`)) {
+            emergencyStopWork(workerId, reason);
+          }
+        }
+      });
+    });
+
+    // Funkcja czyszczenia formularza
+    function clearForm() {
+      document.getElementById('workerId').value = '';
+      document.getElementById('startWorkResult').innerHTML = '';
+    }
+
+    // Funkcja czyszczenia formularza zakończenia
+    function clearStopForm() {
+      document.getElementById('stopWorkerId').value = '';
+      document.getElementById('stopWorkResult').innerHTML = '';
+    }
+
+    // Funkcja czyszczenia formularza awaryjnego zakończenia
+    function clearEmergencyStopForm() {
+      document.getElementById('emergencyWorkerId').value = '';
+      document.getElementById('emergencyReason').value = 'Problem z zakończeniem sesji';
+      document.getElementById('emergencyStopResult').innerHTML = '';
+    }
+    
+    // Funkcja awaryjnego zakończenia pracy
+    async function emergencyStopWork(workerId, reason) {
+      try {
+        console.log('Emergency stopping work for worker ID:', workerId);
+        
+        const requestData = {
+          worker_id: workerId,
+          reason: reason
+        };
+        
+        console.log('Sending emergency stop data:', requestData);
+        
+        const response = await fetch('/api/admin/force-stop', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        console.log('Emergency stop response status:', response.status);
+        const data = await response.json();
+        console.log('Emergency stop response data:', data);
+        
+        if (response.ok) {
+          document.getElementById('emergencyStopResult').innerHTML = `
+            <div class="alert alert-success">
+              <i class="fas fa-check-circle"></i>
+              <strong>Sukces!</strong> Awaryjnie zakończono pracę dla pracownika ${workerId}. Czas pracy: ${data.duration}.
+            </div>
+          `;
+          // Odśwież listę aktywnych pracowników
+          setTimeout(loadActiveWorkers, 1000);
+          // Wyczyść formularz
+          document.getElementById('emergencyWorkerId').value = '';
+          document.getElementById('emergencyReason').value = 'Problem z zakończeniem sesji';
+        } else {
+          throw new Error(data.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+      } catch (error) {
+        console.error("Błąd podczas awaryjnego kończenia pracy:", error);
+        document.getElementById('emergencyStopResult').innerHTML = `
+          <div class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Błąd:</strong> ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // Funkcja ładowania aktywnych pracowników
+    async function loadActiveWorkers() {
+      try {
+        console.log('Fetching active workers...');
+        const container = document.getElementById('active-workers');
+        container.innerHTML = `
+          <div style="text-align: center; padding: 2rem;">
+            <i class="fas fa-spinner fa-spin text-primary" style="font-size: 2rem;"></i>
+            <p class="mt-2 text-muted">Ładowanie...</p>
+          </div>
+        `;
+        
+        const response = await fetch('/api/active_workers');
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Received data:', data);
+        
+        if (data.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+              <i class="fas fa-user-slash text-muted" style="font-size: 3rem;"></i>
+              <h3 class="mt-2 text-muted">Brak aktywnych pracowników</h3>
+              <p class="text-muted">Nie ma pracowników pracujących dzisiaj.</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // Tworzymy ładną tabelę
+        container.innerHTML = `
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-users text-success"></i>
+              Aktywni pracownicy (${data.length})
+            </h3>
+            <p class="card-subtitle">Lista pracowników obecnie w pracy</p>
+          </div>
+          <div class="active-workers-table">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width: 100px;">Status</th>
+                  <th>Pracownik</th>
+                  <th style="width: 140px;">Rozpoczęcie</th>
+                  <th style="width: 140px;">Czas pracy</th>
+                  <th style="width: 140px;">Lokalizacja</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.map(worker => {
+                  // Zmieniona logika - pracownicy w tej tabeli są zawsze online
+                  // Sprawdzamy najpierw czy jest pole status, a jeśli nie, to zakładamy, że są online
+                  const statusBadge = (worker.status === "online" || !worker.status) 
+                    ? '<span class="status status-present"><i class="fas fa-circle"></i> Online</span>'
+                    : '<span class="status status-absent"><i class="fas fa-circle"></i> Offline</span>';
+                  
+                  // Avatar z inicjałami
+                  const nameParts = worker.name.split(' ');
+                  const initials = nameParts.map(part => part.charAt(0)).join('').substring(0, 2);
+                  
+                  let locationCell = '<span class="text-muted"><i class="fas fa-map-marker-slash"></i> Brak</span>';
+                  if (worker.start_lat && worker.start_lon) {
+                    try {
+                      const lat = parseFloat(worker.start_lat).toFixed(5);
+                      const lon = parseFloat(worker.start_lon).toFixed(5);
+                      locationCell = `
+                        <a href='https://www.google.com/maps?q=${lat},${lon}' 
+                           target='_blank' 
+                           class="btn btn-sm btn-outline"
+                           title="Pokaż na mapie: ${lat}, ${lon}">
+                          <i class="fas fa-map-marker-alt"></i> Mapa
+                        </a>
+                      `;
+                    } catch (err) {
+                      locationCell = '<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Błąd</span>';
+                    }
+                  }
+                  
+                  return `
+                    <tr>
+                      <td>${statusBadge}</td>
+                      <td>
+                        <div class="worker-info">
+                          <div class="worker-avatar">${initials}</div>
+                          <div>
+                            <div class="worker-name">${worker.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="time-badge">
+                          <i class="fas fa-clock"></i> ${worker.start_time}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="duration-badge">
+                          <i class="fas fa-stopwatch"></i> ${worker.duration}
+                        </span>
+                      </td>
+                      <td>${locationCell}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+        console.log('Table updated successfully');
+        
+      } catch (error) {
+        console.error("Szczegóły błędu:", error);
+        document.getElementById('active-workers').innerHTML = `
+          <div class="error-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Błąd podczas pobierania danych:</strong> ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // Auto-load przy starcie strony
+    document.addEventListener('DOMContentLoaded', function() {
+      // Sprawdź sesję przy starcie
+      checkSession();
+      // Załaduj aktywnych pracowników
+      setTimeout(loadActiveWorkers, 1000);
+    });
+
+    // Funkcja sprawdzająca sesję
+    async function checkSession() {
+      try {
+        const response = await fetch('/api/session');
+        if (!response.ok) {
+          // Jeśli nie ma sesji, przekieruj do logowania
+          window.location.href = '/frontend/login.html';
+          return;
+        }
+        // Sesja istnieje, możemy kontynuować
+        const userData = await response.json();
+        if (!userData.authenticated) {
+          window.location.href = '/frontend/login.html';
+          return;
+        }
+        console.log('Zalogowany użytkownik:', userData);
+      } catch (error) {
+        console.error('Błąd sprawdzania sesji:', error);
+        window.location.href = '/frontend/login.html';
+      }
+    }
+
+    // Funkcja wylogowania
+    async function logout() {
+      try {
+        const response = await fetch('/api/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        if (response.ok) {
+          window.location.href = '/frontend/login.html';
+        }
+      } catch (error) {
+        console.error('Błąd wylogowania:', error);
+      }
+    }
+    
+    // Funkcja do pobierania statusu pracowników
+    async function refreshWorkerStatus() {
+      try {
+        const container = document.getElementById('worker-status-container');
+        container.innerHTML = `
+          <div style="text-align: center; padding: 2rem;">
+            <i class="fas fa-spinner fa-spin text-info" style="font-size: 2rem;"></i>
+            <p class="mt-2 text-muted">Ładowanie statusu pracowników...</p>
+          </div>
+        `;
+        
+        const response = await fetch('/api/workers/status');
+        if (!response.ok) {
+          throw new Error(`Błąd ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Status pracowników:', data);
+        
+        if (!data.workers || data.workers.length === 0) {
+          container.innerHTML = `
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i>
+              Brak zarejestrowanych pracowników.
+            </div>
+          `;
+          return;
+        }
+        
+        let html = `
+          <div class="mb-3">
+            <span class="badge bg-success me-2">${data.active}</span> aktywnych pracowników z ${data.total} zarejestrowanych
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Imię i nazwisko</th>
+                  <th>Status</th>
+                  <th>Czas rozpoczęcia</th>
+                  <th>Trwa</th>
+                  <th>Akcje</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        
+        data.workers.forEach(worker => {
+          const isActive = worker.is_active;
+          const rowClass = isActive ? 'table-success' : '';
+          const statusBadge = isActive 
+            ? '<span class="badge bg-success">Pracuje</span>' 
+            : '<span class="badge bg-secondary">Nieaktywny</span>';
+          
+          html += `
+            <tr class="${rowClass}">
+              <td>${worker.worker_id}</td>
+              <td>${worker.name}</td>
+              <td>${statusBadge}</td>
+              <td>${isActive ? new Date(worker.start_time).toLocaleTimeString() : '-'}</td>
+              <td>${isActive ? worker.duration : '-'}</td>
+              <td>
+                ${isActive 
+                  ? `<button class="btn btn-sm btn-danger" onclick="stopWorkerShift('${worker.worker_id}')">
+                      <i class="fas fa-stop"></i> Zakończ
+                     </button>
+                     <button class="btn btn-sm btn-warning ms-1" onclick="emergencyStopWorker('${worker.worker_id}')">
+                      <i class="fas fa-exclamation-triangle"></i>
+                     </button>`
+                  : `<button class="btn btn-sm btn-success" onclick="startWorkerShift('${worker.worker_id}')">
+                      <i class="fas fa-play"></i> Rozpocznij
+                     </button>`
+                }
+              </td>
+            </tr>
+          `;
+        });
+        
+        html += `
+              </tbody>
+            </table>
+          </div>
+        `;
+        
+        container.innerHTML = html;
+      } catch (error) {
+        console.error('Błąd podczas pobierania statusu pracowników:', error);
+        const container = document.getElementById('worker-status-container');
+        container.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            <strong>Błąd!</strong> Nie udało się pobrać statusu pracowników: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Funkcje do zarządzania pracownikami bezpośrednio z tabeli statusu
+    async function startWorkerShift(workerId) {
+      document.getElementById('workerId').value = workerId;
+      document.getElementById('startWorkForm').dispatchEvent(new Event('submit', {cancelable: true}));
+      setTimeout(refreshWorkerStatus, 1000);
+    }
+    
+    async function stopWorkerShift(workerId) {
+      document.getElementById('stopWorkerId').value = workerId;
+      document.getElementById('stopWorkForm').dispatchEvent(new Event('submit', {cancelable: true}));
+      setTimeout(refreshWorkerStatus, 1000);
+    }
+    
+    async function emergencyStopWorker(workerId) {
+      document.getElementById('emergencyWorkerId').value = workerId;
+      document.getElementById('emergencyReason').value = "Awaryjne zakończenie z widoku statusu";
+      document.getElementById('emergencyStopForm').dispatchEvent(new Event('submit', {cancelable: true}));
+      setTimeout(refreshWorkerStatus, 1000);
+    }
+
+    // Załaduj status pracowników przy starcie strony
+    document.addEventListener('DOMContentLoaded', function() {
+      const originalDomLoaded = document.addEventListener;
+      // Sprawdź sesję przy starcie
+      checkSession();
+      // Załaduj aktywnych pracowników
+      setTimeout(loadActiveWorkers, 1000);
+      // Załaduj status pracowników
+      setTimeout(refreshWorkerStatus, 1500);
+    });
+  </script>
+  
+  <script src="calendar.js?v=20250125"></script>
+  <script src="sidebar.js?v=20250125"></script>
+  
+  <script>
+    // Funkcja wylogowania
+    async function logout() {
+      try {
+        const response = await fetch('/api/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        if (response.ok) {
+          window.location.href = '/frontend/login.html';
+        }
+      } catch (error) {
+        console.error('Błąd podczas wylogowania:', error);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Lista Obecności</title>
+  <link rel="stylesheet" href="style.css?v=20250127">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html" id="nav-dashboard"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html" id="nav-employees"><i class="fas fa-users"></i> Zespół</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecności -->
+          <div id="submenuPanel">
+            <a href="attendance_day.html" id="nav-attendance-day">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html" id="nav-attendance-summary">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html" id="nav-mobile-config">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html" id="nav-time-rounding">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+            <a href="api_terminal.html" id="nav-api-terminal">
+              <i class="fas fa-terminal"></i> Terminal diagnostyczny
+            </a>
+          </div>
+        </li>
+        <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Wyloguj</a></li>
+      </ul>
+    </aside>
+
+    <!-- Główna zawartość -->
+    <main class="content">
+      <header class="content-header">
+        <h1><i class="fas fa-tachometer-alt"></i> Pulpit</h1>
+      </header>
+
+      <div class="content-body">
+        <!-- Tutaj będzie wstawiana treść specyficzna dla każdej strony -->
+        <div id="page-content">
+          <div class="card">
+            <div class="card-header">
+              <h2>Aktywni pracownicy</h2>
+              <button class="btn btn-primary" onclick="loadActiveWorkers()">
+                <i class="fas fa-sync"></i> Odśwież listę
+              </button>
+            </div>
+            <div class="card-body">
+              <div id="worker-list">Kliknij przycisk powyżej aby załadować dane</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="content-footer">
+        <p>&copy; 2025 System Lista Obecności. Wszystkie prawa zastrzeżone.</p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="sidebar.js?v=20250127"></script>
+  <script>
+    // Skrypt specyficzny dla strony głównej
+    function loadActiveWorkers() {
+      console.log('Loading active workers...');
+      document.getElementById('worker-list').innerHTML = 'Ładowanie...';
+      
+      fetch('/api/active_workers')
+        .then(res => res.json())
+        .then(data => {
+          console.log('Got data:', data);
+          const container = document.getElementById('worker-list');
+          
+          if (!data || data.length === 0) {
+            container.innerHTML = '<p>Brak aktywnych pracowników.</p>';
+            return;
+          }
+          
+          let html = "<table class='data-table'><thead><tr><th></th><th>Imię i nazwisko</th><th>Start</th><th>Czas pracy</th><th>Lokalizacja wejścia</th></tr></thead><tbody>";
+          data.forEach(worker => {
+            const dot = `<span style='color:${worker.online ? 'green' : 'red'};font-size:1.5em;'>&#9679;</span>`;
+            let startLoc = '-';
+            if (worker.start_lat && worker.start_lon) {
+              const lat = parseFloat(worker.start_lat).toFixed(5);
+              const lon = parseFloat(worker.start_lon).toFixed(5);
+              startLoc = `<a href='https://www.google.com/maps?q=${lat},${lon}' target='_blank'>Pokaż na mapie</a>`;
+            }
+            html += `<tr>
+                        <td style='text-align:center;'>${dot}</td>
+                        <td>${worker.name}</td>
+                        <td>${worker.start_time}</td>
+                        <td>${worker.duration}</td>
+                        <td>${startLoc}</td>
+                     </tr>`;
+          });
+          html += "</tbody></table>";
+          container.innerHTML = html;
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          document.getElementById('worker-list').innerHTML = 'Błąd: ' + err.message;
+        });
+    }
+    
+    // Auto-load przy starcie strony
+    document.addEventListener('DOMContentLoaded', function() {
+      // Oznacz aktywną pozycję w menu
+      document.getElementById('nav-dashboard').classList.add('active');
+      
+      setTimeout(loadActiveWorkers, 1000);
+    });
+
+    // Funkcja wylogowania
+    function logout() {
+      fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      }).then(() => {
+        window.location.href = '/login.html';
+      }).catch(err => {
+        console.error('Error during logout:', err);
+        alert('Wystąpił błąd podczas wylogowywania');
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Zespół - Lista Obecności</title>
+  <link rel="stylesheet" href="style.css?v=20250127">
+  <link rel="stylesheet" href="style_unified.css?v=20250127">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index_unified.html" id="nav-dashboard"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees_unified.html" id="nav-employees"><i class="fas fa-users"></i> Zespół</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecności -->
+          <div id="submenuPanel">
+            <a href="attendance_day_unified.html" id="nav-attendance-day">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary_unified.html" id="nav-attendance-summary">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config_unified.html" id="nav-mobile-config">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding_unified.html" id="nav-time-rounding">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+            <a href="api_terminal.html" id="nav-api-terminal">
+              <i class="fas fa-terminal"></i> Terminal diagnostyczny
+            </a>
+          </div>
+        </li>
+        <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Wyloguj</a></li>
+      </ul>
+    </aside>
+
+    <!-- Główna zawartość -->
+    <main class="content">
+      <header class="content-header">
+        <h1><i class="fas fa-users"></i> Zespół</h1>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="loadEmployees()">
+            <i class="fas fa-sync"></i> Odśwież listę
+          </button>
+          <a href="employee_add.html" class="btn btn-success">
+            <i class="fas fa-plus"></i> Dodaj pracownika
+          </a>
+          <button id="importCsvBtn" class="btn btn-info">
+            <i class="fas fa-file-upload"></i> Importuj z CSV
+          </button>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <!-- Treść specyficzna dla strony -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Lista pracowników</h2>
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchEmployee" placeholder="Szukaj pracownika..." class="form-control">
+            </div>
+          </div>
+          
+          <div class="card-body">
+            <div id="importMessage"></div>
+            <input type="file" id="csvInput" accept=".csv" style="display:none" />
+            
+            <div id="employeeListContainer">
+              <table class="data-table" id="employeeTable">
+                <thead>
+                  <tr>
+                    <th><input type="checkbox" id="selectAllEmployees" title="Zaznacz wszystko"></th>
+                    <th><i class="fas fa-user"></i> Pracownik</th>
+                    <th><i class="fas fa-id-card"></i> ID</th>
+                    <th><i class="fas fa-key"></i> PIN</th>
+                    <th><i class="fas fa-money-bill-wave"></i> Stawka</th>
+                    <th><i class="fas fa-cogs"></i> Akcje</th>
+                  </tr>
+                </thead>
+                <tbody id="employeeList">
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 2rem;">
+                      <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                      <p style="margin-top: 1rem; color: var(--gray-600);">Ładowanie pracowników...</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="content-footer">
+        <p>&copy; 2025 System Lista Obecności. Wszystkie prawa zastrzeżone.</p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="sidebar.js?v=20250127"></script>
+  <script src="employees.js?v=20250127"></script>
+  <script>
+    // Funkcja wylogowania
+    function logout() {
+      fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      }).then(() => {
+        window.location.href = '/login.html';
+      }).catch(err => {
+        console.error('Error during logout:', err);
+        alert('Wystąpił błąd podczas wylogowywania');
+      });
+    }
+    
+    // Oznacz aktywną pozycję w menu
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('nav-employees').classList.add('active');
+      
+      // Implementacja wyszukiwania
+      const searchInput = document.getElementById('searchEmployee');
+      if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+          const searchValue = this.value.toLowerCase();
+          const rows = document.querySelectorAll('#employeeTable tbody tr');
+          
+          rows.forEach(row => {
+            if (!row.querySelector('td:nth-child(2)')) return; // Skip if this is a message row
+            
+            const employeeName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            if (employeeName.includes(searchValue)) {
+              row.style.display = '';
+            } else {
+              row.style.display = 'none';
+            }
+          });
+        });
+      }
+    });
+
+    // Funkcja ładowania pracowników
+    function loadEmployees() {
+      const tableBody = document.getElementById('employeeList');
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 2rem;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+            <p style="margin-top: 1rem; color: var(--gray-600);">Ładowanie pracowników...</p>
+          </td>
+        </tr>
+      `;
+      
+      fetch('/api/employees')
+        .then(response => response.json())
+        .then(data => {
+          if (!data || data.length === 0) {
+            tableBody.innerHTML = `
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem;">
+                  <p>Brak pracowników w systemie.</p>
+                </td>
+              </tr>
+            `;
+            return;
+          }
+          
+          tableBody.innerHTML = '';
+          data.forEach(employee => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><input type="checkbox" class="employee-select" data-id="${employee.id}"></td>
+              <td>${employee.first_name} ${employee.last_name}</td>
+              <td>${employee.id}</td>
+              <td>${employee.pin || '-'}</td>
+              <td>${employee.hourly_rate ? employee.hourly_rate.toFixed(2) + ' zł' : '-'}</td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="editEmployee(${employee.id})">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${employee.id})">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => {
+          console.error('Error loading employees:', error);
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 2rem;">
+                <p style="color: var(--danger-color);">Wystąpił błąd podczas ładowania danych.</p>
+              </td>
+            </tr>
+          `;
+        });
+    }
+
+    // Obsługa importu CSV
+    document.addEventListener('DOMContentLoaded', () => {
+      const importBtn = document.getElementById('importCsvBtn');
+      const csvInput = document.getElementById('csvInput');
+      if(importBtn && csvInput) {
+        importBtn.addEventListener('click', () => csvInput.click());
+        csvInput.addEventListener('change', handleCsvImport);
+      }
+    });
+
+    async function handleCsvImport(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const importMessage = document.getElementById('importMessage');
+      importMessage.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Przetwarzanie pliku CSV...</div>';
+      
+      try {
+        const text = await file.text();
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        const employees = [];
+        let lineNumber = 0;
+        const errors = [];
+        
+        for(const line of lines) {
+          lineNumber++;
+          if(lineNumber === 1 && (line.toLowerCase().includes('imie') || line.toLowerCase().includes('nazwisko'))) {
+            continue; // Pomijamy nagłówek
+          }
+          
+          const values = line.split(',').map(v => v.trim());
+          if(values.length !== 4) {
+            errors.push(`Wiersz ${lineNumber}: Nieprawidłowa liczba kolumn (oczekiwano: 4, otrzymano: ${values.length})`);
+            continue;
+          }
+          
+          const [first_name, last_name, pin, hourly_rate] = values;
+          
+          if(!first_name || !last_name) {
+            errors.push(`Wiersz ${lineNumber}: Brak imienia lub nazwiska`);
+            continue;
+          }
+          
+          if(!/^\d+$/.test(pin)) {
+            errors.push(`Wiersz ${lineNumber}: PIN musi być liczbą`);
+            continue;
+          }
+          
+          const rate = parseFloat(hourly_rate);
+          if(isNaN(rate) || rate <= 0) {
+            errors.push(`Wiersz ${lineNumber}: Nieprawidłowa stawka godzinowa`);
+            continue;
+          }
+          
+          employees.push({
+            first_name, 
+            last_name, 
+            pin,
+            hourly_rate: rate
+          });
+        }
+        
+        if(errors.length > 0) {
+          importMessage.innerHTML = `<div class="alert alert-warning">
+            <strong>Znaleziono błędy w pliku:</strong><br>
+            ${errors.join('<br>')}
+          </div>`;
+          return;
+        }
+        
+        if(employees.length === 0) throw new Error('Brak poprawnych danych w pliku CSV.');
+        
+        // Wyślij do backendu
+        const response = await fetch('/api/import_employees_csv', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({employees})
+        });
+        
+        const result = await response.json();
+        
+        if(response.ok) {
+          importMessage.innerHTML = `<div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> Pomyślnie zaimportowano ${result.imported} pracowników.
+          </div>`;
+          loadEmployees();
+        } else {
+          throw new Error(result.message || 'Błąd podczas importu');
+        }
+      } catch(error) {
+        console.error('Import error:', error);
+        importMessage.innerHTML = `<div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle"></i> Błąd: ${error.message || 'Nieznany błąd podczas importu'}
+        </div>`;
+      }
+      
+      e.target.value = ''; // Reset file input
+    }
+
+    function editEmployee(id) {
+      window.location.href = `employee_edit.html?id=${id}`;
+    }
+
+    function deleteEmployee(id) {
+      if (confirm('Czy na pewno chcesz usunąć tego pracownika? Ta operacja jest nieodwracalna.')) {
+        fetch(`/api/employees/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        })
+        .then(response => {
+          if (response.ok) {
+            loadEmployees();
+          } else {
+            throw new Error('Nie udało się usunąć pracownika');
+          }
+        })
+        .catch(error => {
+          console.error('Delete error:', error);
+          alert(`Błąd: ${error.message}`);
+        });
+      }
+    }
+  </script>
+</body>
+</html>

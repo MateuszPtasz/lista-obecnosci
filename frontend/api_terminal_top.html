@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Terminal diagnostyczny - Lista Obecności</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --primary-dark: #2980b9;
+      --secondary-color: #e74c3c;
+      --bg-color: #f5f5f5;
+      --card-bg: #fff;
+      --text-color: #333;
+      --border-color: #ddd;
+      --header-height: 60px;
+      --success-color: #2ecc71;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --terminal-bg: #1e1e1e;
+      --terminal-text: #f0f0f0;
+      --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      --font-mono: 'Consolas', 'Courier New', monospace;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: var(--font-main);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header i nawigacja */
+    .header {
+      background-color: var(--card-bg);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      height: var(--header-height);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: var(--header-height);
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--primary-color);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo i {
+      margin-right: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      height: 100%;
+    }
+
+    .nav-links li {
+      height: 100%;
+      position: relative;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--text-color);
+      font-weight: 500;
+      padding: 0 15px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      transition: color 0.3s, background-color 0.3s;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--primary-color);
+      background-color: rgba(52, 152, 219, 0.1);
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: var(--card-bg);
+      min-width: 180px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      z-index: 1;
+      border-radius: 4px;
+      top: 100%;
+      left: 0;
+    }
+
+    .dropdown-content a {
+      color: var(--text-color);
+      padding: 12px 16px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .dropdown-content a i {
+      margin-right: 10px;
+      width: 16px;
+      text-align: center;
+    }
+
+    .dropdown-content a:hover {
+      background-color: rgba(52, 152, 219, 0.1);
+      color: var(--primary-color);
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    /* Main content */
+    .content {
+      margin-top: var(--header-height);
+      padding: 25px 0;
+      flex-grow: 1;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 0 15px;
+    }
+
+    .section-header h2 {
+      font-size: 24px;
+      color: var(--text-color);
+    }
+
+    .section-header h2 i {
+      margin-right: 10px;
+      color: var(--primary-color);
+    }
+
+    /* Card */
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .card-header h2 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .card-body {
+      padding: 15px;
+    }
+
+    .card-footer {
+      padding: 15px;
+      background-color: rgba(0,0,0,0.03);
+      border-top: 1px solid var(--border-color);
+      text-align: right;
+    }
+
+    /* Terminal */
+    .terminal {
+      background-color: var(--terminal-bg);
+      color: var(--terminal-text);
+      font-family: var(--font-mono);
+      padding: 15px;
+      border-radius: 4px;
+      min-height: 400px;
+      max-height: 600px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .command-input {
+      display: flex;
+      background-color: var(--terminal-bg);
+      padding: 10px;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .command-input span {
+      color: var(--success-color);
+      margin-right: 8px;
+    }
+
+    .command-input input {
+      flex: 1;
+      background-color: transparent;
+      border: none;
+      color: var(--terminal-text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+
+    .command-input input:focus {
+      outline: none;
+    }
+
+    .terminal-output {
+      margin-bottom: 10px;
+    }
+
+    .terminal-output .command {
+      color: var(--success-color);
+      font-weight: bold;
+    }
+
+    .terminal-output .error {
+      color: var(--danger-color);
+    }
+
+    .terminal-output .success {
+      color: var(--success-color);
+    }
+
+    .terminal-output .info {
+      color: var(--primary-color);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+      border: none;
+      font-family: var(--font-main);
+      margin-left: 5px;
+    }
+
+    .btn i {
+      margin-right: 6px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-success {
+      background-color: var(--success-color);
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: var(--danger-color);
+      color: white;
+    }
+
+    .btn-warning {
+      background-color: var(--warning-color);
+      color: white;
+    }
+
+    /* Footer */
+    .footer {
+      background-color: var(--card-bg);
+      padding: 20px 0;
+      margin-top: auto;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    }
+
+    .footer p {
+      text-align: center;
+      margin: 0;
+      font-size: 14px;
+      color: #777;
+    }
+
+    /* Utils */
+    .mb-4 {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index_top.html" class="logo">
+        <i class="fas fa-clipboard-list"></i>
+        Lista Obecności
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="index_top.html" class="nav-link">Pulpit</a></li>
+        <li><a href="employees_top.html" class="nav-link">Zespół</a></li>
+        <li class="dropdown">
+          <a href="#" class="nav-link">Obecność</a>
+          <div class="dropdown-content">
+            <a href="attendance_day_top.html"><i class="fas fa-calendar-day"></i> Dzień</a>
+            <a href="attendance_summary_top.html"><i class="fas fa-chart-bar"></i> Ewidencja</a>
+          </div>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="nav-link active">Konfiguracja</a>
+          <div class="dropdown-content">
+            <a href="mobile_config_top.html"><i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji</a>
+            <a href="time_rounding_top.html"><i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy</a>
+            <a href="api_terminal_top.html" class="active"><i class="fas fa-terminal"></i> Terminal diagnostyczny</a>
+          </div>
+        </li>
+        <li><a href="#" onclick="logout()" class="nav-link"><i class="fas fa-sign-out-alt"></i> Wyloguj</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="container">
+      <div class="section-header">
+        <h2><i class="fas fa-terminal"></i> Terminal diagnostyczny API</h2>
+        <div>
+          <button class="btn btn-warning" onclick="clearTerminal()">
+            <i class="fas fa-eraser"></i> Wyczyść terminal
+          </button>
+          <button class="btn btn-success" onclick="loadPresetCommands()">
+            <i class="fas fa-list"></i> Polecenia przykładowe
+          </button>
+        </div>
+      </div>
+
+      <!-- Terminal -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Terminal API</h2>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="terminal" id="terminal-output">
+            <div class="terminal-output info">
+              Terminal diagnostyczny API systemu Lista Obecności v1.0.0
+            </div>
+            <div class="terminal-output info">
+              Wpisz 'help' aby zobaczyć dostępne komendy.
+            </div>
+          </div>
+          <div class="command-input">
+            <span>$</span>
+            <input type="text" id="command-input" placeholder="Wpisz komendę..." onkeydown="if(event.key === 'Enter') executeCommand()">
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-primary" onclick="executeCommand()">
+            <i class="fas fa-play"></i> Wykonaj
+          </button>
+        </div>
+      </div>
+
+      <!-- Komendy pomocnicze -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Dostępne komendy</h2>
+        </div>
+        <div class="card-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Komenda</th>
+                <th>Opis</th>
+                <th>Przykład</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>help</code></td>
+                <td>Wyświetla listę dostępnych komend</td>
+                <td><a href="#" onclick="insertCommand('help')">help</a></td>
+              </tr>
+              <tr>
+                <td><code>get &lt;endpoint&gt;</code></td>
+                <td>Wykonuje zapytanie GET do API</td>
+                <td><a href="#" onclick="insertCommand('get /api/employees')">get /api/employees</a></td>
+              </tr>
+              <tr>
+                <td><code>post &lt;endpoint&gt; &lt;data&gt;</code></td>
+                <td>Wykonuje zapytanie POST do API</td>
+                <td><a href="#" onclick="insertCommand('post /api/employees {&quot;name&quot;:&quot;Jan Kowalski&quot;,&quot;position&quot;:&quot;Specjalista&quot;}')">post /api/employees {"name":"Jan Kowalski"}</a></td>
+              </tr>
+              <tr>
+                <td><code>put &lt;endpoint&gt; &lt;data&gt;</code></td>
+                <td>Wykonuje zapytanie PUT do API</td>
+                <td><a href="#" onclick="insertCommand('put /api/employees/5 {&quot;name&quot;:&quot;Jan Nowak&quot;}')">put /api/employees/5 {"name":"Jan Nowak"}</a></td>
+              </tr>
+              <tr>
+                <td><code>delete &lt;endpoint&gt;</code></td>
+                <td>Wykonuje zapytanie DELETE do API</td>
+                <td><a href="#" onclick="insertCommand('delete /api/employees/5')">delete /api/employees/5</a></td>
+              </tr>
+              <tr>
+                <td><code>check-connection</code></td>
+                <td>Sprawdza połączenie z API</td>
+                <td><a href="#" onclick="insertCommand('check-connection')">check-connection</a></td>
+              </tr>
+              <tr>
+                <td><code>clear</code></td>
+                <td>Czyści terminal</td>
+                <td><a href="#" onclick="insertCommand('clear')">clear</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 System Lista Obecności. Wszystkie prawa zastrzeżone.</p>
+    </div>
+  </footer>
+
+  <script>
+    let commandHistory = [];
+    let historyIndex = -1;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Ustawienie fokusa na pole wprowadzania komend
+      document.getElementById('command-input').focus();
+      
+      // Obsługa historii komend (strzałki góra/dół)
+      document.getElementById('command-input').addEventListener('keydown', function(event) {
+        if (event.key === 'ArrowUp') {
+          navigateHistory(-1);
+          event.preventDefault();
+        } else if (event.key === 'ArrowDown') {
+          navigateHistory(1);
+          event.preventDefault();
+        }
+      });
+    });
+    
+    // Funkcja wykonująca komendę
+    function executeCommand() {
+      const input = document.getElementById('command-input');
+      const command = input.value.trim();
+      
+      if (command === '') return;
+      
+      // Dodanie komendy do historii
+      commandHistory.unshift(command);
+      historyIndex = -1;
+      
+      // Wyświetlenie komendy w terminalu
+      addToTerminal(`$ ${command}`, 'command');
+      
+      // Czyszczenie pola wprowadzania
+      input.value = '';
+      
+      // Parsowanie i wykonanie komendy
+      parseCommand(command);
+      
+      // Przewinięcie terminala na dół
+      const terminal = document.getElementById('terminal-output');
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+    
+    // Funkcja parsująca i wykonująca komendę
+    function parseCommand(command) {
+      const parts = command.split(' ');
+      const cmd = parts[0].toLowerCase();
+      
+      switch(cmd) {
+        case 'help':
+          showHelp();
+          break;
+        case 'get':
+          if (parts.length < 2) {
+            addToTerminal('Błąd: Niepoprawna składnia. Przykład: get /api/employees', 'error');
+          } else {
+            executeApiRequest('GET', parts[1]);
+          }
+          break;
+        case 'post':
+          if (parts.length < 3) {
+            addToTerminal('Błąd: Niepoprawna składnia. Przykład: post /api/employees {"name":"Jan Kowalski"}', 'error');
+          } else {
+            const endpoint = parts[1];
+            const data = command.substring(command.indexOf(parts[2]));
+            executeApiRequest('POST', endpoint, data);
+          }
+          break;
+        case 'put':
+          if (parts.length < 3) {
+            addToTerminal('Błąd: Niepoprawna składnia. Przykład: put /api/employees/5 {"name":"Jan Nowak"}', 'error');
+          } else {
+            const endpoint = parts[1];
+            const data = command.substring(command.indexOf(parts[2]));
+            executeApiRequest('PUT', endpoint, data);
+          }
+          break;
+        case 'delete':
+          if (parts.length < 2) {
+            addToTerminal('Błąd: Niepoprawna składnia. Przykład: delete /api/employees/5', 'error');
+          } else {
+            executeApiRequest('DELETE', parts[1]);
+          }
+          break;
+        case 'check-connection':
+          checkConnection();
+          break;
+        case 'clear':
+          clearTerminal();
+          break;
+        default:
+          addToTerminal(`Nieznana komenda: ${cmd}. Wpisz 'help' aby zobaczyć dostępne komendy.`, 'error');
+      }
+    }
+    
+    // Funkcja dodająca tekst do terminala
+    function addToTerminal(text, className = '') {
+      const terminal = document.getElementById('terminal-output');
+      const output = document.createElement('div');
+      output.className = `terminal-output ${className}`;
+      output.textContent = text;
+      terminal.appendChild(output);
+    }
+    
+    // Funkcja wyświetlająca pomoc
+    function showHelp() {
+      addToTerminal('Dostępne komendy:', 'info');
+      addToTerminal('  help                        - Wyświetla tę pomoc');
+      addToTerminal('  get <endpoint>              - Wykonuje zapytanie GET do API');
+      addToTerminal('  post <endpoint> <data>      - Wykonuje zapytanie POST do API');
+      addToTerminal('  put <endpoint> <data>       - Wykonuje zapytanie PUT do API');
+      addToTerminal('  delete <endpoint>           - Wykonuje zapytanie DELETE do API');
+      addToTerminal('  check-connection            - Sprawdza połączenie z API');
+      addToTerminal('  clear                       - Czyści terminal');
+    }
+    
+    // Funkcja wykonująca zapytanie do API
+    function executeApiRequest(method, endpoint, data = null) {
+      addToTerminal(`Wykonuję ${method} ${endpoint}...`, 'info');
+      
+      const options = {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+      
+      if (data && (method === 'POST' || method === 'PUT')) {
+        try {
+          options.body = JSON.stringify(JSON.parse(data));
+        } catch (e) {
+          addToTerminal(`Błąd parsowania JSON: ${e.message}`, 'error');
+          return;
+        }
+      }
+      
+      fetch(endpoint, options)
+        .then(response => {
+          addToTerminal(`Status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+          return response.json().catch(() => {
+            // Jeśli nie można sparsować jako JSON, zwróć pusty obiekt
+            return {};
+          });
+        })
+        .then(data => {
+          addToTerminal(`Odpowiedź:`, 'info');
+          addToTerminal(JSON.stringify(data, null, 2));
+        })
+        .catch(error => {
+          addToTerminal(`Błąd: ${error.message}`, 'error');
+        });
+    }
+    
+    // Funkcja sprawdzająca połączenie z API
+    function checkConnection() {
+      addToTerminal('Sprawdzanie połączenia z API...', 'info');
+      
+      fetch('/api/health')
+        .then(response => {
+          if (response.ok) {
+            addToTerminal('Połączenie z API: OK', 'success');
+          } else {
+            addToTerminal(`Połączenie z API: Błąd (Status ${response.status})`, 'error');
+          }
+        })
+        .catch(error => {
+          addToTerminal(`Połączenie z API: Błąd (${error.message})`, 'error');
+        });
+    }
+    
+    // Funkcja czyszcząca terminal
+    function clearTerminal() {
+      const terminal = document.getElementById('terminal-output');
+      terminal.innerHTML = '';
+      addToTerminal('Terminal diagnostyczny API systemu Lista Obecności v1.0.0', 'info');
+      addToTerminal('Wpisz \'help\' aby zobaczyć dostępne komendy.', 'info');
+    }
+    
+    // Funkcja do nawigacji po historii komend
+    function navigateHistory(step) {
+      if (commandHistory.length === 0) return;
+      
+      historyIndex += step;
+      
+      if (historyIndex < 0) {
+        historyIndex = 0;
+      } else if (historyIndex >= commandHistory.length) {
+        historyIndex = commandHistory.length - 1;
+      }
+      
+      document.getElementById('command-input').value = commandHistory[historyIndex];
+    }
+    
+    // Funkcja do wstawienia komendy do pola wprowadzania
+    function insertCommand(command) {
+      document.getElementById('command-input').value = command;
+      document.getElementById('command-input').focus();
+    }
+    
+    // Funkcja ładująca przykładowe komendy
+    function loadPresetCommands() {
+      addToTerminal('Przykładowe komendy:', 'info');
+      addToTerminal('1. Sprawdź status API: get /api/health');
+      addToTerminal('2. Pobierz listę pracowników: get /api/employees');
+      addToTerminal('3. Sprawdź obecność z dzisiaj: get /api/attendance?date=' + new Date().toISOString().split('T')[0]);
+      addToTerminal('4. Pobierz dane aktywnych pracowników: get /api/active_workers');
+      addToTerminal('5. Pobierz statystyki: get /api/stats');
+    }
+
+    // Funkcja wylogowania
+    function logout() {
+      fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      }).then(() => {
+        window.location.href = '/login.html';
+      }).catch(err => {
+        console.error('Error during logout:', err);
+        alert('Wystąpił błąd podczas wylogowywania');
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zespół - Lista Obecności</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #34495e;
+            --light: #f8f9fa;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        .header {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-link {
+            padding: 10px 15px;
+            margin: 0 5px;
+            text-decoration: none;
+            color: #555;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        
+        .content {
+            padding: 30px 0;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin: 0;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: #fff;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .table-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+            outline: none;
+        }
+        
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        
+        .actions-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Dropdown menu */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #fff;
+            min-width: 180px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            z-index: 1000;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+            color: var(--primary);
+        }
+        
+        .dropdown-content a i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        
+        /* Alert styles */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success);
+        }
+        
+        .alert-danger {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger);
+        }
+        
+        .alert-info {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: var(--primary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-inner {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-link {
+                margin-bottom: 5px;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .actions-container {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index_top.html" class="logo">
+                <i class="fas fa-clipboard-list"></i>
+                Lista Obecności
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="index_top.html" class="nav-link">Pulpit</a></li>
+                <li><a href="employees_top.html" class="nav-link active">Zespół</a></li>
+                <li class="dropdown">
+                    <a href="#" class="nav-link">Obecność</a>
+                    <div class="dropdown-content">
+                        <a href="attendance_day_top.html"><i class="fas fa-calendar-day"></i> Dzień</a>
+                        <a href="attendance_summary_top.html"><i class="fas fa-chart-bar"></i> Ewidencja</a>
+                    </div>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="nav-link">Konfiguracja</a>
+                    <div class="dropdown-content">
+                        <a href="mobile_config_top.html"><i class="fas fa-mobile-alt"></i> Aplikacja mobilna</a>
+                        <a href="time_rounding_top.html"><i class="fas fa-clock"></i> Zaokrąglanie czasu</a>
+                        <a href="api_terminal.html"><i class="fas fa-terminal"></i> Terminal diagnostyczny</a>
+                    </div>
+                </li>
+                <li><a href="#" class="nav-link" onclick="logout()">Wyloguj</a></li>
+            </ul>
+        </div>
+    </header>
+    
+    <main class="content">
+        <div class="container">
+            <div class="section">
+                <div class="section-header">
+                    <h2>Zarządzanie zespołem</h2>
+                    
+                    <div class="actions-container">
+                        <button class="btn btn-primary" onclick="loadEmployees()">
+                            <i class="fas fa-sync-alt"></i> Odśwież listę
+                        </button>
+                        <a href="employee_add.html" class="btn btn-success">
+                            <i class="fas fa-user-plus"></i> Dodaj pracownika
+                        </a>
+                        <button id="importCsvBtn" class="btn btn-primary" style="background-color: var(--dark);">
+                            <i class="fas fa-file-upload"></i> Importuj z CSV
+                        </button>
+                        <input type="file" id="csvInput" accept=".csv" style="display:none" />
+                    </div>
+                </div>
+                
+                <div id="importMessage"></div>
+                
+                <div class="search-box">
+                    <input type="text" id="searchEmployee" placeholder="Szukaj pracownika...">
+                    <i class="fas fa-search"></i>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllEmployees" title="Zaznacz wszystko"></th>
+                                <th><i class="fas fa-user"></i> Pracownik</th>
+                                <th><i class="fas fa-id-card"></i> ID</th>
+                                <th><i class="fas fa-key"></i> PIN</th>
+                                <th><i class="fas fa-money-bill-wave"></i> Stawka</th>
+                                <th><i class="fas fa-cogs"></i> Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeeList">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 30px 20px;">
+                                    <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--primary); margin-bottom: 10px;"></i>
+                                    <p>Ładowanie pracowników...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Funkcja ładowania pracowników
+        function loadEmployees() {
+            const tableBody = document.getElementById('employeeList');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px 20px;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--primary); margin-bottom: 10px;"></i>
+                        <p>Ładowanie pracowników...</p>
+                    </td>
+                </tr>
+            `;
+            
+            fetch('/api/employees')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data || data.length === 0) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 30px 20px;">
+                                    <i class="fas fa-users-slash" style="font-size: 2rem; color: var(--gray); margin-bottom: 15px;"></i>
+                                    <p>Brak pracowników w systemie.</p>
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+                    
+                    tableBody.innerHTML = '';
+                    data.forEach(employee => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><input type="checkbox" class="employee-select" data-id="${employee.id}"></td>
+                            <td>${employee.first_name} ${employee.last_name}</td>
+                            <td>${employee.id}</td>
+                            <td>${employee.pin || '-'}</td>
+                            <td>${employee.hourly_rate ? employee.hourly_rate.toFixed(2) + ' zł' : '-'}</td>
+                            <td>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="btn btn-sm btn-primary" onclick="editEmployee(${employee.id})" title="Edytuj">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${employee.id})" title="Usuń">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading employees:', error);
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 30px 20px;">
+                                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: var(--danger); margin-bottom: 15px;"></i>
+                                <p>Wystąpił błąd podczas ładowania danych.</p>
+                                <p style="font-size: 0.9rem; color: var(--gray); margin-top: 10px;">${error.message}</p>
+                            </td>
+                        </tr>
+                    `;
+                });
+        }
+
+        // Obsługa wyszukiwania pracowników
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchEmployee');
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    const searchValue = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#employeeList tr');
+                    
+                    rows.forEach(row => {
+                        if (row.querySelector('td:nth-child(2)')) {
+                            const employeeName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                            const employeeId = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                            
+                            if (employeeName.includes(searchValue) || employeeId.includes(searchValue)) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // Obsługa importu CSV
+            const importBtn = document.getElementById('importCsvBtn');
+            const csvInput = document.getElementById('csvInput');
+            if(importBtn && csvInput) {
+                importBtn.addEventListener('click', () => csvInput.click());
+                csvInput.addEventListener('change', handleCsvImport);
+            }
+            
+            // Zaznacz/odznacz wszystkich
+            const selectAllCheckbox = document.getElementById('selectAllEmployees');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    const checkboxes = document.querySelectorAll('.employee-select');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = this.checked;
+                    });
+                });
+            }
+            
+            // Załaduj pracowników przy starcie
+            loadEmployees();
+        });
+        
+        // Obsługa importu CSV
+        async function handleCsvImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const importMessage = document.getElementById('importMessage');
+            importMessage.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Przetwarzanie pliku CSV...</div>';
+            
+            try {
+                const text = await file.text();
+                const lines = text.split(/\r?\n/).filter(l => l.trim());
+                const employees = [];
+                let lineNumber = 0;
+                const errors = [];
+                
+                for(const line of lines) {
+                    lineNumber++;
+                    if(lineNumber === 1 && (line.toLowerCase().includes('imie') || line.toLowerCase().includes('nazwisko'))) {
+                        continue; // Pomijamy nagłówek
+                    }
+                    
+                    const values = line.split(',').map(v => v.trim());
+                    if(values.length !== 4) {
+                        errors.push(`Wiersz ${lineNumber}: Nieprawidłowa liczba kolumn (oczekiwano: 4, otrzymano: ${values.length})`);
+                        continue;
+                    }
+                    
+                    const [first_name, last_name, pin, hourly_rate] = values;
+                    
+                    if(!first_name || !last_name) {
+                        errors.push(`Wiersz ${lineNumber}: Brak imienia lub nazwiska`);
+                        continue;
+                    }
+                    
+                    if(!/^\d+$/.test(pin)) {
+                        errors.push(`Wiersz ${lineNumber}: PIN musi być liczbą`);
+                        continue;
+                    }
+                    
+                    const rate = parseFloat(hourly_rate);
+                    if(isNaN(rate) || rate <= 0) {
+                        errors.push(`Wiersz ${lineNumber}: Nieprawidłowa stawka godzinowa`);
+                        continue;
+                    }
+                    
+                    employees.push({
+                        first_name, 
+                        last_name, 
+                        pin,
+                        hourly_rate: rate
+                    });
+                }
+                
+                if(errors.length > 0) {
+                    importMessage.innerHTML = `<div class="alert alert-danger">
+                        <strong>Znaleziono błędy w pliku:</strong><br>
+                        ${errors.join('<br>')}
+                    </div>`;
+                    return;
+                }
+                
+                if(employees.length === 0) throw new Error('Brak poprawnych danych w pliku CSV.');
+                
+                // Wyślij do backendu
+                const response = await fetch('/api/import_employees_csv', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({employees})
+                });
+                
+                const result = await response.json();
+                
+                if(response.ok) {
+                    importMessage.innerHTML = `<div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> Pomyślnie zaimportowano ${result.imported} pracowników.
+                    </div>`;
+                    loadEmployees();
+                } else {
+                    throw new Error(result.message || 'Błąd podczas importu');
+                }
+            } catch(error) {
+                console.error('Import error:', error);
+                importMessage.innerHTML = `<div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Błąd: ${error.message || 'Nieznany błąd podczas importu'}
+                </div>`;
+            }
+            
+            e.target.value = ''; // Reset file input
+        }
+
+        // Funkcja edycji pracownika
+        function editEmployee(id) {
+            window.location.href = `employee_edit.html?id=${id}`;
+        }
+
+        // Funkcja usuwania pracownika
+        function deleteEmployee(id) {
+            if (confirm('Czy na pewno chcesz usunąć tego pracownika? Ta operacja jest nieodwracalna.')) {
+                fetch(`/api/employees/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        loadEmployees();
+                        
+                        // Dodaj powiadomienie o sukcesie
+                        const importMessage = document.getElementById('importMessage');
+                        importMessage.innerHTML = `<div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Pracownik został pomyślnie usunięty.
+                        </div>`;
+                        
+                        // Ukryj powiadomienie po 3 sekundach
+                        setTimeout(() => {
+                            importMessage.innerHTML = '';
+                        }, 3000);
+                    } else {
+                        throw new Error('Nie udało się usunąć pracownika');
+                    }
+                })
+                .catch(error => {
+                    console.error('Delete error:', error);
+                    
+                    // Dodaj powiadomienie o błędzie
+                    const importMessage = document.getElementById('importMessage');
+                    importMessage.innerHTML = `<div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Błąd: ${error.message}
+                    </div>`;
+                });
+            }
+        }
+
+        // Funkcja wylogowania
+        function logout() {
+            fetch('/api/logout', {
+                method: 'POST',
+                credentials: 'include'
+            }).then(() => {
+                window.location.href = '/login.html';
+            }).catch(err => {
+                console.error('Error during logout:', err);
+                alert('Wystąpił błąd podczas wylogowywania');
+            });
+        }
+    </script>
+</body>
+</html>

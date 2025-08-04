@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Obecność – Ewidencja - Lista Obecności</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html"><i class="fas fa-users"></i> Zespół</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu obecności -->
+          <div id="submenuPanel" class="active">
+            <a href="attendance_day.html">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html" class="active">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <!-- Submenu konfiguracji -->
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+          </div>
+        </li>
+      </ul>
+      
+      <!-- Kalendarz w sidebarze -->
+      <div class="sidebar-widget" id="calendarWidget">
+        <h3 class="widget-title" id="calendarTitle">
+          <i class="fas fa-calendar-alt"></i>
+          Kalendarz
+          <i class="fas fa-expand-alt expand-icon"></i>
+        </h3>
+        <div id="calendar" class="calendar-widget"></div>
+      </div>
+    </aside>
+
+    <!-- Overlay dla rozszerzonego kalendarza -->
+    <div class="calendar-overlay" id="calendarOverlay"></div>
+
+    <!-- Main content -->
+    <main class="content">
+      <div class="card">
+        <div class="card-header">
+          <button onclick="goBack()" class="btn btn-secondary mb-3">
+            <i class="fas fa-arrow-left"></i>
+            Wstecz
+          </button>
+          <h1 class="card-title">
+            <i class="fas fa-chart-bar text-primary"></i>
+            Obecność – Ewidencja
+          </h1>
+          <p class="card-subtitle">Szczegółowa ewidencja obecności wszystkich pracowników</p>
+        <div class="card-body">
+          <form id="summaryForm" class="mb-4">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-calendar-alt"></i>
+                Zakres dat:
+              </label>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="dateFrom" class="form-label">Od:</label>
+                  <input type="date" id="dateFrom" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label for="dateTo" class="form-label">Do:</label>
+                  <input type="date" id="dateTo" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <button type="submit" id="showBtn" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                    Pokaż ewidencję
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <div id="exportPanel" style="display:none;" class="mb-3">
+            <div class="form-row">
+              <button id="exportExcelBtn" class="btn btn-success">
+                <i class="fas fa-file-excel"></i>
+                Export do Excel
+              </button>
+              <button id="exportPdfBtn" class="btn btn-danger">
+                <i class="fas fa-file-pdf"></i>
+                Export do PDF
+              </button>
+              <button id="printBtn" class="btn btn-info">
+                <i class="fas fa-print"></i>
+                Drukuj
+              </button>
+            </div>
+          </div>
+
+          <div id="summaryResults"></div>
+          <div id="addEmployeeSection"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="sidebar.js"></script>
+  <script>
+    document.getElementById('summaryForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const from = document.getElementById('dateFrom').value;
+      const to = document.getElementById('dateTo').value;
+      if (!from || !to) return alert('Wybierz zakres dat!');
+      
+      // Używamy tej samej logiki URL co w innych plikach
+      let apiUrl = `/attendance_summary?date_from=${from}&date_to=${to}`;
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        apiUrl = `http://${window.location.hostname}:8000/attendance_summary?date_from=${from}&date_to=${to}`;
+      }
+
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('summaryResults');
+          const addSection = document.getElementById('addEmployeeSection');
+          const exportPanel = document.getElementById('exportPanel');
+          
+          if (!data || data.length === 0) {
+            container.innerHTML = `
+              <div class="card">
+                <div class="card-body text-center">
+                  <i class="fas fa-calendar-times text-muted" style="font-size: 3rem;"></i>
+                  <h3 class="mt-3 text-muted">Brak danych</h3>
+                  <p class="text-muted">Brak danych dla wybranego zakresu dat.</p>
+                </div>
+              </div>
+            `;
+            addSection.innerHTML = '';
+            exportPanel.style.display = 'none';
+            return;
+          }
+
+          let html = `
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-chart-line text-success"></i>
+                  Ewidencja czasu pracy
+                </h3>
+                <p class="card-subtitle">Okres: ${from} - ${to} (${data.length} pracowników)</p>
+              </div>
+              <div class="card-body">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Pracownik</th>
+                      <th>Dni obecności</th>
+                      <th>Łączny czas</th>
+                      <th>Soboty</th>
+                      <th>Niedziele</th>
+                      <th>Święta</th>
+                      <th>Kwota</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+          `;
+          
+          let totalAmount = 0;
+          data.forEach(item => {
+            const kwota = (item.total_hours && item.rate) ? (item.rate * item.total_hours) : 0;
+            totalAmount += kwota;
+            const kwotaFormatted = kwota > 0 ? kwota.toFixed(2) + ' zł' : '-';
+            
+            html += `<tr>
+              <td>
+                <a href="employee_details.html?worker_id=${item.id}&start=${from}&end=${to}" 
+                   target="_blank" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-user"></i>
+                  ${item.name}
+                </a>
+              </td>
+              <td>
+                <span class="badge badge-info">${item.days_present}</span>
+              </td>
+              <td>
+                <i class="fas fa-clock text-primary"></i>
+                <strong>${item.total_time}</strong>
+              </td>
+              <td>
+                <span class="badge badge-warning">${item.saturdays}</span>
+              </td>
+              <td>
+                <span class="badge badge-danger">${item.sundays}</span>
+              </td>
+              <td>
+                <span class="badge badge-secondary">${item.holidays}</span>
+              </td>
+              <td>
+                <strong class="text-success">${kwotaFormatted}</strong>
+              </td>
+            </tr>`;
+          });
+          
+          html += `
+                  </tbody>
+                  <tfoot>
+                    <tr class="table-info">
+                      <th>RAZEM</th>
+                      <th>-</th>
+                      <th>-</th>
+                      <th>-</th>
+                      <th>-</th>
+                      <th>-</th>
+                      <th><strong class="text-success">${totalAmount.toFixed(2)} zł</strong></th>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          `;
+          container.innerHTML = html;
+          exportPanel.style.display = 'block';
+
+          // Dodaj przyciski eksportu
+          attachExportHandlers();
+          
+          // Dodaj przycisk do ręcznego dodania pracownika do ewidencji
+          addSection.innerHTML = `
+            <div class="card mt-4">
+              <div class="card-header">
+                <h4 class="card-title">
+                  <i class="fas fa-user-plus text-info"></i>
+                  Dodaj pracownika do ewidencji
+                </h4>
+              </div>
+              <div class="card-body">
+                <button id='addEmployeeBtn' class="btn btn-info">
+                  <i class="fas fa-plus"></i>
+                  Dodaj pracownika do ewidencji
+                </button>
+                <div id='addEmployeeFormContainer'></div>
+              </div>
+            </div>
+          `;
+          
+          document.getElementById('addEmployeeBtn').onclick = function() {
+            showAddEmployeeForm(from, to);
+          };
+        })
+        .catch(err => {
+          const container = document.getElementById('summaryResults');
+          container.innerHTML = `
+            <div class="card">
+              <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+                <h3 class="mt-3 text-danger">Błąd połączenia</h3>
+                <p class="text-muted">Nie udało się pobrać ewidencji obecności.</p>
+                <button onclick="document.getElementById('showBtn').click()" class="btn btn-primary">
+                  <i class="fas fa-refresh"></i> Spróbuj ponownie
+                </button>
+              </div>
+            </div>
+          `;
+          document.getElementById('addEmployeeSection').innerHTML = '';
+          console.error(err);
+        });
+    });
+
+    // Funkcja do pobrania pracowników bez logów i wyświetlenia formularza
+    function showAddEmployeeForm(from, to) {
+      const formContainer = document.getElementById('addEmployeeFormContainer');
+      formContainer.innerHTML = '<p class="text-muted mt-3"><i class="fas fa-spinner fa-spin"></i> Ładowanie...</p>';
+      
+      let apiUrl = `/employees_without_logs?date_from=${from}&date_to=${to}`;
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        apiUrl = `http://${window.location.hostname}:8000/employees_without_logs?date_from=${from}&date_to=${to}`;
+      }
+
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (!data || data.length === 0) {
+            formContainer.innerHTML = '<p class="text-muted mt-3">Brak pracowników bez logów w tym okresie.</p>';
+            return;
+          }
+          
+          let html = `
+            <div class="mt-3">
+              <form id='addEmployeeToAttendanceForm' class="form">
+                <div class="form-group">
+                  <label for="employeeSelect" class="form-label">Pracownik:</label>
+                  <select id='employeeSelect' class="form-control" required>
+                    <option value=''>--wybierz pracownika--</option>
+                    ${data.map(emp => `<option value='${emp.id}'>${emp.name}</option>`).join('')}
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Wybierz dni pracy:</label>
+                  <div id='daysCheckboxes' class="mt-2"></div>
+                </div>
+                
+                <div class="form-actions">
+                  <button type='submit' class="btn btn-success">
+                    <i class="fas fa-check"></i>
+                    Dodaj dni pracy
+                  </button>
+                  <button type='button' id='cancelAddEmployee' class="btn btn-secondary">
+                    <i class="fas fa-times"></i>
+                    Anuluj
+                  </button>
+                </div>
+              </form>
+            </div>
+          `;
+          formContainer.innerHTML = html;
+          
+          // Generuj listę dni z zakresu jako tabelę z dniem tygodnia i kolorami
+          const daysDiv = document.getElementById('daysCheckboxes');
+          const days = getDaysArray(from, to);
+          let daysTable = `
+            <div class="days-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem;">
+          `;
+          
+          days.forEach(d => {
+            const dateObj = new Date(d + 'T00:00:00');
+            const weekday = dateObj.getDay();
+            let dayName = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'][weekday];
+            let badgeClass = 'badge-primary';
+            if (weekday === 6) badgeClass = 'badge-warning'; // sobota
+            if (weekday === 0) badgeClass = 'badge-danger'; // niedziela
+            
+            daysTable += `
+              <label class="form-check d-flex align-items-center p-2 border rounded">
+                <input type='checkbox' name='days' value='${d}' class="form-check-input me-2">
+                <div>
+                  <div><strong>${d}</strong></div>
+                  <span class="badge ${badgeClass}">${dayName}</span>
+                </div>
+              </label>
+            `;
+          });
+          daysTable += "</div>";
+          daysDiv.innerHTML = daysTable;
+          
+          document.getElementById('cancelAddEmployee').onclick = () => { 
+            formContainer.innerHTML = ''; 
+          };
+          
+          document.getElementById('addEmployeeToAttendanceForm').onsubmit = function(e) {
+            e.preventDefault();
+            const empId = document.getElementById('employeeSelect').value;
+            const checkedDays = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(cb => cb.value);
+            
+            if (!empId || checkedDays.length === 0) {
+              return alert('Wybierz pracownika i co najmniej jeden dzień!');
+            }
+            
+            // Przygotuj dane do wysłania (lista logów)
+            const logs = checkedDays.map(date => ({ employee_id: empId, date: date }));
+            
+            let apiUrl = '/logs/batch';
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+              apiUrl = `http://${window.location.hostname}:8000/logs/batch`;
+            }
+
+            fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(logs)
+            })
+            .then(res => {
+              if (!res.ok) throw new Error('Błąd dodawania logów');
+              return res.json();
+            })
+            .then(() => {
+              alert('Dodano dni pracy!');
+              formContainer.innerHTML = '';
+              document.getElementById('showBtn').click(); // odśwież ewidencję
+            })
+            .catch(err => {
+              alert('Błąd podczas dodawania dni pracy.');
+              console.error(err);
+            });
+          };
+        })
+        .catch(err => {
+          formContainer.innerHTML = '<p class="text-danger mt-3">Błąd podczas pobierania pracowników.</p>';
+          console.error(err);
+        });
+    }
+
+    // Funkcja pomocnicza do generowania tablicy dat (YYYY-MM-DD) z zakresu
+    function getDaysArray(start, end) {
+      const arr = [];
+      let dt = new Date(start + 'T00:00:00');
+      const dtEnd = new Date(end + 'T00:00:00');
+      while (dt <= dtEnd) {
+        arr.push(dt.toISOString().slice(0,10));
+        dt.setDate(dt.getDate() + 1);
+      }
+      return arr;
+    }
+
+    // Po załadowaniu strony, jeśli są parametry start/end w URL lub w sessionStorage, ustaw wartości pól daty
+    (function(){
+      const params = new URLSearchParams(window.location.search);
+      let start = params.get('start');
+      let end = params.get('end');
+      if ((!start || !end) && sessionStorage.getItem('attendance_summary_last')) {
+        const last = JSON.parse(sessionStorage.getItem('attendance_summary_last'));
+        start = last.start;
+        end = last.end;
+      }
+      if (start && end) {
+        document.getElementById('dateFrom').value = start;
+        document.getElementById('dateTo').value = end;
+        // Automatycznie kliknij przycisk 'Pokaż'
+        setTimeout(() => {
+          document.getElementById('showBtn').click();
+        }, 100);
+      }
+    })();
+    
+    function goBack() {
+      window.location.href = "index.html";
+    }
+
+    // Funkcje eksportu
+    function exportTableToXLS() {
+      var tableSelect = document.querySelector('#summaryResults table');
+      if(!tableSelect){ 
+        alert('Brak danych do eksportu!'); 
+        return; 
+      }
+      
+      var rows = Array.from(tableSelect.rows);
+      var csv = '';
+      if(rows.length > 0) {
+        var headers = Array.from(rows[0].cells).map(cell => '"' + cell.innerText.replace(/"/g, '""') + '"').join(',');
+        csv += headers + '\n';
+        for(var i=1; i<rows.length; i++) {
+          csv += Array.from(rows[i].cells).map(cell => '"' + cell.innerText.replace(/"/g, '""') + '"').join(',') + '\n';
+        }
+      }
+      
+      var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+      var link = document.createElement('a');
+      var url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'ewidencja_obecnosci.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function exportTableToPDF() {
+      window.print();
+    }
+
+    function attachExportHandlers() {
+      document.getElementById('exportExcelBtn').onclick = exportTableToXLS;
+      document.getElementById('exportPdfBtn').onclick = exportTableToPDF;
+      document.getElementById('printBtn').onclick = function() { window.print(); };
+      document.getElementById('exportPanel').style.display = 'block';
+    }
+  </script>
+  
+  <script src="calendar.js"></script>
+</body>
+</html>

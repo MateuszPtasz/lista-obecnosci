@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Ewidencja - Lista Obecności</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --primary-dark: #2980b9;
+      --secondary-color: #e74c3c;
+      --bg-color: #f5f5f5;
+      --card-bg: #fff;
+      --text-color: #333;
+      --border-color: #ddd;
+      --header-height: 60px;
+      --success-color: #2ecc71;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: var(--font-main);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header i nawigacja */
+    .header {
+      background-color: var(--card-bg);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      height: var(--header-height);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: var(--header-height);
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--primary-color);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo i {
+      margin-right: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      height: 100%;
+    }
+
+    .nav-links li {
+      height: 100%;
+      position: relative;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--text-color);
+      font-weight: 500;
+      padding: 0 15px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      transition: color 0.3s, background-color 0.3s;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--primary-color);
+      background-color: rgba(52, 152, 219, 0.1);
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: var(--card-bg);
+      min-width: 180px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      z-index: 1;
+      border-radius: 4px;
+      top: 100%;
+      left: 0;
+    }
+
+    .dropdown-content a {
+      color: var(--text-color);
+      padding: 12px 16px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .dropdown-content a i {
+      margin-right: 10px;
+      width: 16px;
+      text-align: center;
+    }
+
+    .dropdown-content a:hover {
+      background-color: rgba(52, 152, 219, 0.1);
+      color: var(--primary-color);
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    /* Main content */
+    .content {
+      margin-top: var(--header-height);
+      padding: 25px 0;
+      flex-grow: 1;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 0 15px;
+    }
+
+    .section-header h2 {
+      font-size: 24px;
+      color: var(--text-color);
+    }
+
+    .section-header h2 i {
+      margin-right: 10px;
+      color: var(--primary-color);
+    }
+
+    /* Card */
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .card-header h2 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .card-body {
+      padding: 15px;
+    }
+
+    .card-footer {
+      padding: 15px;
+      background-color: rgba(0,0,0,0.03);
+      border-top: 1px solid var(--border-color);
+      text-align: right;
+    }
+
+    /* Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table thead th {
+      background-color: rgba(52, 152, 219, 0.1);
+      color: var(--primary-color);
+      padding: 10px;
+      text-align: left;
+      border-bottom: 2px solid var(--primary-color);
+    }
+
+    .data-table tbody td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-table tbody tr:hover {
+      background-color: rgba(0,0,0,0.02);
+    }
+
+    /* Datepicker i filtrowanie */
+    .filter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+    }
+
+    .filter-group label {
+      margin-right: 8px;
+      font-weight: 500;
+    }
+
+    .filter-group input, .filter-group select {
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-family: var(--font-main);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+      border: none;
+      font-family: var(--font-main);
+      margin-left: 5px;
+    }
+
+    .btn i {
+      margin-right: 6px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-success {
+      background-color: var(--success-color);
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: var(--danger-color);
+      color: white;
+    }
+
+    /* Summary Cards */
+    .summary-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .summary-card {
+      flex: 1;
+      min-width: 200px;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 15px;
+      text-align: center;
+    }
+
+    .summary-card h3 {
+      color: var(--text-color);
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .summary-card .value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+
+    /* Footer */
+    .footer {
+      background-color: var(--card-bg);
+      padding: 20px 0;
+      margin-top: auto;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    }
+
+    .footer p {
+      text-align: center;
+      margin: 0;
+      font-size: 14px;
+      color: #777;
+    }
+
+    /* Utils */
+    .mb-4 {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index_top.html" class="logo">
+        <i class="fas fa-clipboard-list"></i>
+        Lista Obecności
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="index_top.html" class="nav-link">Pulpit</a></li>
+        <li><a href="employees_top.html" class="nav-link">Zespół</a></li>
+        <li class="dropdown">
+          <a href="#" class="nav-link active">Obecność</a>
+          <div class="dropdown-content">
+            <a href="attendance_day_top.html"><i class="fas fa-calendar-day"></i> Dzień</a>
+            <a href="attendance_summary_top.html" class="active"><i class="fas fa-chart-bar"></i> Ewidencja</a>
+          </div>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="nav-link">Konfiguracja</a>
+          <div class="dropdown-content">
+            <a href="mobile_config_top.html"><i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji</a>
+            <a href="time_rounding_top.html"><i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy</a>
+            <a href="api_terminal_top.html"><i class="fas fa-terminal"></i> Terminal diagnostyczny</a>
+          </div>
+        </li>
+        <li><a href="#" onclick="logout()" class="nav-link"><i class="fas fa-sign-out-alt"></i> Wyloguj</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="container">
+      <div class="section-header">
+        <h2><i class="fas fa-chart-bar"></i> Ewidencja czasu pracy</h2>
+        <button class="btn btn-primary" onclick="loadSummaryData()">
+          <i class="fas fa-sync"></i> Odśwież dane
+        </button>
+      </div>
+
+      <!-- Filtrowanie -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2>Filtrowanie</h2>
+        </div>
+        <div class="card-body">
+          <div class="filter-controls">
+            <div class="filter-group">
+              <label for="month-picker">Miesiąc:</label>
+              <input type="month" id="month-picker" onchange="loadSummaryData()">
+            </div>
+            <div class="filter-group">
+              <label for="employee-filter">Pracownik:</label>
+              <select id="employee-filter" onchange="loadSummaryData()">
+                <option value="all">Wszyscy pracownicy</option>
+                <!-- Opcje będą dodane przez JavaScript -->
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="department-filter">Dział:</label>
+              <select id="department-filter" onchange="loadSummaryData()">
+                <option value="all">Wszystkie działy</option>
+                <option value="admin">Administracja</option>
+                <option value="prod">Produkcja</option>
+                <option value="sales">Sprzedaż</option>
+                <option value="it">IT</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Karty podsumowania -->
+      <div class="summary-row">
+        <div class="summary-card">
+          <h3>Łączna liczba godzin</h3>
+          <div class="value" id="total-hours">-</div>
+        </div>
+        <div class="summary-card">
+          <h3>Średnio godzin dziennie</h3>
+          <div class="value" id="avg-hours">-</div>
+        </div>
+        <div class="summary-card">
+          <h3>Dni roboczych</h3>
+          <div class="value" id="work-days">-</div>
+        </div>
+        <div class="summary-card">
+          <h3>Nadgodziny</h3>
+          <div class="value" id="overtime">-</div>
+        </div>
+      </div>
+
+      <!-- Tabela ewidencji -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Ewidencja czasu pracy</h2>
+        </div>
+        <div class="card-body">
+          <div id="summary-data">Ładowanie danych...</div>
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-primary" onclick="exportToPDF()">
+            <i class="fas fa-file-pdf"></i> Eksportuj do PDF
+          </button>
+          <button class="btn btn-success" onclick="exportToExcel()">
+            <i class="fas fa-file-excel"></i> Eksportuj do Excel
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 System Lista Obecności. Wszystkie prawa zastrzeżone.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Ustawienie domyślnego miesiąca na bieżący
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      document.getElementById('month-picker').value = `${year}-${month}`;
+      
+      // Załadowanie listy pracowników do filtra
+      loadEmployeesList();
+      
+      // Załadowanie danych ewidencji
+      loadSummaryData();
+    });
+    
+    // Funkcja ładująca listę pracowników
+    function loadEmployeesList() {
+      fetch('/api/employees')
+        .then(res => res.json())
+        .then(data => {
+          const select = document.getElementById('employee-filter');
+          
+          // Usunięcie istniejących opcji (poza pierwszą "Wszyscy")
+          while (select.options.length > 1) {
+            select.remove(1);
+          }
+          
+          // Dodanie opcji dla każdego pracownika
+          data.forEach(employee => {
+            const option = document.createElement('option');
+            option.value = employee.id;
+            option.textContent = employee.name;
+            select.appendChild(option);
+          });
+        })
+        .catch(err => {
+          console.error('Error loading employees:', err);
+        });
+    }
+    
+    // Funkcja ładująca dane ewidencji
+    function loadSummaryData() {
+      const month = document.getElementById('month-picker').value;
+      const employeeId = document.getElementById('employee-filter').value;
+      const department = document.getElementById('department-filter').value;
+      
+      document.getElementById('summary-data').innerHTML = 'Ładowanie danych...';
+      
+      // Budowanie parametrów zapytania
+      const params = new URLSearchParams();
+      params.append('month', month);
+      if (employeeId !== 'all') params.append('employee_id', employeeId);
+      if (department !== 'all') params.append('department', department);
+      
+      // Pobranie danych podsumowania
+      fetch(`/api/attendance/summary?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
+          // Aktualizacja kart podsumowania
+          document.getElementById('total-hours').textContent = data.total_hours || '0h';
+          document.getElementById('avg-hours').textContent = data.avg_hours || '0h';
+          document.getElementById('work-days').textContent = data.work_days || '0';
+          document.getElementById('overtime').textContent = data.overtime || '0h';
+          
+          // Pobranie szczegółowych danych
+          return fetch(`/api/attendance/summary/details?${params.toString()}`);
+        })
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('summary-data');
+          
+          if (!data || data.length === 0) {
+            container.innerHTML = '<p>Brak danych dla wybranych kryteriów.</p>';
+            return;
+          }
+          
+          let html = "<table class='data-table'><thead><tr><th>Pracownik</th><th>Dział</th><th>Łączny czas pracy</th><th>Dni robocze</th><th>Średnio dziennie</th><th>Nadgodziny</th></tr></thead><tbody>";
+          
+          data.forEach(entry => {
+            html += `<tr>
+                      <td>${entry.employee_name}</td>
+                      <td>${entry.department}</td>
+                      <td>${entry.total_hours}</td>
+                      <td>${entry.work_days}</td>
+                      <td>${entry.avg_hours}</td>
+                      <td>${entry.overtime}</td>
+                    </tr>`;
+          });
+          
+          html += "</tbody></table>";
+          container.innerHTML = html;
+        })
+        .catch(err => {
+          console.error('Error loading summary data:', err);
+          document.getElementById('summary-data').innerHTML = 'Błąd: ' + err.message;
+        });
+    }
+    
+    // Funkcja eksportu do PDF
+    function exportToPDF() {
+      const month = document.getElementById('month-picker').value;
+      const employeeId = document.getElementById('employee-filter').value;
+      const department = document.getElementById('department-filter').value;
+      
+      // Budowanie parametrów zapytania
+      const params = new URLSearchParams();
+      params.append('month', month);
+      if (employeeId !== 'all') params.append('employee_id', employeeId);
+      if (department !== 'all') params.append('department', department);
+      params.append('format', 'pdf');
+      
+      // Przekierowanie do endpointu eksportu
+      window.open(`/api/export/attendance/summary?${params.toString()}`);
+    }
+    
+    // Funkcja eksportu do Excel
+    function exportToExcel() {
+      const month = document.getElementById('month-picker').value;
+      const employeeId = document.getElementById('employee-filter').value;
+      const department = document.getElementById('department-filter').value;
+      
+      // Budowanie parametrów zapytania
+      const params = new URLSearchParams();
+      params.append('month', month);
+      if (employeeId !== 'all') params.append('employee_id', employeeId);
+      if (department !== 'all') params.append('department', department);
+      params.append('format', 'excel');
+      
+      // Przekierowanie do endpointu eksportu
+      window.open(`/api/export/attendance/summary?${params.toString()}`);
+    }
+
+    // Funkcja wylogowania
+    function logout() {
+      fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      }).then(() => {
+        window.location.href = '/login.html';
+      }).catch(err => {
+        console.error('Error during logout:', err);
+        alert('Wystąpił błąd podczas wylogowywania');
+      });
+    }
+  </script>
+</body>
+</html>

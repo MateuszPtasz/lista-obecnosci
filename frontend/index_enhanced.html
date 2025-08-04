@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Panel Administracyjny - Lista Obecności</title>
+  <link rel="stylesheet" href="style.css?v=20250804">
+  <style>
+    /* Ulepszony styl dla głównego panelu */
+    .dashboard-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .dashboard-card {
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      border-top: 4px solid var(--primary-color);
+    }
+    
+    .dashboard-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    
+    .dashboard-card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      display: flex;
+      align-items: center;
+    }
+    
+    .dashboard-card h3 i {
+      margin-right: 0.75rem;
+      color: var(--primary-color);
+    }
+    
+    .card-content {
+      margin-top: 1rem;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0.5rem 0;
+      color: var(--gray-900);
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--gray-600);
+      margin-bottom: 0.5rem;
+    }
+    
+    .card-footer {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--gray-100);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      color: var(--gray-600);
+    }
+    
+    .trend {
+      display: flex;
+      align-items: center;
+    }
+    
+    .trend.up {
+      color: var(--success-color);
+    }
+    
+    .trend.down {
+      color: var(--danger-color);
+    }
+    
+    .trend i {
+      margin-right: 0.25rem;
+    }
+    
+    /* Karty z akcjami */
+    .action-card {
+      border-top: 4px solid var(--info-color);
+    }
+    
+    .action-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .action-buttons button {
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .action-buttons button i {
+      margin-right: 0.5rem;
+    }
+    
+    .start-btn {
+      background-color: var(--success-color);
+      color: white;
+    }
+    
+    .start-btn:hover {
+      background-color: #047857;
+    }
+    
+    .stop-btn {
+      background-color: var(--danger-color);
+      color: white;
+    }
+    
+    .stop-btn:hover {
+      background-color: #b91c1c;
+    }
+    
+    /* Tabela pracowników */
+    .employees-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    
+    .employees-table th,
+    .employees-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    
+    .employees-table th {
+      background-color: var(--gray-50);
+      color: var(--gray-700);
+      font-weight: 600;
+    }
+    
+    .employees-table tr:hover td {
+      background-color: var(--gray-50);
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .status-active {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-inactive {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+    
+    /* Wykres na karcie */
+    .chart-container {
+      height: 120px;
+      margin-top: 1rem;
+      position: relative;
+    }
+    
+    .chart-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-light) 0%, var(--primary-color) 100%);
+      border-radius: 8px;
+      opacity: 0.7;
+    }
+    
+    /* Rozwinięty kalendarz */
+    .calendar-container {
+      margin-top: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--gray-200);
+      overflow: hidden;
+    }
+    
+    .calendar-header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.75rem;
+      text-align: center;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .calendar-body {
+      padding: 1rem;
+    }
+    
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 0.5rem;
+    }
+    
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+    }
+    
+    .calendar-day {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .calendar-day:hover {
+      background-color: var(--gray-100);
+    }
+    
+    .calendar-day.current {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 600;
+    }
+    
+    .calendar-day.has-event::after {
+      content: '';
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+    }
+    
+    .calendar-day.month-start {
+      color: var(--success-color);
+      font-weight: 600;
+    }
+    
+    .calendar-day.month-end {
+      color: var(--danger-color);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2><i class="fas fa-users"></i> Lista Obecności</h2>
+      <ul>
+        <li><a href="index.html" class="active"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html"><i class="fas fa-users"></i> Zespół</a></li>
+        <li>
+          <a href="#" id="showSubmenu">
+            <i class="fas fa-calendar-check"></i> 
+            Obecność 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <div id="submenuPanel">
+            <a href="attendance_day.html">
+              <i class="fas fa-calendar-day"></i> Dzień
+            </a>
+            <a href="attendance_summary.html">
+              <i class="fas fa-chart-bar"></i> Ewidencja
+            </a>
+          </div>
+        </li>
+        <li>
+          <a href="#" id="showConfigSubmenu">
+            <i class="fas fa-cog"></i> 
+            Konfiguracja 
+            <i class="fas fa-chevron-right" style="margin-left: auto; transition: transform 0.2s;"></i>
+          </a>
+          <div id="configSubmenuPanel">
+            <a href="mobile_config.html">
+              <i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji
+            </a>
+            <a href="time_rounding.html">
+              <i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy
+            </a>
+            <a href="pin_access_monitor.html">
+              <i class="fas fa-shield-alt"></i> Bezpieczeństwo PIN
+            </a>
+          </div>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <div class="page-header">
+        <h1><i class="fas fa-tachometer-alt"></i> Panel Główny</h1>
+        <div class="user-controls">
+          <span id="userDisplay">Nie zalogowano</span>
+          <button class="btn btn-secondary" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Zaloguj</button>
+          <button class="btn btn-outline" id="logoutBtn" style="display: none;"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
+        </div>
+      </div>
+
+      <!-- Informacje o systemie -->
+      <div class="dashboard-container">
+        <!-- Karta aktywnych pracowników -->
+        <div class="dashboard-card">
+          <h3><i class="fas fa-user-check"></i> Aktywni pracownicy</h3>
+          <div class="card-content">
+            <div class="stat-value" id="activeWorkersCount">0</div>
+            <div class="stat-label">Obecnie w pracy</div>
+          </div>
+          <div class="card-footer">
+            <span>Dziś</span>
+            <div class="trend up">
+              <i class="fas fa-arrow-up"></i> <span id="activeWorkersChange">0%</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Karta średniego czasu pracy -->
+        <div class="dashboard-card">
+          <h3><i class="fas fa-clock"></i> Średni czas pracy</h3>
+          <div class="card-content">
+            <div class="stat-value" id="avgWorkTime">0h 0m</div>
+            <div class="stat-label">Dzisiejsza średnia</div>
+          </div>
+          <div class="card-footer">
+            <span>Poprzedni dzień</span>
+            <div class="trend" id="avgWorkTimeTrend">
+              <i class="fas fa-minus"></i> <span id="avgWorkTimeChange">0%</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Karta akcji -->
+        <div class="dashboard-card action-card">
+          <h3><i class="fas fa-play-circle"></i> Zarządzanie pracą</h3>
+          <div class="card-content">
+            <div class="employee-select-container">
+              <select id="employeeSelect" class="form-control">
+                <option value="">Wybierz pracownika...</option>
+              </select>
+            </div>
+            <div class="action-buttons">
+              <button id="startWorkBtn" class="start-btn"><i class="fas fa-play"></i> Start</button>
+              <button id="stopWorkBtn" class="stop-btn"><i class="fas fa-stop"></i> Stop</button>
+            </div>
+          </div>
+          <div class="card-footer" id="workStatus">
+            <span>Status: nie w pracy</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sekcja aktywnych pracowników -->
+      <div class="section">
+        <div class="section-header">
+          <h2><i class="fas fa-users"></i> Aktywni pracownicy</h2>
+          <button class="btn" id="refreshActiveBtn"><i class="fas fa-sync"></i> Odśwież</button>
+        </div>
+        <div class="card">
+          <table class="employees-table">
+            <thead>
+              <tr>
+                <th>Pracownik</th>
+                <th>Czas rozpoczęcia</th>
+                <th>Czas trwania</th>
+                <th>Status</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody id="activeWorkersTable">
+              <!-- Dane pracowników będą wstawiane przez JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sekcja kalendarza i statystyk -->
+      <div class="dashboard-container">
+        <!-- Karta kalendarza -->
+        <div class="dashboard-card">
+          <h3><i class="fas fa-calendar"></i> Kalendarz</h3>
+          <div class="calendar-container" id="calendarCard">
+            <div class="calendar-header">
+              <i class="fas fa-chevron-left" id="prevMonth"></i>
+              <span id="currentMonth">Sierpień 2025</span>
+              <i class="fas fa-chevron-right" id="nextMonth"></i>
+            </div>
+            <div class="calendar-body">
+              <div class="calendar-weekdays">
+                <div>Pn</div>
+                <div>Wt</div>
+                <div>Śr</div>
+                <div>Cz</div>
+                <div>Pt</div>
+                <div>So</div>
+                <div>Nd</div>
+              </div>
+              <div class="calendar-days" id="calendarDays">
+                <!-- Dni będą wstawiane przez JavaScript -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Karta statystyk bezpieczeństwa -->
+        <div class="dashboard-card">
+          <h3><i class="fas fa-shield-alt"></i> Bezpieczeństwo systemu</h3>
+          <div class="card-content">
+            <div class="stat-value" id="errorCount">0</div>
+            <div class="stat-label">Błędów systemowych (24h)</div>
+            <div class="chart-container">
+              <div class="chart-placeholder"></div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span id="systemStatus">Status: Stabilny</span>
+            <a href="pin_access_monitor.html" class="link-btn">Szczegóły <i class="fas fa-arrow-right"></i></a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal z logowaniem -->
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Logowanie administratora</h3>
+        <span class="close" id="closeLoginModal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="username">Login</label>
+          <input type="text" id="username" class="form-control" placeholder="Podaj login">
+        </div>
+        <div class="form-group">
+          <label for="password">Hasło</label>
+          <input type="password" id="password" class="form-control" placeholder="Podaj hasło">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="submitLogin">Zaloguj</button>
+        <button class="btn btn-secondary" id="cancelLogin">Anuluj</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Obsługa submenu
+      const submenuToggle = document.getElementById('showSubmenu');
+      const submenuPanel = document.getElementById('submenuPanel');
+      const configToggle = document.getElementById('showConfigSubmenu');
+      const configPanel = document.getElementById('configSubmenuPanel');
+      const chevronSubmenu = submenuToggle.querySelector('.fa-chevron-right');
+      const chevronConfig = configToggle.querySelector('.fa-chevron-right');
+      
+      submenuToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        submenuPanel.classList.toggle('show');
+        chevronSubmenu.style.transform = submenuPanel.classList.contains('show') ? 'rotate(90deg)' : '';
+        
+        // Zamknij inne menu jeśli otwarte
+        if (configPanel.classList.contains('show')) {
+          configPanel.classList.remove('show');
+          chevronConfig.style.transform = '';
+        }
+      });
+      
+      configToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        configPanel.classList.toggle('show');
+        chevronConfig.style.transform = configPanel.classList.contains('show') ? 'rotate(90deg)' : '';
+        
+        // Zamknij inne menu jeśli otwarte
+        if (submenuPanel.classList.contains('show')) {
+          submenuPanel.classList.remove('show');
+          chevronSubmenu.style.transform = '';
+        }
+      });
+      
+      // Obsługa modalu logowania
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const loginModal = document.getElementById('loginModal');
+      const closeLoginModal = document.getElementById('closeLoginModal');
+      const submitLogin = document.getElementById('submitLogin');
+      const cancelLogin = document.getElementById('cancelLogin');
+      const userDisplay = document.getElementById('userDisplay');
+      
+      loginBtn.addEventListener('click', function() {
+        loginModal.style.display = 'block';
+      });
+      
+      closeLoginModal.addEventListener('click', function() {
+        loginModal.style.display = 'none';
+      });
+      
+      cancelLogin.addEventListener('click', function() {
+        loginModal.style.display = 'none';
+      });
+      
+      submitLogin.addEventListener('click', function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        if (!username || !password) {
+          alert('Wprowadź dane logowania');
+          return;
+        }
+        
+        // Wywołanie API logowania
+        fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username,
+            password
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.authenticated) {
+            userDisplay.textContent = `${data.username} (${data.role})`;
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'inline-block';
+            loginModal.style.display = 'none';
+            checkSession();
+            loadEmployeesList();
+            loadActiveWorkers();
+          } else {
+            alert('Błąd logowania: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Błąd serwera: ' + error.message);
+        });
+      });
+      
+      logoutBtn.addEventListener('click', function() {
+        fetch('/api/logout', {
+          method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+          userDisplay.textContent = 'Nie zalogowano';
+          loginBtn.style.display = 'inline-block';
+          logoutBtn.style.display = 'none';
+          checkSession();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      });
+      
+      // Sprawdzenie sesji
+      function checkSession() {
+        fetch('/api/session')
+          .then(response => response.json())
+          .then(data => {
+            if (data.authenticated) {
+              userDisplay.textContent = `${data.user.username} (${data.user.role})`;
+              loginBtn.style.display = 'none';
+              logoutBtn.style.display = 'inline-block';
+              loadEmployeesList();
+              loadActiveWorkers();
+              loadSystemStatus();
+              loadWorkTimeStats();
+            } else {
+              userDisplay.textContent = 'Nie zalogowano';
+              loginBtn.style.display = 'inline-block';
+              logoutBtn.style.display = 'none';
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
+      
+      // Funkcja ładowania listy pracowników
+      function loadEmployeesList() {
+        fetch('/api/employees')
+          .then(response => response.json())
+          .then(data => {
+            const select = document.getElementById('employeeSelect');
+            select.innerHTML = '<option value="">Wybierz pracownika...</option>';
+            
+            if (Array.isArray(data)) {
+              data.forEach(employee => {
+                const option = document.createElement('option');
+                option.value = employee.id;
+                option.textContent = employee.name;
+                select.appendChild(option);
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
+      
+      // Funkcja ładowania aktywnych pracowników
+      function loadActiveWorkers() {
+        fetch('/api/workers_status')
+          .then(response => response.json())
+          .then(data => {
+            const tableBody = document.getElementById('activeWorkersTable');
+            tableBody.innerHTML = '';
+            
+            if (Array.isArray(data)) {
+              document.getElementById('activeWorkersCount').textContent = data.length;
+              
+              if (data.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="5" class="text-center">Brak aktywnych pracowników</td>';
+                tableBody.appendChild(row);
+              } else {
+                data.forEach(worker => {
+                  const row = document.createElement('tr');
+                  
+                  row.innerHTML = `
+                    <td>${worker.name}</td>
+                    <td>${worker.start_time}</td>
+                    <td>${worker.duration}</td>
+                    <td><span class="status-badge status-active">Aktywny</span></td>
+                    <td>
+                      <button class="btn btn-sm btn-danger stop-work-btn" data-id="${worker.id}" data-session="${worker.session_id}">
+                        <i class="fas fa-stop"></i> Zakończ
+                      </button>
+                    </td>
+                  `;
+                  
+                  tableBody.appendChild(row);
+                });
+                
+                // Dodajemy nasłuchiwacze do przycisków
+                document.querySelectorAll('.stop-work-btn').forEach(button => {
+                  button.addEventListener('click', function() {
+                    const employeeId = this.getAttribute('data-id');
+                    const sessionId = this.getAttribute('data-session');
+                    stopWork(employeeId, sessionId);
+                  });
+                });
+              }
+            } else {
+              document.getElementById('activeWorkersCount').textContent = '0';
+              const row = document.createElement('tr');
+              row.innerHTML = '<td colspan="5" class="text-center">Błąd pobierania danych</td>';
+              tableBody.appendChild(row);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('activeWorkersCount').textContent = '0';
+            const tableBody = document.getElementById('activeWorkersTable');
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Błąd pobierania danych</td></tr>';
+          });
+      }
+      
+      // Funkcja ładowania statystyk czasu pracy
+      function loadWorkTimeStats() {
+        fetch('/api/statistics/avg_work_time')
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById('avgWorkTime').textContent = data.avg_time || '0h 0m';
+            
+            const change = data.change || 0;
+            const changeElement = document.getElementById('avgWorkTimeChange');
+            const trendElement = document.getElementById('avgWorkTimeTrend');
+            
+            changeElement.textContent = `${Math.abs(change)}%`;
+            
+            if (change > 0) {
+              trendElement.className = 'trend up';
+              trendElement.querySelector('i').className = 'fas fa-arrow-up';
+            } else if (change < 0) {
+              trendElement.className = 'trend down';
+              trendElement.querySelector('i').className = 'fas fa-arrow-down';
+            } else {
+              trendElement.className = 'trend';
+              trendElement.querySelector('i').className = 'fas fa-minus';
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
+      
+      // Funkcja ładowania statystyk bezpieczeństwa
+      function loadSystemStatus() {
+        fetch('/api/system/errors')
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById('errorCount').textContent = data.count || '0';
+            document.getElementById('systemStatus').textContent = `Status: ${data.status || 'Nieznany'}`;
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
+      
+      // Obsługa rozpoczęcia pracy
+      document.getElementById('startWorkBtn').addEventListener('click', function() {
+        const employeeId = document.getElementById('employeeSelect').value;
+        
+        if (!employeeId) {
+          alert('Wybierz pracownika');
+          return;
+        }
+        
+        startWork(employeeId);
+      });
+      
+      // Obsługa zakończenia pracy
+      document.getElementById('stopWorkBtn').addEventListener('click', function() {
+        const employeeId = document.getElementById('employeeSelect').value;
+        
+        if (!employeeId) {
+          alert('Wybierz pracownika');
+          return;
+        }
+        
+        // Najpierw sprawdzamy, czy pracownik ma aktywną sesję
+        checkEmployeeStatus(employeeId, true);
+      });
+      
+      // Funkcja sprawdzania statusu pracownika
+      function checkEmployeeStatus(employeeId, forStop = false) {
+        fetch(`/api/work/employee/${employeeId}/status`)
+          .then(response => response.json())
+          .then(data => {
+            const workStatus = document.getElementById('workStatus');
+            
+            if (data.active) {
+              workStatus.innerHTML = `<span>Status: <b>W pracy od ${data.start_time}</b> (${data.duration})</span>`;
+              
+              if (forStop) {
+                stopWork(employeeId, data.session_id);
+              }
+            } else {
+              workStatus.innerHTML = '<span>Status: <b>Nie w pracy</b></span>';
+              
+              if (forStop) {
+                alert('Pracownik nie ma aktywnej sesji pracy');
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Błąd sprawdzania statusu pracownika');
+          });
+      }
+      
+      // Funkcja monitorująca wybór pracownika
+      document.getElementById('employeeSelect').addEventListener('change', function() {
+        const employeeId = this.value;
+        
+        if (employeeId) {
+          checkEmployeeStatus(employeeId);
+        } else {
+          const workStatus = document.getElementById('workStatus');
+          workStatus.innerHTML = '<span>Status: nie w pracy</span>';
+        }
+      });
+      
+      // Funkcja rozpoczynająca pracę
+      function startWork(employeeId) {
+        // Pobierz lokalizację (w rzeczywistości mogłaby być z geolokalizacji)
+        const lat = 52.2297;
+        const lon = 21.0122;
+        
+        fetch('/api/work/start', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            employee_id: employeeId,
+            lat: lat,
+            lon: lon
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.id) {
+            alert(`Rozpoczęto pracę dla: ${data.employee_name}`);
+            loadActiveWorkers();
+            checkEmployeeStatus(employeeId);
+          } else {
+            alert('Błąd rozpoczynania pracy: ' + (data.detail || 'Nieznany błąd'));
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Błąd serwera: ' + error.message);
+        });
+      }
+      
+      // Funkcja kończąca pracę
+      function stopWork(employeeId, sessionId) {
+        if (!confirm('Czy na pewno zakończyć pracę dla wybranego pracownika?')) {
+          return;
+        }
+        
+        // Pobierz lokalizację (w rzeczywistości mogłaby być z geolokalizacji)
+        const lat = 52.2297;
+        const lon = 21.0122;
+        
+        fetch('/api/work/end', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            employee_id: employeeId,
+            session_id: sessionId,
+            lat: lat,
+            lon: lon
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.id) {
+            alert(`Zakończono pracę dla: ${data.employee_name}\nCzas pracy: ${data.duration}`);
+            loadActiveWorkers();
+            
+            // Jeśli to aktualnie wybrany pracownik, zaktualizuj jego status
+            const currentEmployeeId = document.getElementById('employeeSelect').value;
+            if (currentEmployeeId === employeeId) {
+              checkEmployeeStatus(employeeId);
+            }
+          } else {
+            alert('Błąd zakończenia pracy: ' + (data.detail || 'Nieznany błąd'));
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Błąd serwera: ' + error.message);
+        });
+      }
+      
+      // Obsługa przycisku odświeżania
+      document.getElementById('refreshActiveBtn').addEventListener('click', function() {
+        loadActiveWorkers();
+      });
+      
+      // Inicjalizacja kalendarza
+      function initCalendar() {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        updateCalendar(currentMonth, currentYear);
+        
+        document.getElementById('prevMonth').addEventListener('click', function() {
+          const monthSpan = document.getElementById('currentMonth');
+          const [monthName, year] = monthSpan.textContent.split(' ');
+          
+          let month = getMonthNumber(monthName) - 1;
+          let yearNumber = parseInt(year);
+          
+          if (month < 0) {
+            month = 11;
+            yearNumber--;
+          }
+          
+          updateCalendar(month, yearNumber);
+        });
+        
+        document.getElementById('nextMonth').addEventListener('click', function() {
+          const monthSpan = document.getElementById('currentMonth');
+          const [monthName, year] = monthSpan.textContent.split(' ');
+          
+          let month = getMonthNumber(monthName) + 1;
+          let yearNumber = parseInt(year);
+          
+          if (month > 11) {
+            month = 0;
+            yearNumber++;
+          }
+          
+          updateCalendar(month, yearNumber);
+        });
+        
+        document.getElementById('calendarCard').addEventListener('click', function(e) {
+          if (e.target.classList.contains('calendar-header') || e.target.id === 'currentMonth') {
+            document.getElementById('calendarCard').classList.toggle('expanded');
+          }
+        });
+      }
+      
+      function updateCalendar(month, year) {
+        const monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
+        document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+        
+        const calendarDays = document.getElementById('calendarDays');
+        calendarDays.innerHTML = '';
+        
+        // Pobierz pierwszy dzień miesiąca
+        const firstDay = new Date(year, month, 1);
+        // Dzień tygodnia pierwszego dnia (0-niedziela, 1-poniedziałek...)
+        let dayOfWeek = firstDay.getDay() || 7; // Konwertujemy 0 (niedziela) na 7, aby zaczynać od poniedziałku
+        dayOfWeek = dayOfWeek === 1 ? 0 : dayOfWeek - 1; // Dostosowanie do indeksu od 0 dla poniedziałku
+        
+        // Dni poprzedniego miesiąca
+        const prevMonthDays = dayOfWeek;
+        for (let i = prevMonthDays - 1; i >= 0; i--) {
+          const prevDate = new Date(year, month, -i);
+          const dayElement = document.createElement('div');
+          dayElement.className = 'calendar-day prev-month';
+          dayElement.textContent = prevDate.getDate();
+          calendarDays.appendChild(dayElement);
+        }
+        
+        // Dni bieżącego miesiąca
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        
+        for (let i = 1; i <= daysInMonth; i++) {
+          const dayElement = document.createElement('div');
+          dayElement.className = 'calendar-day';
+          dayElement.textContent = i;
+          
+          // Oznaczenie pierwszego dnia miesiąca
+          if (i === 1) {
+            dayElement.classList.add('month-start');
+          }
+          
+          // Oznaczenie ostatniego dnia miesiąca
+          if (i === daysInMonth) {
+            dayElement.classList.add('month-end');
+          }
+          
+          // Oznaczenie dzisiejszego dnia
+          const now = new Date();
+          if (i === now.getDate() && month === now.getMonth() && year === now.getFullYear()) {
+            dayElement.classList.add('current');
+          }
+          
+          calendarDays.appendChild(dayElement);
+        }
+        
+        // Dni następnego miesiąca do wypełnienia kalendarza
+        const totalDaysShown = prevMonthDays + daysInMonth;
+        const nextMonthDays = 7 - (totalDaysShown % 7 || 7);
+        
+        if (nextMonthDays < 7) {
+          for (let i = 1; i <= nextMonthDays; i++) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day next-month';
+            dayElement.textContent = i;
+            calendarDays.appendChild(dayElement);
+          }
+        }
+      }
+      
+      function getMonthNumber(monthName) {
+        const months = {'Styczeń': 0, 'Luty': 1, 'Marzec': 2, 'Kwiecień': 3, 'Maj': 4, 'Czerwiec': 5, 
+                       'Lipiec': 6, 'Sierpień': 7, 'Wrzesień': 8, 'Październik': 9, 'Listopad': 10, 'Grudzień': 11};
+        return months[monthName];
+      }
+      
+      // Inicjalizacja strony
+      checkSession();
+      initCalendar();
+    });
+  </script>
+</body>
+</html>

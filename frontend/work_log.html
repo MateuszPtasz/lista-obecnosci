@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Szczegóły logów pracownika</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="work_log.js"></script>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>MENU</h2>
+    <ul>
+      <li><a href="index.html">Pulpit</a></li>
+      <li><a href="employees.html">Zespół</a></li>
+      <li><span id="showSubmenu" style="cursor:pointer;font-weight:bold;">Obecność &#9654;</span></li>
+      <li><a href="mobile_config.html">Konfiguracja Aplikacji</a></li>
+    </ul>
+  </div>
+  <div id="submenuPanel" class="submenu-panel">
+    <h3>Obecność</h3>
+    <a href="attendance_day.html">Obecność – Dzień</a>
+    <a href="attendance_summary.html">Obecność – Ewidencja</a>
+  </div>
+  <div class="app-container">
+    <div class="content">
+      <button onclick="goBack()" style="margin-bottom:18px;">&larr; Wstecz</button>
+      <h1>Szczegóły logów pracownika</h1>
+      <h3>Dodaj nowy dzień pracy</h3>
+      <form id="add-log-form" style="margin-bottom: 24px;">
+        <input type="date" id="new-date" required />
+        <input type="time" id="new-start" required />
+        <input type="time" id="new-stop" required />
+        <button type="submit">Dodaj</button>
+      </form>
+      <div id="workLogTable"></div>
+      <script>
+        function goBack() {
+          window.location.href = 'employees.html';
+        }
+      </script>
+    </div>
+  </div>
+  <script src="sidebar.js?v=20250125"></script>
+</body>
+</html>
