@@ -4,6 +4,39 @@ Skrypt do uruchamiania serwerów API Lista Obecności
 import subprocess
 import sys
 import os
+import socket
+import time
+
+# Funkcja do sprawdzania, czy port jest już używany
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
+
+# Funkcja do zatrzymywania procesu na określonym porcie
+def kill_process_on_port(port):
+    try:
+        # Dla Windows
+        output = subprocess.check_output(f"netstat -ano | findstr :{port}", shell=True).decode()
+        if output:
+            # Wyciągnij PID z outputu (ostatnia kolumna)
+            lines = output.strip().split('\n')
+            for line in lines:
+                if f":{port}" in line and "LISTENING" in line:
+                    pid = line.split()[-1]
+                    print(f"⚠️ Port {port} jest już używany przez proces o PID {pid}. Próbuję zatrzymać...")
+                    try:
+                        subprocess.call(f"taskkill /F /PID {pid}", shell=True)
+                        print(f"✅ Proces na porcie {port} został zatrzymany.")
+                        # Daj czas na zwolnienie portu
+                        time.sleep(1)
+                        return True
+                    except Exception as e:
+                        print(f"❌ Nie można zatrzymać procesu na porcie {port}: {e}")
+                        return False
+    except Exception:
+        # Jeśli nie znaleziono procesu lub wystąpił inny błąd
+        return False
+    return False
 
 # Próba importu centralnej konfiguracji
 try:
@@ -36,25 +69,54 @@ def start_servers():
         os.makedirs("static")
         print("✅ Utworzono brakujący katalog 'static'")
     
-    # Uruchomienie głównego serwera
-    main_server = subprocess.Popen([sys.executable, "main.py"])
-    print(f"✅ Uruchomiono główny serwer na porcie {MAIN_PORT}")
-    print(f"📡 Adres: http://{SERVER_IP}:{MAIN_PORT}")
+    # Sprawdź czy porty są już używane i zatrzymaj procesy, jeśli tak
+    ports_to_check = [MAIN_PORT, ALT_PORT, WEB_PORT]
+    for port in ports_to_check:
+        if is_port_in_use(port):
+            print(f"⚠️ Port {port} jest już używany!")
+            kill_process_on_port(port)
+            # Sprawdź ponownie, czy port został zwolniony
+            if is_port_in_use(port):
+                print(f"❌ Nie udało się zwolnić portu {port}. Spróbuj zatrzymać procesy ręcznie.")
+                print(f"   Możesz użyć komendy: taskkill /F /FI \"WINDOWTITLE eq *python*\" /T")
+                print(f"   lub: netstat -ano | findstr :{port}")
+                input("Naciśnij Enter, aby kontynuować mimo to, lub Ctrl+C aby przerwać...")
     
+    # Uruchomienie głównego serwera z dodatkowym parametrem dla debugowania
+    try:
+        main_server = subprocess.Popen([
+            sys.executable, "-m", "uvicorn", "main:app",
+            "--host", "0.0.0.0",
+            "--port", str(MAIN_PORT),  # Główny port 8000
+            "--log-level", "debug"  # Dodane pełne logowanie dla diagnostyki
+        ])
+        print(f"✅ Uruchomiono główny serwer na porcie {MAIN_PORT}")
+        print(f"📡 Adres: http://{SERVER_IP}:{MAIN_PORT}")
+    except Exception as e:
+        print(f"❌ Błąd podczas uruchamiania głównego serwera: {str(e)}")
+        main_server = None
     # Uruchomienie alternatywnego serwera
-    alt_server = subprocess.Popen([sys.executable, "server_alt_port.py"])
-    print(f"✅ Uruchomiono alternatywny serwer na porcie {ALT_PORT}")
-    print(f"📡 Adres: http://{SERVER_IP}:{ALT_PORT}")
+    try:
+        alt_server = subprocess.Popen([sys.executable, "server_alt_port.py"])
+        print(f"✅ Uruchomiono alternatywny serwer na porcie {ALT_PORT}")
+        print(f"📡 Adres: http://{SERVER_IP}:{ALT_PORT}")
+    except Exception as e:
+        print(f"❌ Błąd podczas uruchamiania alternatywnego serwera: {str(e)}")
+        alt_server = None
     
     # Uruchomienie serwera panelu webowego
-    web_server = subprocess.Popen([
-        sys.executable, "-m", "uvicorn", "main:app",
-        "--host", "0.0.0.0",
-        "--port", str(WEB_PORT)  # Rzutowanie na string, aby uniknąć TypeError
-    ])
-    print(f"✅ Uruchomiono serwer panelu webowego na porcie {WEB_PORT}")
-    print(f"📡 Adres: http://{SERVER_IP}:{WEB_PORT}")
-    
+    try:
+        web_server = subprocess.Popen([
+            sys.executable, "-m", "uvicorn", "main:app",
+            "--host", "0.0.0.0",
+            "--port", str(WEB_PORT)  # Rzutowanie na string, aby uniknąć TypeError
+            # Usunięto opcję --reload, aby zapobiec automatycznemu restartowi
+        ])
+        print(f"✅ Uruchomiono serwer panelu webowego na porcie {WEB_PORT}")
+        print(f"📡 Adres: http://{SERVER_IP}:{WEB_PORT}")
+    except Exception as e:
+        print(f"❌ Błąd podczas uruchamiania serwera panelu webowego: {str(e)}")
+        web_server = None
     print("\n💡 Serwery uruchomione! Pamiętaj o konfiguracji firewalla.")
     print("📄 Zobacz plik FIREWALL_INSTRUKCJA.md aby dowiedzieć się więcej.")
     
@@ -70,14 +132,20 @@ def start_servers():
     
     try:
         # Czekaj na przerwanie przez użytkownika
-        main_server.wait()
-        alt_server.wait()
-        web_server.wait()
+        if main_server:
+            main_server.wait()
+        if alt_server:
+            alt_server.wait()
+        if web_server:
+            web_server.wait()
     except KeyboardInterrupt:
         print("\n⚠️ Zatrzymywanie serwerów...")
-        main_server.terminate()
-        alt_server.terminate()
-        web_server.terminate()
+        if main_server:
+            main_server.terminate()
+        if alt_server:
+            alt_server.terminate()
+        if web_server:
+            web_server.terminate()
         print("✅ Serwery zatrzymane.")
 
 if __name__ == "__main__":

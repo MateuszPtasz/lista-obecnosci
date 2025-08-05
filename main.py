@@ -1,5 +1,6 @@
 ﻿from fastapi import FastAPI, Request, status, Depends, HTTPException, Form, File, UploadFile, Body
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -67,12 +68,15 @@ templates = Jinja2Templates(directory="templates")
 # Generuj tajny klucz dla sesji
 SECRET_KEY = secrets.token_urlsafe(32)
 
+# Lepsze logowanie dla sesji
+print(f"Inicjalizuję sesje z kluczem SECRET_KEY (pierwsze 5 znaków): {SECRET_KEY[:5]}...")
+
 # Konfiguracja middleware
 app.add_middleware(
     SessionMiddleware,
     secret_key=SECRET_KEY,
     session_cookie="lista_obecnosci_session",
-    max_age=3600
+    max_age=7200  # Zwiększenie czasu życia sesji z 1h do 2h
 )
 
 app.add_middleware(
@@ -658,8 +662,29 @@ async def api_login(request: Request):
         password = data.get("password")
         print(f"Próba logowania dla użytkownika: {username}")
         
+        # Dodajemy dokładniejsze logowanie dla celów diagnostycznych
+        print(f"Dane logowania: username={username}, password={'*' * (len(password) if password else 0)}")
+        
         db = next(get_db())
-        user = db.query(models.Employee).filter(models.Employee.id == username).first()
+        
+        # Zabezpieczenie przed None/pustymi wartościami
+        if not username or not password:
+            print("Brak nazwy użytkownika lub hasła")
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "Nazwa użytkownika i hasło są wymagane"}
+            )
+        
+        # Szukamy użytkownika
+        try:
+            user = db.query(models.Employee).filter(models.Employee.id == username).first()
+            print(f"Wynik zapytania o użytkownika: {user}")
+        except Exception as db_err:
+            print(f"Błąd podczas zapytania do bazy danych: {str(db_err)}")
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Problem z bazą danych: {str(db_err)}"}
+            )
         
         if not user:
             print(f"Nie znaleziono użytkownika: {username}")
@@ -668,7 +693,26 @@ async def api_login(request: Request):
                 content={"detail": "Nieprawidłowy ID lub hasło"}
             )
             
-        if not verify_password(password, user.password_hash):
+        # Sprawdzamy czy użytkownik ma hash hasła
+        if not user.password_hash:
+            print(f"Użytkownik {username} nie ma ustawionego hasła (password_hash jest pusty)")
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Konto nie zostało prawidłowo skonfigurowane. Skontaktuj się z administratorem."}
+            )
+        
+        # Weryfikacja hasła
+        try:
+            is_valid = verify_password(password, user.password_hash)
+            print(f"Weryfikacja hasła: {is_valid}")
+        except Exception as pwd_err:
+            print(f"Błąd podczas weryfikacji hasła: {str(pwd_err)}")
+            return JSONResponse(
+                status_code=500, 
+                content={"detail": "Błąd weryfikacji hasła"}
+            )
+        
+        if not is_valid:
             print("Nieprawidłowe hasło")
             return JSONResponse(
                 status_code=401,
@@ -1521,6 +1565,7 @@ async def get_mobile_config(request: Request):
                 "timer_enabled": MOBILE_APP_CONFIG.get("timer_enabled", True),
                 "daily_stats": MOBILE_APP_CONFIG.get("daily_stats", True),
                 "monthly_stats": MOBILE_APP_CONFIG.get("monthly_stats", True),
+                "field_blocking": MOBILE_APP_CONFIG.get("field_blocking", False),
             },
             "version": CONFIG_VERSION,
             "config_version": CONFIG_VERSION,
@@ -2461,6 +2506,391 @@ def verify_pin_for_statistics(data: dict = Body(...), db: Session = Depends(get_
             "success": False,
             "message": f"Błąd weryfikacji PIN: {str(e)}"
         }
+
+# Endpointy dla terminala diagnostycznego (dostępne z poziomu przeglądarki)
+
+@app.get("/api/system-status")
+def get_system_status(db: Session = Depends(get_db)):
+    """Zwraca status systemu dla diagnostyki"""
+    try:
+        # Sprawdź połączenie z bazą danych
+        workers_count = db.query(models.Worker).count()
+        active_sessions = db.query(models.Shift).filter(models.Shift.end_time.is_(None)).count()
+        
+        # Czas uruchomienia serwera
+        import psutil
+        import time
+        from datetime import datetime
+        
+        current_process = psutil.Process(os.getpid())
+        start_time = datetime.fromtimestamp(current_process.create_time())
+        uptime_seconds = (datetime.now() - start_time).total_seconds()
+        
+        # Formatowanie uptime
+        days, remainder = divmod(uptime_seconds, 86400)
+        hours, remainder = divmod(remainder, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        
+        if days > 0:
+            uptime_str = f"{int(days)}d {int(hours)}h {int(minutes)}m"
+        elif hours > 0:
+            uptime_str = f"{int(hours)}h {int(minutes)}m"
+        else:
+            uptime_str = f"{int(minutes)}m {int(seconds)}s"
+        
+        # Dzisiejsze wejścia/wyjścia
+        today = datetime.now().date()
+        today_entries = db.query(models.Shift).filter(
+            func.date(models.Shift.start_time) == today
+        ).count()
+        
+        today_exits = db.query(models.Shift).filter(
+            func.date(models.Shift.end_time) == today
+        ).count()
+        
+        # Ostatnie logowanie do systemu
+        last_login = db.query(models.AccessLog).order_by(
+            models.AccessLog.timestamp.desc()
+        ).first()
+        
+        last_login_str = "Brak"
+        if last_login:
+            last_login_time = last_login.timestamp
+            if (datetime.now() - last_login_time).days == 0:
+                last_login_str = f"Dziś, {last_login_time.strftime('%H:%M:%S')}"
+            else:
+                last_login_str = last_login_time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        return {
+            "status": "ok",
+            "api_status": True,
+            "database_status": True,
+            "version": "2.0.1",
+            "active_sessions": active_sessions,
+            "total_workers": workers_count,
+            "uptime": uptime_str,
+            "today_entries": today_entries,
+            "today_exits": today_exits,
+            "last_login": last_login_str
+        }
+    except Exception as e:
+        logger.error(f"Błąd podczas pobierania statusu systemu: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+@app.get("/api/ping")
+def ping_api():
+    """Prosty endpoint do sprawdzenia, czy API działa"""
+    import platform
+    import datetime as dt
+    import psutil
+    
+    try:
+        # Dane o systemie
+        system_info = platform.system()
+        cpu_usage = psutil.cpu_percent(interval=0.5)
+        memory = psutil.virtual_memory()
+        memory_usage = f"{memory.percent}%"
+        
+        # Pobierz czas działania systemu jeśli to możliwe
+        uptime = ""
+        try:
+            boot_time = dt.datetime.fromtimestamp(psutil.boot_time())
+            uptime_delta = dt.datetime.now() - boot_time
+            days = uptime_delta.days
+            hours, remainder = divmod(uptime_delta.seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            uptime = f"{days}d {hours}h {minutes}m"
+        except:
+            uptime = "Niedostępne"
+        
+        return {
+            "status": "ok",
+            "server_status": "Działający",
+            "system": system_info,
+            "load": f"{cpu_usage}%",
+            "memory": memory_usage,
+            "uptime": uptime,
+            "timestamp": str(dt.datetime.now())
+        }
+    except ImportError:
+        # W przypadku braku modułu psutil zwróć podstawowe informacje
+        return {
+            "status": "ok",
+            "server_status": "Działający",
+            "message": "Moduł psutil nie jest dostępny - ograniczone informacje",
+            "timestamp": str(dt.datetime.now())
+        }
+    except Exception as e:
+        logger.error(f"Błąd podczas pingowania API: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+@app.get("/api/employees")
+def get_employees(db: Session = Depends(get_db)):
+    """Pobiera listę wszystkich pracowników"""
+    try:
+        # Użyjmy tylko podstawowych kolumn, które na pewno istnieją
+        workers = db.query(
+            models.Employee.id, 
+            models.Employee.name, 
+            models.Employee.is_admin
+        ).all()
+        
+        # Sprawdź, którzy pracownicy są obecnie obecni
+        current_shifts = db.query(models.Shift).filter(
+            models.Shift.stop_time.is_(None)
+        ).all()
+        active_worker_ids = [shift.employee_id for shift in current_shifts]
+        
+        # Logging dla diagnostyki
+        logger.info(f"Pobrano {len(workers)} pracowników, {len(active_worker_ids)} jest aktywnych")
+        print(f"Pobrano {len(workers)} pracowników, {len(active_worker_ids)} jest aktywnych")
+        
+        # Przygotuj dane
+        employees_data = []
+        for worker in workers:
+            # Bardziej ogólne podejście do pobierania danych pracownika
+            worker_name = worker.name if hasattr(worker, 'name') else f"Pracownik #{worker.id}"
+                
+            # Tworzenie podstawowego słownika danych
+            worker_data = {
+                "id": worker.id,
+                "worker_id": worker.id,  # Dla kompatybilności z różnymi wersjami kodu
+                "name": worker_name,
+                "department": "Ogólny",  # Wartość domyślna
+                "active": worker.id in active_worker_ids,
+                "position": None  # Wartość domyślna
+            }
+            
+            # Próbujemy dodać dodatkowe informacje, jeśli są dostępne
+            try:
+                # Logowanie diagnostyczne
+                print(f"Przetwarzam pracownika: {worker.id}, {worker_name}")
+                
+                # Próba pobrania departamentu
+                if hasattr(worker, 'department') and worker.department:
+                    worker_data["department"] = worker.department
+                    
+                # Próba pobrania stanowiska
+                if hasattr(worker, 'position') and worker.position:
+                    worker_data["position"] = worker.position
+                    
+            except Exception as e:
+                print(f"Ostrzeżenie przy przetwarzaniu pracownika {worker.id}: {str(e)}")
+                
+            employees_data.append(worker_data)
+        
+        # Dodajemy szczegółowe logowanie dla diagnostyki
+        logger.info(f"API /employees: Zwracam dane o {len(employees_data)} pracownikach")
+        print(f"API /employees: Zwracam dane o {len(employees_data)} pracownikach")
+        # Logowanie pierwszego pracownika dla diagnostyki (jeśli istnieje)
+        if employees_data and len(employees_data) > 0:
+            print(f"Przykładowy rekord pracownika: {employees_data[0]}")
+        
+        return {"status": "ok", "employees": employees_data}
+    except Exception as e:
+        logger.error(f"Błąd podczas pobierania listy pracowników: {str(e)}")
+        print(f"BŁĄD API /employees: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+@app.get("/api/active-sessions")
+def get_active_sessions(db: Session = Depends(get_db)):
+    """Pobiera informacje o aktywnych sesjach (niezakończonych zmianach)"""
+    try:
+        active_shifts = db.query(models.Shift).join(
+            models.Worker, models.Worker.id == models.Shift.worker_id
+        ).filter(
+            models.Shift.end_time.is_(None)
+        ).all()
+        
+        sessions_data = []
+        for shift in active_shifts:
+            worker = db.query(models.Worker).filter(models.Worker.id == shift.worker_id).first()
+            
+            if worker:
+                sessions_data.append({
+                    "id": shift.id,
+                    "user_name": f"{worker.first_name} {worker.last_name}",
+                    "login_time": shift.start_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "ip_address": shift.ip_address if hasattr(shift, 'ip_address') else "nieznane"
+                })
+        
+        return {"status": "ok", "sessions": sessions_data}
+    except Exception as e:
+        logger.error(f"Błąd podczas pobierania aktywnych sesji: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
+# Usunięto zduplikowany endpoint fix-active-sessions
+# Ten endpoint był zduplikowany - używamy teraz bardziej zaawansowanej wersji poniżej
+# która obsługuje więcej opcji, w tym naprawę pojedynczych sesji
+        
+        # Zapisz informację o działaniu w logach
+        logger.info(f"Naprawiono {fixed_count} zawieszonych sesji przez terminal diagnostyczny")
+        
+        return {"success": True, "fixed_count": fixed_count, "message": f"Naprawiono {fixed_count} zawieszonych sesji"}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Błąd podczas naprawiania zawieszonych sesji: {str(e)}")
+        return {"success": False, "message": str(e)}
+        return {
+            "api_status": True,
+            "database_status": False,
+            "version": "2.0.1",
+            "error": str(e)
+        }
+
+# Usunięto duplikat endpointu /api/ping - korzystamy z pełnej implementacji powyżej
+
+@app.get("/api/active-shifts")
+def get_active_shifts(db: Session = Depends(get_db)):
+    """Zwraca listę aktywnych sesji dla terminala diagnostycznego"""
+    try:
+        # Pobierz aktywne zmiany
+        active_shifts = db.query(models.Shift).filter(models.Shift.end_time.is_(None)).all()
+        
+        result = []
+        for shift in active_shifts:
+            # Pobierz dane pracownika
+            worker = db.query(models.Worker).filter(models.Worker.id == shift.worker_id).first()
+            worker_name = f"{worker.first_name} {worker.last_name}" if worker else "Nieznany pracownik"
+            
+            result.append({
+                "id": shift.id,
+                "worker_id": shift.worker_id,
+                "worker_name": worker_name,
+                "start_time": shift.start_time.isoformat(),
+                "duration_minutes": int((dt.datetime.now() - shift.start_time).total_seconds() / 60)
+            })
+        
+        return result
+    except Exception as e:
+        logger.error(f"Błąd podczas pobierania aktywnych sesji: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/fix-active-sessions")
+def fix_active_sessions(request: Dict = Body(...), db: Session = Depends(get_db)):
+    """Naprawia problematyczne aktywne sesje"""
+    try:
+        fix_all = request.get('fix_all', False)
+        session_id = request.get('session_id', None)
+        
+        if fix_all:
+            # Napraw wszystkie aktywne sesje
+            now = dt.datetime.now()
+            
+            # Pobierz wszystkie aktywne sesje
+            active_shifts = db.query(models.Shift).filter(models.Shift.end_time.is_(None)).all()
+            
+            for shift in active_shifts:
+                shift.end_time = now
+                shift.notes = f"{shift.notes or ''} [AUTO-FIXED: {now.strftime('%Y-%m-%d %H:%M')}]"
+            
+            db.commit()
+            return {
+                "success": True, 
+                "message": "Wszystkie problematyczne sesje zostały zakończone.",
+                "fixed_count": len(active_shifts)
+            }
+        elif session_id:
+            # Napraw konkretną sesję
+            shift = db.query(models.Shift).filter(models.Shift.id == session_id, models.Shift.end_time.is_(None)).first()
+            
+            if not shift:
+                return {"success": False, "message": "Nie znaleziono aktywnej sesji o podanym ID."}
+                
+            shift.end_time = dt.datetime.now()
+            shift.notes = f"{shift.notes or ''} [AUTO-FIXED]"
+            db.commit()
+            
+            return {"success": True, "message": f"Sesja ID {session_id} została zakończona."}
+        else:
+            return {"success": False, "message": "Nie podano ID sesji ani opcji naprawy wszystkich sesji."}
+    
+    except Exception as e:
+        logger.error(f"Błąd podczas naprawiania sesji: {str(e)}")
+        return {"success": False, "message": f"Wystąpił błąd: {str(e)}"}
+
+@app.get("/api/statistics")
+def get_statistics(db: Session = Depends(get_db)):
+    """Zwraca podstawowe statystyki systemu dla terminala diagnostycznego"""
+    try:
+        # Liczba pracowników
+        total_workers = db.query(models.Worker).count()
+        
+        # Aktywne sesje
+        active_sessions = db.query(models.Shift).filter(models.Shift.end_time.is_(None)).count()
+        
+        # Dzisiejsze logowania
+        today = dt.datetime.now().date()
+        today_start = dt.datetime.combine(today, dt.time.min)
+        today_end = dt.datetime.combine(today, dt.time.max)
+        
+        today_logins = db.query(models.Shift).filter(
+            models.Shift.start_time >= today_start,
+            models.Shift.start_time <= today_end
+        ).count()
+        
+        # Średni i łączny czas pracy dzisiaj
+        completed_shifts_today = db.query(models.Shift).filter(
+            models.Shift.start_time >= today_start,
+            models.Shift.start_time <= today_end,
+            models.Shift.end_time.isnot(None)
+        ).all()
+        
+        total_minutes = 0
+        for shift in completed_shifts_today:
+            duration = (shift.end_time - shift.start_time).total_seconds() / 60
+            total_minutes += duration
+            
+        avg_work_time = "0h 0m"
+        total_work_time = "0h 0m"
+        
+        if completed_shifts_today:
+            avg_minutes = total_minutes / len(completed_shifts_today)
+            avg_hours = int(avg_minutes // 60)
+            avg_mins = int(avg_minutes % 60)
+            avg_work_time = f"{avg_hours}h {avg_mins}m"
+            
+            total_hours = int(total_minutes // 60)
+            total_mins = int(total_minutes % 60)
+            total_work_time = f"{total_hours}h {total_mins}m"
+        
+        return {
+            "total_workers": total_workers,
+            "active_sessions": active_sessions,
+            "today_logins": today_logins,
+            "avg_work_time": avg_work_time,
+            "total_work_time": total_work_time
+        }
+    except Exception as e:
+        logger.error(f"Błąd podczas pobierania statystyk: {str(e)}")
+        return {"error": str(e)}
+
+@app.get("/api/employees/search")
+def search_employees(query: str, db: Session = Depends(get_db)):
+    """Wyszukuje pracowników po nazwie"""
+    try:
+        search_term = f"%{query}%"
+        employees = db.query(models.Worker).filter(
+            (models.Worker.first_name.ilike(search_term)) | 
+            (models.Worker.last_name.ilike(search_term))
+        ).all()
+        
+        return [
+            {
+                "id": emp.id,
+                "first_name": emp.first_name,
+                "last_name": emp.last_name,
+                "pin": "****"  # Maskujemy PIN dla bezpieczeństwa
+            } 
+            for emp in employees
+        ]
+    except Exception as e:
+        logger.error(f"Błąd podczas wyszukiwania pracowników: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Uruchom aplikację bezpośrednio, jeśli ten skrypt jest wykonywany
 if __name__ == "__main__":

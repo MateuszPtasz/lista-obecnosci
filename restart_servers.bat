@@ -5,7 +5,10 @@ echo ======================================================
 echo.
 
 echo Zatrzymywanie istniejących procesów serwera...
-taskkill /F /IM python.exe /T 2>nul
+taskkill /F /FI "WINDOWTITLE eq *Lista Obecności*" /T >nul 2>&1
+taskkill /F /FI "WINDOWTITLE eq *uvicorn*" /T >nul 2>&1
+taskkill /F /FI "WINDOWTITLE eq *start_api_servers*" /T >nul 2>&1
+taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *API Server*" /T >nul 2>&1
 
 echo.
 echo Czyszczenie plików tymczasowych...
@@ -13,21 +16,25 @@ del /Q /F *.pyc 2>nul
 del /Q /F __pycache__\*.pyc 2>nul
 
 echo.
-echo Uruchamianie serwera API (port 8000)...
-start "API Server - Port 8000" cmd /c "python main.py --port 8000"
+echo Aktywacja środowiska wirtualnego...
+call .\.venv\Scripts\activate
 
 echo.
-echo Uruchamianie zapasowego serwera API (port 8002)...
-start "API Server - Port 8002" cmd /c "python main.py --port 8002"
+echo Uruchamianie wszystkich serwerów używając skryptu start_api_servers.py...
+start "Lista Obecności - Serwery API" cmd /c "python start_api_servers.py"
 
 echo.
 echo ======================================================
 echo Serwery zostały zrestartowane!
 echo ======================================================
-echo Serwer główny:    http://localhost:8000
-echo Serwer zapasowy:  http://localhost:8002
+echo Serwer główny:        http://localhost:8000
+echo Serwer alternatywny:  http://localhost:8080
+echo Serwer panelu:        http://localhost:8002
 echo.
-echo Aby sprawdzić status serwerów, użyj skryptu: diagnostyka_api.bat
+echo Aby sprawdzić status serwerów, użyj: curl http://localhost:8000/api/ping
+echo.
+echo UWAGA: Po wprowadzeniu zmian w plikach kodu, należy 
+echo ponownie uruchomić ten skrypt, aby zmiany zostały zastosowane.
 echo.
 
 pause

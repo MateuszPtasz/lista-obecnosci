@@ -5,7 +5,7 @@ MOBILE_APP_CONFIG = {
     "timer_enabled": True,
     "daily_stats": True,
     "monthly_stats": True,
-    "field_blocking": False,
+    "field_blocking": True,
     "gps_verification": False,
     "widget_support": False,
     "notifications": False,
@@ -16,7 +16,7 @@ MOBILE_APP_CONFIG = {
 }
 
 # Wersja konfiguracji - zwiększaj przy zmianach
-CONFIG_VERSION = "20250803-222757"
+CONFIG_VERSION = "20250805-142022"
 
 # Konfiguracja zaokrąglania czasu pracy
 TIME_ROUNDING_CONFIG = {
@@ -43,14 +43,16 @@ EMAIL_CONFIG = {
 
 # Informacje o aktualnej wersji aplikacji mobilnej
 APP_VERSION_INFO = {
-    "current_version": "1.0.0",  # Aktualna wersja w Play Store
-    "minimum_version": "1.0.0",  # Minimalna wymagana wersja
-    "update_required": False,    # Czy aktualizacja jest wymagana
+    "current_version": "1.0.5",
+    "minimum_version": "1.0.0",
+    "update_required": False,
     "update_message": "Dostępna nowa wersja aplikacji z ulepszeniami!",
-    "play_store_url": "https://play.google.com/store/apps/details?id=com.example.lista_obecnosci",  # ZMIEŃ NA PRAWDZIWY LINK
+    "play_store_url": "https://play.google.com/store/apps/details?id=com.example.lista_obecnosci",
     "update_features": [
-        "Nowy system konfiguracji zdalnej",
-        "Ulepszony timer pracy",
-        "Poprawki błędów i optymalizacja"
+        "Funkcja 1",
+        "Funkcja 2",
     ]
 }
+
+
+# Kod weryfikacyjny: CONFIG_VERIFY_1754396331
