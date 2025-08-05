@@ -1,8 +1,19 @@
 # Instrukcja uruchamiania serwerów Lista Obecności
 
+> **Menu szybkiej nawigacji:**
+> - [Opcje uruchamiania serwerów](#opcje-uruchamiania-serwerów)
+> - [Narzędzia diagnostyczne](#dostępne-narzędzia-diagnostyczne)
+> - [Budowanie aplikacji mobilnej](#instrukcja-budowania-aplikacji-mobilnej)
+> - [Restarty i zarządzanie](#restarty-i-zarządzanie-serwerami)
+> - [Rozwiązywanie problemów](#najczęstsze-problemy-i-rozwiązania)
+
+---
+
 ## Opcje uruchamiania serwerów
 
+```powershell
 .\.venv\Scripts\activate; python start_api_servers.py
+```
 
 ### 1. Automatyczne uruchamianie (zalecane)
 
@@ -77,12 +88,19 @@ python server_alt_port.py
 python main.py --port 8002
 ```
 
+---
+
 ## Dostępne narzędzia diagnostyczne
 
-### 1. Diagnostyka konfiguracji aplikacji mobilnej
+<details open>
+<summary><strong>1. Diagnostyka konfiguracji aplikacji mobilnej</strong></summary>
 
-```
+```powershell
+# W terminalu VS Code:
 .\diagnoza_konfiguracji.bat
+
+# W terminalu webowym:
+python diagnoza_web_terminal.py
 ```
 
 Ten skrypt sprawdza:
@@ -91,12 +109,19 @@ Ten skrypt sprawdza:
 - Dostępność endpointów konfiguracji
 - Format odpowiedzi API
 
-**UWAGA:** Skrypt ten uruchomi diagnostykę w nowym oknie, aby nie zatrzymywać działających serwerów.
+**UWAGA:** Skrypt .bat uruchomi diagnostykę w nowym oknie, aby nie zatrzymywać działających serwerów. Wersja Python (diagnoza_web_terminal.py) jest dostosowana do pracy w terminalu webowym.
 
-### 2. Test uprawnień do plików konfiguracyjnych
+</details>
 
-```
+<details>
+<summary><strong>2. Test uprawnień do plików konfiguracyjnych</strong></summary>
+
+```powershell
+# W terminalu VS Code:
 .\test_permissions.bat
+
+# W terminalu webowym:
+python test_permissions.py
 ```
 
 Ten skrypt sprawdza:
@@ -104,9 +129,12 @@ Ten skrypt sprawdza:
 - Czy możliwe jest modyfikowanie plików konfiguracyjnych
 - Czy zmiany są poprawnie zapisywane
 
-### 3. Test zapisywania i odczytywania konfiguracji
+</details>
 
-```
+<details>
+<summary><strong>3. Test zapisywania i odczytywania konfiguracji</strong></summary>
+
+```powershell
 # Automatyczny test z użyciem domyślnego konta administratora
 python test_config_save_auto.py
 
@@ -128,9 +156,12 @@ Ten skrypt sprawdza:
 - Poprawność struktury danych wysyłanej z panelu webowego
 - Przeładowywanie konfiguracji po zmianach w pliku
 
-### 4. Test połączeń API
+</details>
 
-```
+<details>
+<summary><strong>4. Test połączeń API</strong></summary>
+
+```powershell
 python test_api_connection.py
 ```
 
@@ -138,10 +169,12 @@ Ten skrypt sprawdza:
 - Dostępność serwerów API
 - Możliwość połączenia z różnymi endpointami
 - Poprawność odpowiedzi API
+</details>
 
-### 4. Pełna diagnostyka API mobilnego
+<details>
+<summary><strong>5. Pełna diagnostyka API mobilnego</strong></summary>
 
-```
+```powershell
 python test_mobile_api.py --all-tests
 ```
 
@@ -149,20 +182,26 @@ Ten skrypt wykonuje kompleksowe testy:
 - Wszystkich funkcji API
 - Formatów odpowiedzi
 - Obsługi błędów
+</details>
+
+---
 
 ## Instrukcja budowania aplikacji mobilnej
 
-### 1. Wymagania wstępne
+<details>
+<summary><strong>1. Wymagania wstępne</strong></summary>
 
 Przed rozpoczęciem budowania aplikacji mobilnej upewnij się, że:
 - Zainstalowano Flutter SDK
 - Zainstalowano Android SDK
 - Skonfigurowano zmienne środowiskowe
 - Podłączono urządzenie mobilne lub uruchomiono emulator
+</details>
 
-### 2. Budowanie aplikacji w trybie debug
+<details>
+<summary><strong>2. Budowanie aplikacji w trybie debug</strong></summary>
 
-```
+```powershell
 # Przejdź do katalogu aplikacji mobilnej
 cd m:\Programowanie\lista_obecnosci\mobile_app
 
@@ -175,10 +214,12 @@ flutter build apk --debug
 # Kopiowanie pliku APK do głównego katalogu projektu
 copy build\app\outputs\flutter-apk\app-debug.apk ..\lista-obecnosci-app-debug.apk
 ```
+</details>
 
-### 3. Budowanie aplikacji w trybie release
+<details>
+<summary><strong>3. Budowanie aplikacji w trybie release</strong></summary>
 
-```
+```powershell
 # Przejdź do katalogu aplikacji mobilnej
 cd m:\Programowanie\lista_obecnosci\mobile_app
 
@@ -191,36 +232,48 @@ flutter build apk --release
 # Kopiowanie pliku APK do głównego katalogu projektu
 copy build\app\outputs\flutter-apk\app-release.apk ..\lista-obecnosci-app-release.apk
 ```
+</details>
 
-### 4. Instalacja na urządzeniu
+<details>
+<summary><strong>4. Instalacja na urządzeniu</strong></summary>
 
-```
+```powershell
 # Instalacja na podłączonym urządzeniu
 flutter install
 
 # Alternatywnie można zainstalować bezpośrednio plik APK
 adb install ..\lista-obecnosci-app-debug.apk
 ```
+</details>
 
-### 5. Automatyczne budowanie
+<details>
+<summary><strong>5. Automatyczne budowanie</strong></summary>
 
 Możesz również użyć przygotowanego skryptu:
 
-```
+```powershell
 # Uruchom skrypt automatycznego budowania
 .\build_mobile_app.bat
 ```
 
 Ten skrypt przeprowadzi cały proces budowania i skopiuje gotowy plik APK do głównego katalogu projektu.
+</details>
+
+---
 
 ## Restarty i zarządzanie serwerami
 
-### Bezpieczny restart serwerów
+<details>
+<summary><strong>Bezpieczny restart serwerów</strong></summary>
 
 Jeśli wprowadzono zmiany w kodzie lub napotykasz problemy z działaniem serwerów, możesz użyć skryptu do bezpiecznego restartu:
 
-```
+```powershell
+# W terminalu VS Code:
 .\restart_servers.bat
+
+# W terminalu webowym:
+python restart_web_servers.py
 ```
 
 Ten skrypt:
@@ -230,39 +283,51 @@ Ten skrypt:
 4. Uruchamia skrypt start_api_servers.py w nowym oknie
 
 **UWAGA:** Zawsze używaj tego skryptu do restartu serwerów po wprowadzeniu zmian w kodzie, aby uniknąć problemów z niekontrolowanymi restartami.
+</details>
+
+---
 
 ## Najczęstsze problemy i rozwiązania
 
-### 1. Problem z zapisem konfiguracji
+<details>
+<summary><strong>1. Problem z zapisem konfiguracji</strong></summary>
 
 Jeśli zmiany w konfiguracji nie są zapisywane:
 - Uruchom `test_permissions.bat` aby sprawdzić uprawnienia
 - Sprawdź czy plik `config.py` nie jest tylko do odczytu
 - Uruchom serwer z uprawnieniami administratora
+</details>
 
-### 2. Problemy z portami
+<details>
+<summary><strong>2. Problemy z portami</strong></summary>
 
 Jeśli porty są zajęte:
 - Zmień porty w `configs/app_config.py`
 - Uruchom `netstat -ano | findstr :8000` aby sprawdzić zajęte porty
 - Zakończ procesy używające tych portów lub wybierz inne
+</details>
 
-### 3. Problemy z połączeniem aplikacji mobilnej
+<details>
+<summary><strong>3. Problemy z połączeniem aplikacji mobilnej</strong></summary>
 
 Jeśli aplikacja mobilna nie może połączyć się z serwerem:
 - Sprawdź czy firewall jest odpowiednio skonfigurowany (`fix_firewall.bat`)
 - Upewnij się, że telefon i komputer są w tej samej sieci
 - Sprawdź czy w aplikacji mobilnej ustawiono poprawny adres IP i port
+</details>
 
-### 4. Problemy z automatycznym wyłączaniem się serwerów
+<details>
+<summary><strong>4. Problemy z automatycznym wyłączaniem się serwerów</strong></summary>
 
 Jeśli serwery nieoczekiwanie się wyłączają:
 - Użyj skryptu `restart_servers.bat` do ponownego uruchomienia serwerów
 - Sprawdź logi serwerów w poszukiwaniu błędów
 - Upewnij się, że żaden edytor kodu nie powoduje zmian w plikach podczas działania serwera
 - Po zakończeniu edycji plików źródłowych, użyj skryptu `restart_servers.bat`
+</details>
 
-### 4. Problemy z konfiguracją
+<details>
+<summary><strong>5. Problemy z konfiguracją</strong></summary>
 
 Jeśli konfiguracja nie jest aktualizowana:
 - Sprawdź logi serwera, czy nie ma błędów podczas zapisu
@@ -273,8 +338,10 @@ Jeśli konfiguracja nie jest aktualizowana:
 - Uruchom `python test_web_panel_config_save.py` aby przetestować zapis konfiguracji z panelu
 - Po wprowadzeniu zmian w konfiguracji, zrestartuj serwery aby zmiany zostały uwzględnione
 - Sprawdź czy konfiguracja jest poprawnie przeładowywana przez API używając `python test_config_reload.py`
+</details>
 
-### 5. Błędy 400 Bad Request przy zapisie konfiguracji mobilnej
+<details>
+<summary><strong>6. Błędy 400 Bad Request przy zapisie konfiguracji mobilnej</strong></summary>
 
 Jeśli przy zapisie konfiguracji mobilnej występuje błąd 400 Bad Request:
 - Upewnij się, że dane wysyłane do endpointu `/mobile-config` mają poprawną strukturę
@@ -298,3 +365,4 @@ Jeśli przy zapisie konfiguracji mobilnej występuje błąd 400 Bad Request:
   }
   ```
 - Uruchom `test_mobile_config.bat` aby przetestować poprawność formatu danych
+</details>

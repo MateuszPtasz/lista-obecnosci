@@ -204,6 +204,11 @@
             </a>
           </div>
         </li>
+        <li>
+          <a href="terminal.html">
+            <i class="fas fa-terminal"></i> Terminal Diagnostyczny
+          </a>
+        </li>
         <!-- Przycisk wylogowania -->
         <li class="mt-auto">
           <a href="#" onclick="logout()" style="color: #dc3545;">
@@ -344,11 +349,26 @@
           <p class="card-subtitle">Bieżący status pracowników i aktywne zmiany</p>
         </div>
         <div class="card-body">
-          <div class="mb-3">
-            <button onclick="refreshWorkerStatus()" class="btn btn-info">
-              <i class="fas fa-sync-alt"></i>
-              Odśwież status
-            </button>
+          <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+              <button onclick="refreshWorkerStatus()" class="btn btn-info">
+                <i class="fas fa-sync-alt"></i>
+                Odśwież status
+              </button>
+            </div>
+            <div class="d-flex mt-2 mt-md-0">
+              <div class="input-group">
+                <input type="text" id="workerSearchInput" class="form-control" placeholder="Szukaj pracownika..." onkeyup="filterWorkers()">
+                <button class="btn btn-outline-secondary" type="button" onclick="filterWorkers()">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+              <select id="workerStatusFilter" class="form-select ms-2" onchange="filterWorkers()">
+                <option value="all">Wszyscy</option>
+                <option value="active">Aktywni</option>
+                <option value="inactive">Nieaktywni</option>
+              </select>
+            </div>
           </div>
           <div id="worker-status-container">
             <div style="text-align: center; padding: 2rem;">
@@ -382,8 +402,62 @@
           </div>
         </div>
       </div>
+
+      <!-- Terminal diagnostyczny - zintegrowany z pulpitem -->
+      <div class="card mt-4" id="terminal-section">
+        <div class="card-header" style="background-color: #000; border-bottom: 1px solid #777;">
+          <h3 class="card-title" style="color: #fff;">
+            <i class="fas fa-terminal"></i>
+            Terminal diagnostyczny
+          </h3>
+          <p class="card-subtitle" style="color: #ddd;">Administrator@ListaObecnosci:~$</p>
+        </div>
+        <div class="card-body" style="background-color: #000; padding: 0;">
+          <!-- Szybkie przyciski komend -->
+          <div class="command-buttons mb-0 p-2" style="background-color: #111; border-bottom: 1px solid #777;">
+            <button class="command-button" data-command="status">Status</button>
+            <button class="command-button" data-command="lista pracowników">Pracownicy</button>
+            <button class="command-button" data-command="aktualne sesje">Sesje</button>
+            <button class="command-button" data-command="napraw sesje">Napraw</button>
+            <button class="command-button" data-command="ping api">Ping</button>
+            <button class="command-button" data-command="statystyki">Statystyki</button>
+            <button class="command-button" data-command="pomoc">Pomoc</button>
+          </div>
+
+          <!-- Terminal -->
+          <div class="terminal-container" id="terminal-output-container">
+            <div class="terminal-output" id="terminal-output">
+██╗     ██╗███████╗████████╗ █████╗     ██████╗ ██████╗ ███████╗ ██████╗███╗   ██╗ ██████╗ ███████╗ ██████╗██╗
+██║     ██║██╔════╝╚══██╔══╝██╔══██╗    ██╔══██╗██╔══██╗██╔════╝██╔════╝████╗  ██║██╔═══██╗██╔════╝██╔════╝██║
+██║     ██║███████╗   ██║   ███████║    ██║  ██║██████╔╝█████╗  ██║     ██╔██╗ ██║██║   ██║███████╗██║     ██║
+██║     ██║╚════██║   ██║   ██╔══██║    ██║  ██║██╔══██╗██╔══╝  ██║     ██║╚██╗██║██║   ██║╚════██║██║     ██║
+███████╗██║███████║   ██║   ██║  ██║    ██████╔╝██████╔╝███████╗╚██████╗██║ ╚████║╚██████╔╝███████║╚██████╗██║
+╚══════╝╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝    ╚═════╝ ╚═════╝ ╚══════╝ ╚═════╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝ ╚═════╝╚═╝
+                                                                                           
+Wersja 2.0.1 (Terminal diagnostyczny)
+© 2025 System Lista Obecności - wszystkie prawa zastrzeżone
+
+Administrator@ListaObecnosci:~$ Wpisz 'pomoc' aby wyświetlić dostępne komendy.
+            </div>
+            <div class="command-history" id="command-history"></div>
+          </div>
+
+          <!-- Pole wprowadzania -->
+          <div class="terminal-input-container mt-0">
+            <div style="padding: 8px; color: #fff; background-color: #000; font-weight: bold;">Administrator@ListaObecnosci:~$</div>
+            <input type="text" id="terminal-input" class="terminal-input" placeholder="Wpisz komendę..." autocomplete="off">
+            <button id="execute-command" class="terminal-button">↵</button>
+            <button id="clear-terminal" class="terminal-button">Wyczyść</button>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
+
+  <!-- Dołączamy plik CSS dla terminala -->
+  <link rel="stylesheet" href="terminal.css?v=20250805_2">
+  <!-- Dodane unikalny timestamp jako parametr v aby wymusić przeładowanie skryptu z serwera -->
+  <script src="terminal.js?v=20250805_2_fix" defer></script>
   <script>
     // Funkcja rozpoczynania pracy
     async function startWork(workerId) {
@@ -800,8 +874,11 @@
         }
         
         let html = `
-          <div class="mb-3">
-            <span class="badge bg-success me-2">${data.active}</span> aktywnych pracowników z ${data.total} zarejestrowanych
+          <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+              <span class="badge bg-success me-2">${data.active}</span> aktywnych pracowników z ${data.total} zarejestrowanych
+            </div>
+            <div id="filtered-workers-info" class="badge bg-info" style="display: none;"></div>
           </div>
           <div class="table-responsive">
             <table class="table table-hover table-sm">
@@ -856,6 +933,9 @@
         `;
         
         container.innerHTML = html;
+        
+        // Zastosuj aktywne filtry po odświeżeniu tabeli
+        setTimeout(filterWorkers, 100);
       } catch (error) {
         console.error('Błąd podczas pobierania statusu pracowników:', error);
         const container = document.getElementById('worker-status-container');
@@ -886,6 +966,48 @@
       document.getElementById('emergencyReason').value = "Awaryjne zakończenie z widoku statusu";
       document.getElementById('emergencyStopForm').dispatchEvent(new Event('submit', {cancelable: true}));
       setTimeout(refreshWorkerStatus, 1000);
+    }
+    
+    // Funkcja do filtrowania pracowników
+    function filterWorkers() {
+      const searchTerm = document.getElementById('workerSearchInput').value.toLowerCase();
+      const statusFilter = document.getElementById('workerStatusFilter').value;
+      const table = document.querySelector('#worker-status-container table');
+      
+      if (!table) return; // jeśli tabela nie została jeszcze załadowana
+      
+      const rows = table.querySelectorAll('tbody tr');
+      let visibleCount = 0;
+      
+      rows.forEach(row => {
+        const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+        const id = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+        const isActive = row.classList.contains('table-success');
+        
+        const matchesSearch = name.includes(searchTerm) || id.includes(searchTerm);
+        const matchesStatus = 
+          statusFilter === 'all' || 
+          (statusFilter === 'active' && isActive) || 
+          (statusFilter === 'inactive' && !isActive);
+        
+        if (matchesSearch && matchesStatus) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+      
+      // Aktualizuj informację o liczbie wyświetlanych pracowników
+      const infoElement = document.getElementById('filtered-workers-info');
+      if (infoElement) {
+        if (visibleCount < rows.length) {
+          infoElement.textContent = `Wyświetlono ${visibleCount} z ${rows.length} pracowników`;
+          infoElement.style.display = 'block';
+        } else {
+          infoElement.style.display = 'none';
+        }
+      }
     }
 
     // Załaduj status pracowników przy starcie strony
@@ -918,6 +1040,322 @@
         console.error('Błąd podczas wylogowania:', error);
       }
     }
+  </script>
+
+  <!-- Skrypt obsługujący terminal -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const terminal = document.getElementById('terminal-output');
+        const terminalInput = document.getElementById('terminal-input');
+        const executeButton = document.getElementById('execute-command');
+        const clearTerminal = document.getElementById('clear-terminal');
+        const commandHistory = document.getElementById('command-history');
+        const commandButtons = document.querySelectorAll('.command-button');
+        
+        let history = [];
+        let historyIndex = -1;
+        // Usunięto definicję apiUrl - używamy globalnych stałych z terminal.js
+        // Dzięki temu unikniemy konfliktu z definicją w terminal.js
+        
+        // Obsługa kliknięcia przycisku szybkiej komendy
+        commandButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const command = this.getAttribute('data-command');
+                terminalInput.value = command;
+                executeCommand();
+            });
+        });
+        
+        // Funkcja wykonująca komendę
+        function executeCommand() {
+            const command = terminalInput.value.trim();
+            if (!command) return;
+            
+            // Dodaj komendę do historii
+            if (!history.includes(command)) {
+                history.push(command);
+                historyIndex = history.length;
+            }
+            
+            // Wyświetl komendę w terminalu
+            appendToTerminal(`> ${command}`, 'command');
+            
+            // Przetwórz komendę
+            processCommand(command);
+            
+            // Wyczyść pole wejściowe
+            terminalInput.value = '';
+        }
+        
+        // Funkcja dodająca tekst do terminala
+        function appendToTerminal(text, className = '') {
+            const element = document.createElement('div');
+            element.textContent = text;
+            if (className) element.classList.add(className);
+            terminal.appendChild(element);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        // Obsługa naciśnięcia przycisku "Wykonaj"
+        executeButton.addEventListener('click', executeCommand);
+        
+        // Obsługa naciśnięcia Enter w polu wejściowym
+        terminalInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                executeCommand();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    terminalInput.value = history[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex < history.length - 1) {
+                    historyIndex++;
+                    terminalInput.value = history[historyIndex];
+                } else {
+                    historyIndex = history.length;
+                    terminalInput.value = '';
+                }
+            }
+        });
+        
+        // Obsługa czyszczenia terminala
+        clearTerminal.addEventListener('click', function() {
+            terminal.innerHTML = '=== Terminal Diagnostyczny Lista Obecności ===\nWpisz \'pomoc\' aby wyświetlić dostępne komendy.\n';
+        });
+        
+        // Funkcja przetwarzająca komendę
+        async function processCommand(command) {
+            const cmd = command.toLowerCase();
+            
+            try {
+                // Komenda: pomoc
+                if (cmd === 'pomoc' || cmd === 'help') {
+                    appendToTerminal(`
+Dostępne komendy:
+  status                   - Wyświetla ogólny status systemu
+  lista pracowników        - Wyświetla listę wszystkich pracowników
+  znajdź <nazwa>           - Wyszukuje pracownika po nazwie
+  aktualne sesje           - Wyświetla aktualnie aktywne sesje pracowników
+  napraw sesje             - Naprawia problematyczne sesje pracowników
+  ping api                 - Sprawdza dostępność API
+  statystyki               - Podstawowe statystyki systemu
+  sprawdź połączenie       - Sprawdza połączenie z serwerem API
+  wyczyść                  - Czyści terminal
+  pomoc                    - Wyświetla tę wiadomość`);
+                } 
+                // Komenda: status
+                else if (cmd === 'status') {
+                    appendToTerminal('Sprawdzam status systemu...');
+                    try {
+                        const response = await fetch(`${apiUrl}/system-status`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            appendToTerminal(`
+Status systemu:
+  Serwer API:               ${data.api_status ? 'Online ✅' : 'Offline ❌'}
+  Baza danych:              ${data.database_status ? 'Połączona ✅' : 'Rozłączona ❌'}
+  Wersja systemu:           ${data.version || 'Nieznana'}
+  Aktywne sesje:            ${data.active_sessions || '0'}
+  Łączna liczba pracowników: ${data.total_workers || '0'}
+  Czas pracy serwera:       ${data.uptime || 'Nieznany'}
+                            `);
+                        } else {
+                            appendToTerminal(`Błąd podczas pobierania statusu: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        appendToTerminal(`Błąd podczas łączenia z API: ${error.message}`);
+                        appendToTerminal('Spróbuj użyć komendy "ping api" aby sprawdzić połączenie.');
+                    }
+                } 
+                // Komenda: lista pracowników
+                else if (cmd === 'lista pracowników') {
+                    appendToTerminal('Pobieram listę pracowników...');
+                    try {
+                        const response = await fetch(`${apiUrl}/employees`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.length === 0) {
+                                appendToTerminal('Brak pracowników w systemie.');
+                            } else {
+                                appendToTerminal(`Lista pracowników (${data.length}):`);
+                                data.forEach((employee, index) => {
+                                    appendToTerminal(`${index+1}. ${employee.first_name} ${employee.last_name} (ID: ${employee.id})`);
+                                });
+                            }
+                        } else {
+                            appendToTerminal(`Błąd podczas pobierania listy pracowników: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        appendToTerminal(`Błąd podczas łączenia z API: ${error.message}`);
+                    }
+                } 
+                // Komenda: aktualne sesje
+                else if (cmd === 'aktualne sesje') {
+                    appendToTerminal('Pobieram aktywne sesje pracowników...');
+                    try {
+                        const response = await fetch(`${apiUrl}/active-shifts`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.length === 0) {
+                                appendToTerminal('Brak aktywnych sesji w systemie.');
+                            } else {
+                                appendToTerminal(`Aktywne sesje (${data.length}):`);
+                                data.forEach((shift, index) => {
+                                    const startTime = new Date(shift.start_time).toLocaleString();
+                                    appendToTerminal(`${index+1}. ${shift.worker_name} (ID: ${shift.worker_id}) - aktywny od: ${startTime}`);
+                                });
+                            }
+                        } else {
+                            appendToTerminal(`Błąd podczas pobierania aktywnych sesji: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        appendToTerminal(`Błąd podczas łączenia z API: ${error.message}`);
+                    }
+                } 
+                // Komenda: ping api
+                else if (cmd === 'ping api') {
+                    appendToTerminal('Wysyłam ping do API...');
+                    try {
+                        const startTime = performance.now();
+                        const response = await fetch(`${apiUrl}/ping`);
+                        const endTime = performance.now();
+                        const pingTime = Math.round(endTime - startTime);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            appendToTerminal(`Odpowiedź z API: ${data.message}`);
+                            appendToTerminal(`Czas odpowiedzi: ${pingTime}ms`);
+                            appendToTerminal('Status połączenia: OK ✅');
+                        } else {
+                            appendToTerminal(`Błąd podczas pingowania API: ${response.status} ${response.statusText}`);
+                            appendToTerminal('Status połączenia: Błąd ❌');
+                        }
+                    } catch (error) {
+                        appendToTerminal(`Błąd podczas łączenia z API: ${error.message}`);
+                        appendToTerminal('Status połączenia: Błąd ❌');
+                    }
+                }
+                // Komenda: sprawdź połączenie
+                else if (cmd === 'sprawdź połączenie') {
+                    appendToTerminal('Sprawdzam wszystkie możliwe połączenia API...');
+                    const endpoints = [
+                        '/api/ping',
+                        '/api/system-status',
+                        '/api/active-shifts',
+                        '/api/employees'
+                    ];
+                    
+                    for (const endpoint of endpoints) {
+                        try {
+                            appendToTerminal(`Testowanie ${endpoint}...`);
+                            const startTime = performance.now();
+                            const response = await fetch(endpoint);
+                            const endTime = performance.now();
+                            const pingTime = Math.round(endTime - startTime);
+                            
+                            if (response.ok) {
+                                appendToTerminal(`  Status: OK (${response.status}) ✅`);
+                                appendToTerminal(`  Czas odpowiedzi: ${pingTime}ms`);
+                            } else {
+                                appendToTerminal(`  Status: Błąd (${response.status} ${response.statusText}) ❌`);
+                            }
+                        } catch (error) {
+                            appendToTerminal(`  Błąd: ${error.message} ❌`);
+                        }
+                    }
+                    appendToTerminal('Test połączenia zakończony.');
+                }
+                // Komenda: wyczyść
+                else if (cmd === 'wyczyść' || cmd === 'clear') {
+                    terminal.innerHTML = '=== Terminal Diagnostyczny Lista Obecności ===\nWpisz \'pomoc\' aby wyświetlić dostępne komendy.\n';
+                }
+                // Komenda: napraw sesje
+                else if (cmd === 'napraw sesje') {
+                    appendToTerminal('Rozpoczynam naprawę problematycznych sesji...');
+                    try {
+                        const response = await fetch(`${apiUrl}/fix-active-sessions`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ fix_all: true })
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            appendToTerminal(`Naprawa zakończona: ${data.message}`);
+                            appendToTerminal(`Naprawiono ${data.fixed_count || 0} sesji.`);
+                            // Odśwież tabele statusu po naprawieniu sesji
+                            refreshWorkerStatus();
+                            loadActiveWorkers();
+                        } else {
+                            appendToTerminal(`Błąd podczas naprawiania sesji: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        appendToTerminal(`Błąd podczas łączenia z API: ${error.message}`);
+                    }
+                }
+                // Komenda: znajdź <nazwa>
+                else if (cmd.startsWith('znajdź ')) {
+                    const searchTerm = command.substring(8).trim();
+                    if (searchTerm) {
+                        appendToTerminal(`Wyszukuję pracownika: "${searchTerm}"...`);
+                        try {
+                            const response = await fetch(`${apiUrl}/employees/search?query=${encodeURIComponent(searchTerm)}`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data.length === 0) {
+                                    appendToTerminal(`Nie znaleziono pracownika zawierającego "${searchTerm}".`);
+                                } else {
+                                    appendToTerminal(`Znaleziono ${data.length} pasujących pracowników:`);
+                                    data.forEach((employee, index) => {
+                                        appendToTerminal(`${index+1}. ${employee.first_name} ${employee.last_name} (ID: ${employee.id})`);
+                                    });
+                                }
+                            } else {
+                                appendToTerminal(`Błąd podczas wyszukiwania: ${response.status} ${response.statusText}`);
+                            }
+                        } catch (error) {
+                            appendToTerminal(`Błąd podczas łączenia z API: ${error.message}`);
+                        }
+                    } else {
+                        appendToTerminal('Błąd: Podaj nazwę pracownika do wyszukania.');
+                    }
+                }
+                // Komenda: statystyki
+                else if (cmd === 'statystyki') {
+                    appendToTerminal('Pobieram statystyki systemu...');
+                    try {
+                        const response = await fetch(`${apiUrl}/statistics`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            appendToTerminal(`
+Statystyki systemu:
+  Łączna liczba pracowników:    ${data.total_workers || '0'}
+  Aktywne sesje:                ${data.active_sessions || '0'}
+  Dzisiejsze logowania:         ${data.today_logins || '0'}
+  Średni czas pracy (dziś):     ${data.avg_work_time || 'Brak danych'}
+  Łączny czas pracy (dziś):     ${data.total_work_time || 'Brak danych'}
+                            `);
+                        } else {
+                            appendToTerminal(`Błąd podczas pobierania statystyk: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        appendToTerminal(`Błąd podczas łączenia z API: ${error.message}`);
+                    }
+                }
+                // Nieznana komenda
+                else {
+                    appendToTerminal(`Nieznana komenda: "${command}". Wpisz "pomoc" aby zobaczyć dostępne komendy.`);
+                }
+            } catch (error) {
+                appendToTerminal(`Błąd podczas wykonywania komendy: ${error.message}`);
+            }
+        }
+    });
   </script>
 </body>
 </html>
