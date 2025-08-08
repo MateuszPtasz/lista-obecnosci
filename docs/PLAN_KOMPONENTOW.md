@@ -44,6 +44,30 @@
 - **Design**: Modern glassmorphism approach planned
 - **TODO**: Complete implementation, styling, validation
 
+### ✅ Add Employee Component (English Version)
+- **Lokalizacja**: `frontend/components/pages/add-employee.html`
+- **Status**: ✅ **GOTOWY** - Pełny komponent dodawania pracowników (EN)
+- **Funkcje**: 3-section form, real-time validation, data preview
+- **Features**: Auto ID generation, department selection, access levels
+- **API Integration**: Ready for `/api/employees` endpoint
+- **Design**: Modern glassmorphism, responsive mobile support
+- **Tech**: JavaScript class `AddEmployeeClass`, comprehensive form handling
+
+### ✅ Dodaj Pracownika Component (Polish Version)
+- **Lokalizacja**: `frontend/components/pages/dodaj-pracownika.html`  
+- **Status**: ✅ **GOTOWY** - Rozbudowany komponent polski z PESEL
+- **Funkcje**: 3-sekcyjny formularz z rozszerzonymi opcjami polskimi
+- **Features Specjalne**: 
+  - ✅ Walidacja PESEL w czasie rzeczywistym
+  - ✅ 10 działów polskich firm, 6 rodzajów umów
+  - ✅ 5 poziomów dostępu z emoji
+  - ✅ Auto-generowanie ID w formacie "PR202501ABCDEF"
+  - ✅ Formatowanie dat po polsku
+  - ✅ Podgląd z emoji i polskim opisem
+- **API Integration**: Ready for `/api/pracownicy` endpoint
+- **Design**: Advanced glassmorphism z animacjami
+- **Tech**: JavaScript class `DodajPracownikaKomponent`, PESEL checksum validation
+
 ## 📁 STRUKTURA KOMPONENTÓW (Rzeczywista):
 ```
 frontend/components/

@@ -1,0 +1,1348 @@
+<!-- KOMPONENT DODAWANIA PRACOWNIKA -->
+<div class="dodaj-pracownika-komponent" id="dodaj-pracownika-komponent">
+    <div class="naglowek-strony">
+        <h1><i class="fas fa-user-plus"></i> Dodaj Pracownika</h1>
+        <p>Dodaj nowego pracownika do systemu ewidencji obecności</p>
+    </div>
+
+    <div class="tresc-strony">
+        <div class="kontener-formularza">
+            <form id="formularz-pracownika" class="formularz-pracownika">
+                
+                <!-- Sekcja danych podstawowych -->
+                <div class="sekcja-formularza">
+                    <h3><i class="fas fa-user"></i> Dane Podstawowe</h3>
+                    <div class="siatka-formularza">
+                        <div class="grupa-pola">
+                            <label for="imie">Imię *</label>
+                            <input type="text" id="imie" name="imie" required 
+                                   placeholder="Wprowadź imię pracownika">
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="nazwisko">Nazwisko *</label>
+                            <input type="text" id="nazwisko" name="nazwisko" required 
+                                   placeholder="Wprowadź nazwisko pracownika">
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="email">Adres Email *</label>
+                            <input type="email" id="email" name="email" required 
+                                   placeholder="przykład@firma.pl">
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="telefon">Numer Telefonu</label>
+                            <input type="tel" id="telefon" name="telefon" 
+                                   placeholder="+48 123 456 789">
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="pesel">PESEL *</label>
+                            <input type="text" id="pesel" name="pesel" required 
+                                   placeholder="12345678901" maxlength="11">
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="adres">Adres Zamieszkania</label>
+                            <textarea id="adres" name="adres" rows="3" 
+                                     placeholder="Ulica, numer domu/mieszkania, kod pocztowy, miasto"></textarea>
+                            <div class="blad-pola"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sekcja danych zawodowych -->
+                <div class="sekcja-formularza">
+                    <h3><i class="fas fa-briefcase"></i> Informacje Zawodowe</h3>
+                    <div class="siatka-formularza">
+                        <div class="grupa-pola">
+                            <label for="stanowisko">Stanowisko Pracy *</label>
+                            <input type="text" id="stanowisko" name="stanowisko" required 
+                                   placeholder="np. Specjalista IT">
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="dzial">Dział / Jednostka</label>
+                            <select id="dzial" name="dzial">
+                                <option value="">-- Wybierz dział --</option>
+                                <option value="administracja">Administracja</option>
+                                <option value="it">Informatyka (IT)</option>
+                                <option value="marketing">Marketing i Sprzedaż</option>
+                                <option value="hr">Zasoby Ludzkie (HR)</option>
+                                <option value="finanse">Finanse i Księgowość</option>
+                                <option value="produkcja">Produkcja</option>
+                                <option value="logistyka">Logistyka</option>
+                                <option value="jakosc">Kontrola Jakości</option>
+                                <option value="prawny">Dział Prawny</option>
+                                <option value="inne">Inne</option>
+                            </select>
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="data-zatrudnienia">Data Zatrudnienia *</label>
+                            <input type="date" id="data-zatrudnienia" name="dataZatrudnienia" required>
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="rodzaj-umowy">Rodzaj Umowy</label>
+                            <select id="rodzaj-umowy" name="rodzajUmowy">
+                                <option value="umowa-o-prace">Umowa o Pracę</option>
+                                <option value="umowa-zlecenie">Umowa Zlecenie</option>
+                                <option value="umowa-o-dzielo">Umowa o Dzieło</option>
+                                <option value="kontrakt-b2b">Kontrakt B2B</option>
+                                <option value="staż">Staż / Praktyki</option>
+                            </select>
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="wynagrodzenie">Wynagrodzenie Brutto (zł)</label>
+                            <input type="number" id="wynagrodzenie" name="wynagrodzenie" 
+                                   step="0.01" min="0" placeholder="5000.00">
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="godziny-pracy">Wymiar Godzinowy</label>
+                            <select id="godziny-pracy" name="godzinyPracy">
+                                <option value="8">Pełny etat (8h)</option>
+                                <option value="7">7/8 etatu (7h)</option>
+                                <option value="6">3/4 etatu (6h)</option>
+                                <option value="4">1/2 etatu (4h)</option>
+                                <option value="2">1/4 etatu (2h)</option>
+                                <option value="inne">Inny</option>
+                            </select>
+                            <div class="blad-pola"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sekcja ustawień systemu -->
+                <div class="sekcja-formularza">
+                    <h3><i class="fas fa-cogs"></i> Konfiguracja Systemu</h3>
+                    <div class="siatka-formularza">
+                        <div class="grupa-pola">
+                            <label for="id-pracownika">ID Pracownika</label>
+                            <input type="text" id="id-pracownika" name="idPracownika" readonly 
+                                   placeholder="Automatycznie generowany">
+                            <small class="pomoc-pola">Unikalny identyfikator generowany automatycznie</small>
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola">
+                            <label for="poziom-dostepu">Poziom Dostępu</label>
+                            <select id="poziom-dostepu" name="poziomDostepu">
+                                <option value="pracownik">👤 Pracownik (podstawowy)</option>
+                                <option value="kierownik">👨‍💼 Kierownik zespołu</option>
+                                <option value="menedzer">👔 Menedżer działu</option>
+                                <option value="hr">👥 Kadry (HR)</option>
+                                <option value="admin">⚙️ Administrator systemu</option>
+                            </select>
+                            <div class="blad-pola"></div>
+                        </div>
+                        
+                        <div class="grupa-pola przycisk-grupa">
+                            <label class="etykieta-przyciska">
+                                <input type="checkbox" id="konto-aktywne" name="kontoAktywne" checked>
+                                <span class="znacznik-przyciska"></span>
+                                <span class="tekst-przyciska">🟢 Konto Aktywne</span>
+                            </label>
+                            <small class="pomoc-pola">Pracownik może logować się do systemu</small>
+                        </div>
+                        
+                        <div class="grupa-pola przycisk-grupa">
+                            <label class="etykieta-przyciska">
+                                <input type="checkbox" id="powiadomienia-email" name="powiadomieniaEmail">
+                                <span class="znacznik-przyciska"></span>
+                                <span class="tekst-przyciska">📧 Powiadomienia Email</span>
+                            </label>
+                            <small class="pomoc-pola">Otrzymywanie powiadomień o obecności</small>
+                        </div>
+                        
+                        <div class="grupa-pola przycisk-grupa">
+                            <label class="etykieta-przyciska">
+                                <input type="checkbox" id="powiadomienia-sms" name="powiadomieniaSMS">
+                                <span class="znacznik-przyciska"></span>
+                                <span class="tekst-przyciska">📱 Powiadomienia SMS</span>
+                            </label>
+                            <small class="pomoc-pola">Otrzymywanie powiadomień SMS</small>
+                        </div>
+                        
+                        <div class="grupa-pola przycisk-grupa">
+                            <label class="etykieta-przyciska">
+                                <input type="checkbox" id="praca-zdalna" name="pracaZdalna">
+                                <span class="znacznik-przyciska"></span>
+                                <span class="tekst-przyciska">🏠 Praca Zdalna</span>
+                            </label>
+                            <small class="pomoc-pola">Możliwość logowania zdalnego</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Przyciski akcji -->
+                <div class="akcje-formularza">
+                    <button type="button" class="btn-drugorzedny" id="wyczysc-formularz">
+                        <i class="fas fa-undo"></i> Wyczyść Formularz
+                    </button>
+                    <button type="button" class="btn-podglad" id="podglad-danych">
+                        <i class="fas fa-eye"></i> Podgląd Danych
+                    </button>
+                    <button type="submit" class="btn-główny">
+                        <i class="fas fa-save"></i> Zapisz Pracownika
+                    </button>
+                </div>
+            </form>
+
+            <!-- Karta podglądu danych -->
+            <div class="karta-podgladu" id="podglad-pracownika" style="display: none;">
+                <div class="naglowek-podgladu">
+                    <h3><i class="fas fa-user-check"></i> Podgląd Danych Pracownika</h3>
+                    <button type="button" class="btn-zamknij" id="zamknij-podglad">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="tresc-podgladu">
+                    <!-- Dane będą wyświetlane przez JavaScript -->
+                </div>
+                <div class="akcje-podgladu">
+                    <button type="button" class="btn-drugorzedny" id="edytuj-dane">
+                        <i class="fas fa-edit"></i> Edytuj Dane
+                    </button>
+                    <button type="button" class="btn-główny" id="potwierdz-zapis">
+                        <i class="fas fa-check"></i> Potwierdź i Zapisz
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* STYLE KOMPONENTU DODAWANIA PRACOWNIKA */
+.dodaj-pracownika-komponent {
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Nagłówek strony */
+.naglowek-strony {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 50px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.naglowek-strony::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    z-index: 0;
+}
+
+.naglowek-strony h1 {
+    font-size: 2.5rem;
+    margin: 0 0 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.naglowek-strony p {
+    font-size: 1.2rem;
+    margin: 0;
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+}
+
+/* Kontener formularza */
+.kontener-formularza {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.formularz-pracownika {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 50px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    margin-bottom: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Sekcje formularza */
+.sekcja-formularza {
+    margin-bottom: 50px;
+    padding-bottom: 40px;
+    border-bottom: 3px solid #f0f0f0;
+    position: relative;
+}
+
+.sekcja-formularza:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.sekcja-formularza::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 2px;
+}
+
+.sekcja-formularza h3 {
+    color: #2c3e50;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sekcja-formularza h3 i {
+    color: #667eea;
+    font-size: 24px;
+    width: 32px;
+    text-align: center;
+}
+
+/* Siatka formularza */
+.siatka-formularza {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+/* Grupy pól */
+.grupa-pola {
+    margin-bottom: 0;
+    position: relative;
+}
+
+.grupa-pola label {
+    display: block;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 15px;
+    text-transform: capitalize;
+}
+
+.grupa-pola input,
+.grupa-pola select,
+.grupa-pola textarea {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 15px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.9);
+    box-sizing: border-box;
+}
+
+.grupa-pola input:focus,
+.grupa-pola select:focus,
+.grupa-pola textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+    background: white;
+}
+
+.grupa-pola input.error,
+.grupa-pola select.error,
+.grupa-pola textarea.error {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.15);
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Pomocny tekst */
+.pomoc-pola {
+    display: block;
+    margin-top: 8px;
+    color: #7f8c8d;
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* Komunikaty błędów */
+.blad-pola {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 8px;
+    min-height: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.blad-pola:before {
+    content: '⚠️';
+    font-size: 12px;
+}
+
+/* Style przycisków checkbox */
+.przycisk-grupa {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 10px;
+}
+
+.etykieta-przyciska {
+    display: flex !important;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    font-weight: normal !important;
+    margin-bottom: 0 !important;
+    color: #2c3e50 !important;
+    font-size: 15px !important;
+    text-transform: none !important;
+    padding: 12px;
+    border-radius: 10px;
+    background: rgba(102, 126, 234, 0.05);
+    border: 2px solid rgba(102, 126, 234, 0.1);
+    transition: all 0.3s ease;
+}
+
+.etykieta-przyciska:hover {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: rgba(102, 126, 234, 0.2);
+    transform: translateY(-1px);
+}
+
+.etykieta-przyciska input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin: 0 !important;
+    accent-color: #667eea;
+    transform: scale(1.2);
+}
+
+.tekst-przyciska {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Akcje formularza */
+.akcje-formularza {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-top: 40px;
+    border-top: 3px solid #f0f0f0;
+    flex-wrap: wrap;
+}
+
+.btn-główny {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 18px 36px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 180px;
+    justify-content: center;
+}
+
+.btn-główny:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+}
+
+.btn-główny:active {
+    transform: translateY(-1px);
+}
+
+.btn-drugorzedny {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 2px solid rgba(108, 117, 125, 0.2);
+    padding: 18px 36px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 180px;
+    justify-content: center;
+}
+
+.btn-drugorzedny:hover {
+    background: rgba(108, 117, 125, 0.15);
+    border-color: rgba(108, 117, 125, 0.3);
+    transform: translateY(-2px);
+    color: #495057;
+}
+
+.btn-podglad {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+    border: none;
+    padding: 18px 36px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 20px rgba(23, 162, 184, 0.3);
+    min-width: 180px;
+    justify-content: center;
+}
+
+.btn-podglad:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(23, 162, 184, 0.4);
+}
+
+/* Karta podglądu */
+.karta-podgladu {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    padding: 0;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    overflow: hidden;
+    margin-top: 30px;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.naglowek-podgladu {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.naglowek-podgladu h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-zamknij {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.btn-zamknij:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.tresc-podgladu {
+    padding: 30px;
+    background: #f8f9fa;
+    color: #2c3e50;
+}
+
+.sekcja-podgladu {
+    margin-bottom: 30px;
+}
+
+.sekcja-podgladu:last-child {
+    margin-bottom: 0;
+}
+
+.sekcja-podgladu h4 {
+    color: #667eea;
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.element-podgladu {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #e9ecef;
+    align-items: center;
+}
+
+.element-podgladu:last-child {
+    border-bottom: none;
+}
+
+.etykieta-podgladu {
+    font-weight: 700;
+    color: #495057;
+    font-size: 14px;
+}
+
+.wartosc-podgladu {
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 15px;
+    word-break: break-word;
+}
+
+.wartosc-podgladu.empty {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+.akcje-podgladu {
+    padding: 25px 30px;
+    display: flex;
+    gap: 20px;
+    justify-content: flex-end;
+    border-top: 2px solid #e9ecef;
+    background: white;
+}
+
+/* Stan ładowania */
+.formularz-ladowanie {
+    pointer-events: none;
+    opacity: 0.7;
+    position: relative;
+}
+
+.formularz-ladowanie .btn-główny {
+    background: #adb5bd;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.formularz-ladowanie::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    border-radius: 20px;
+}
+
+/* Komunikaty sukcesu i błędów */
+.komunikat-sukcesu {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 25px 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+    animation: slideDown 0.5s ease-out;
+}
+
+.komunikat-sukcesu i {
+    font-size: 28px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.komunikat-sukcesu span {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+    .dodaj-pracownika-komponent {
+        padding: 15px;
+    }
+    
+    .naglowek-strony {
+        padding: 30px 20px;
+        margin-bottom: 30px;
+    }
+    
+    .naglowek-strony h1 {
+        font-size: 2rem;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .naglowek-strony p {
+        font-size: 1.1rem;
+    }
+    
+    .formularz-pracownika {
+        padding: 30px 25px;
+    }
+    
+    .siatka-formularza {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .akcje-formularza {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .btn-główny,
+    .btn-drugorzedny,
+    .btn-podglad {
+        min-width: auto;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .karta-podgladu {
+        margin-top: 20px;
+    }
+    
+    .akcje-podgladu {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .element-podgladu {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .etykieta-podgladu {
+        font-size: 13px;
+    }
+    
+    .wartosc-podgladu {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .formularz-pracownika {
+        padding: 20px 15px;
+    }
+    
+    .grupa-pola input,
+    .grupa-pola select,
+    .grupa-pola textarea {
+        padding: 14px 16px;
+        font-size: 14px;
+    }
+    
+    .btn-główny,
+    .btn-drugorzedny,
+    .btn-podglad {
+        padding: 16px 24px;
+        font-size: 15px;
+    }
+    
+    .naglowek-podgladu {
+        padding: 20px 20px;
+    }
+    
+    .tresc-podgladu {
+        padding: 25px 20px;
+    }
+    
+    .akcje-podgladu {
+        padding: 20px;
+    }
+}
+</style>
+
+<script>
+// KLASA KOMPONENTU DODAWANIA PRACOWNIKA
+class DodajPracownikaKomponent {
+    constructor() {
+        this.formularz = null;
+        this.kartaPodgladu = null;
+        this.danePracownika = {};
+        this.init();
+    }
+
+    init() {
+        // Auto-inicjalizacja gdy DOM jest gotowy
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.inicjalizujFormularz();
+            });
+        } else {
+            this.inicjalizujFormularz();
+        }
+    }
+
+    inicjalizujFormularz() {
+        this.formularz = document.getElementById('formularz-pracownika');
+        this.kartaPodgladu = document.getElementById('podglad-pracownika');
+        
+        if (!this.formularz) {
+            console.error('❌ Formularz dodawania pracownika nie został znaleziony');
+            return;
+        }
+        
+        // Obsługa wysłania formularza
+        this.formularz.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (this.walidujFormularz()) {
+                this.zapiszPracownika();
+            }
+        });
+        
+        // Przycisk czyszczenia formularza
+        const przyciskWyczysc = document.getElementById('wyczysc-formularz');
+        if (przyciskWyczysc) {
+            przyciskWyczysc.addEventListener('click', () => {
+                this.wyczyscFormularz();
+            });
+        }
+        
+        // Przycisk podglądu
+        const przyciskPodglad = document.getElementById('podglad-danych');
+        if (przyciskPodglad) {
+            przyciskPodglad.addEventListener('click', () => {
+                if (this.walidujFormularz()) {
+                    this.pokazPodglad();
+                }
+            });
+        }
+        
+        // Walidacja w czasie rzeczywistym
+        const pola = this.formularz.querySelectorAll('input, select, textarea');
+        pola.forEach(pole => {
+            pole.addEventListener('blur', () => {
+                this.walidujPole(pole);
+            });
+            
+            pole.addEventListener('input', () => {
+                this.wyczyscBladPola(pole);
+            });
+        });
+        
+        // Walidacja PESEL w czasie rzeczywistym
+        const polePesel = document.getElementById('pesel');
+        if (polePesel) {
+            polePesel.addEventListener('input', () => {
+                this.walidujPeselPodczasWpisywania(polePesel);
+            });
+        }
+        
+        // Generowanie ID pracownika
+        this.generujIdPracownika();
+        
+        // Obsługa przycisków w podglądzie
+        this.obslugjPrzyciskiPodgladu();
+        
+        console.log('✅ Komponent dodawania pracownika został zainicjalizowany');
+    }
+
+    walidujFormularz() {
+        let czyPoprawny = true;
+        
+        // Pola wymagane
+        const wymaganePola = ['imie', 'nazwisko', 'email', 'pesel', 'stanowisko', 'dataZatrudnienia'];
+        
+        wymaganePola.forEach(nazwaPola => {
+            const pole = this.formularz.querySelector(`[name="${nazwaPola}"]`);
+            if (!this.walidujPole(pole)) {
+                czyPoprawny = false;
+            }
+        });
+        
+        // Dodatkowa walidacja email
+        const poleEmail = this.formularz.querySelector('[name="email"]');
+        if (poleEmail.value && !this.czyPoprawnyEmail(poleEmail.value)) {
+            this.pokazBladPola(poleEmail, '❌ Nieprawidłowy format adresu email');
+            czyPoprawny = false;
+        }
+        
+        // Walidacja PESEL
+        const polePesel = this.formularz.querySelector('[name="pesel"]');
+        if (polePesel.value && !this.czyPoprawnyPesel(polePesel.value)) {
+            this.pokazBladPola(polePesel, '❌ Nieprawidłowy numer PESEL');
+            czyPoprawny = false;
+        }
+        
+        // Walidacja daty zatrudnienia (nie może być w przyszłości)
+        const poleData = this.formularz.querySelector('[name="dataZatrudnienia"]');
+        if (poleData.value) {
+            const dataZatrudnienia = new Date(poleData.value);
+            const dzis = new Date();
+            dzis.setHours(23, 59, 59, 999); // Koniec dnia
+            
+            if (dataZatrudnienia > dzis) {
+                this.pokazBladPola(poleData, '❌ Data zatrudnienia nie może być w przyszłości');
+                czyPoprawny = false;
+            }
+        }
+        
+        return czyPoprawny;
+    }
+
+    walidujPole(pole) {
+        if (!pole) return true;
+        
+        const wartosc = pole.value.trim();
+        const czyWymagane = pole.hasAttribute('required');
+        
+        if (czyWymagane && !wartosc) {
+            this.pokazBladPola(pole, '⚠️ To pole jest wymagane');
+            return false;
+        }
+        
+        // Specjalna walidacja dla różnych typów pól
+        if (pole.type === 'email' && wartosc && !this.czyPoprawnyEmail(wartosc)) {
+            this.pokazBladPola(pole, '❌ Nieprawidłowy format email');
+            return false;
+        }
+        
+        if (pole.name === 'pesel' && wartosc && !this.czyPoprawnyPesel(wartosc)) {
+            this.pokazBladPola(pole, '❌ Nieprawidłowy numer PESEL');
+            return false;
+        }
+        
+        if (pole.type === 'tel' && wartosc && !this.czyPoprawnyTelefon(wartosc)) {
+            this.pokazBladPola(pole, '❌ Nieprawidłowy numer telefonu');
+            return false;
+        }
+        
+        this.wyczyscBladPola(pole);
+        return true;
+    }
+
+    pokazBladPola(pole, komunikat) {
+        pole.classList.add('error');
+        const elementBledu = pole.parentNode.querySelector('.blad-pola');
+        if (elementBledu) {
+            elementBledu.textContent = komunikat;
+        }
+    }
+
+    wyczyscBladPola(pole) {
+        pole.classList.remove('error');
+        const elementBledu = pole.parentNode.querySelector('.blad-pola');
+        if (elementBledu) {
+            elementBledu.textContent = '';
+        }
+    }
+
+    wyczyscWszystkieBledyFormularza() {
+        const polaZBledem = this.formularz.querySelectorAll('.error');
+        const komunikatyBledow = this.formularz.querySelectorAll('.blad-pola');
+        
+        polaZBledem.forEach(pole => pole.classList.remove('error'));
+        komunikatyBledow.forEach(komunikat => komunikat.textContent = '');
+    }
+
+    czyPoprawnyEmail(email) {
+        const wzorEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return wzorEmail.test(email);
+    }
+
+    czyPoprawnyPesel(pesel) {
+        // Usuń wszystkie znaki nie będące cyframi
+        const liczby = pesel.replace(/\D/g, '');
+        
+        // PESEL musi mieć dokładnie 11 cyfr
+        if (liczby.length !== 11) return false;
+        
+        // Sprawdzenie sumy kontrolnej PESEL
+        const wagi = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];
+        let suma = 0;
+        
+        for (let i = 0; i < 10; i++) {
+            suma += parseInt(liczby[i]) * wagi[i];
+        }
+        
+        const reszta = suma % 10;
+        const cyfraSpr = reszta === 0 ? 0 : 10 - reszta;
+        
+        return cyfraSpr === parseInt(liczby[10]);
+    }
+
+    czyPoprawnyTelefon(telefon) {
+        // Prosta walidacja - może zawierać cyfry, spacje, myślniki, nawiasy i znak +
+        const wzorTelefon = /^[\d\s\-\(\)\+]+$/;
+        const cyfry = telefon.replace(/\D/g, '');
+        return wzorTelefon.test(telefon) && cyfry.length >= 7 && cyfry.length <= 15;
+    }
+
+    walidujPeselPodczasWpisywania(pole) {
+        let wartosc = pole.value.replace(/\D/g, ''); // Usuń wszystko oprócz cyfr
+        
+        if (wartosc.length > 11) {
+            wartosc = wartosc.slice(0, 11);
+        }
+        
+        pole.value = wartosc;
+        
+        if (wartosc.length === 11) {
+            if (this.czyPoprawnyPesel(wartosc)) {
+                this.wyczyscBladPola(pole);
+                // Możesz tu dodać wizualny znak poprawności
+                pole.style.borderColor = '#28a745';
+            } else {
+                this.pokazBladPola(pole, '❌ Nieprawidłowy numer PESEL');
+            }
+        } else {
+            this.wyczyscBladPola(pole);
+            pole.style.borderColor = '';
+        }
+    }
+
+    generujIdPracownika() {
+        const poleId = document.getElementById('id-pracownika');
+        if (poleId && !poleId.value) {
+            const rok = new Date().getFullYear();
+            const miesiac = String(new Date().getMonth() + 1).padStart(2, '0');
+            const losowa = Math.random().toString(36).substr(2, 6).toUpperCase();
+            const id = `PR${rok}${miesiac}${losowa}`;
+            poleId.value = id;
+        }
+    }
+
+    pokazPodglad() {
+        const danePodgladu = this.kartaPodgladu.querySelector('.tresc-podgladu');
+        const daneFormularza = new FormData(this.formularz);
+        this.danePracownika = Object.fromEntries(daneFormularza.entries());
+        
+        let htmlPodgladu = '';
+        
+        // Sekcja danych podstawowych
+        htmlPodgladu += '<div class="sekcja-podgladu">';
+        htmlPodgladu += '<h4><i class="fas fa-user"></i> Dane Podstawowe</h4>';
+        htmlPodgladu += this.utworzElementPodgladu('Imię:', this.danePracownika.imie);
+        htmlPodgladu += this.utworzElementPodgladu('Nazwisko:', this.danePracownika.nazwisko);
+        htmlPodgladu += this.utworzElementPodgladu('Email:', this.danePracownika.email);
+        htmlPodgladu += this.utworzElementPodgladu('Telefon:', this.danePracownika.telefon);
+        htmlPodgladu += this.utworzElementPodgladu('PESEL:', this.danePracownika.pesel);
+        htmlPodgladu += this.utworzElementPodgladu('Adres:', this.danePracownika.adres);
+        htmlPodgladu += '</div>';
+        
+        // Sekcja danych zawodowych
+        htmlPodgladu += '<div class="sekcja-podgladu">';
+        htmlPodgladu += '<h4><i class="fas fa-briefcase"></i> Informacje Zawodowe</h4>';
+        htmlPodgladu += this.utworzElementPodgladu('Stanowisko:', this.danePracownika.stanowisko);
+        htmlPodgladu += this.utworzElementPodgladu('Dział:', this.pobierzNazweDzialu(this.danePracownika.dzial));
+        htmlPodgladu += this.utworzElementPodgladu('Data zatrudnienia:', this.sformatujDate(this.danePracownika.dataZatrudnienia));
+        htmlPodgladu += this.utworzElementPodgladu('Rodzaj umowy:', this.pobierzNazweUmowy(this.danePracownika.rodzajUmowy));
+        htmlPodgladu += this.utworzElementPodgladu('Wynagrodzenie:', this.danePracownika.wynagrodzenie ? this.danePracownika.wynagrodzenie + ' zł brutto' : '');
+        htmlPodgladu += this.utworzElementPodgladu('Wymiar godzinowy:', this.pobierzWymiarGodzinowy(this.danePracownika.godzinyPracy));
+        htmlPodgladu += '</div>';
+        
+        // Sekcja konfiguracji systemu
+        htmlPodgladu += '<div class="sekcja-podgladu">';
+        htmlPodgladu += '<h4><i class="fas fa-cogs"></i> Konfiguracja Systemu</h4>';
+        htmlPodgladu += this.utworzElementPodgladu('ID Pracownika:', this.danePracownika.idPracownika);
+        htmlPodgladu += this.utworzElementPodgladu('Poziom dostępu:', this.pobierzPoziomDostepu(this.danePracownika.poziomDostepu));
+        htmlPodgladu += this.utworzElementPodgladu('Konto aktywne:', this.danePracownika.kontoAktywne ? '🟢 Tak' : '🔴 Nie');
+        htmlPodgladu += this.utworzElementPodgladu('Powiadomienia email:', this.danePracownika.powiadomieniaEmail ? '📧 Włączone' : '❌ Wyłączone');
+        htmlPodgladu += this.utworzElementPodgladu('Powiadomienia SMS:', this.danePracownika.powiadomieniaEmail ? '📱 Włączone' : '❌ Wyłączone');
+        htmlPodgladu += this.utworzElementPodgladu('Praca zdalna:', this.danePracownika.pracaZdalna ? '🏠 Dostępna' : '🏢 Tylko w biurze');
+        htmlPodgladu += '</div>';
+        
+        danePodgladu.innerHTML = htmlPodgladu;
+        this.kartaPodgladu.style.display = 'block';
+        
+        // Przewiń do podglądu
+        this.kartaPodgladu.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    utworzElementPodgladu(etykieta, wartosc) {
+        const bezpiecznaWartosc = wartosc || '';
+        const klasaWartosci = bezpiecznaWartosc ? 'wartosc-podgladu' : 'wartosc-podgladu empty';
+        const wyswietlanaWartosc = bezpiecznaWartosc || 'Nie podano';
+        
+        return `
+            <div class="element-podgladu">
+                <span class="etykieta-podgladu">${etykieta}</span>
+                <span class="${klasaWartosci}">${wyswietlanaWartosc}</span>
+            </div>
+        `;
+    }
+
+    ukryjPodglad() {
+        this.kartaPodgladu.style.display = 'none';
+    }
+
+    obslugjPrzyciskiPodgladu() {
+        const przyciskZamknij = document.getElementById('zamknij-podglad');
+        const przyciskEdytuj = document.getElementById('edytuj-dane');
+        const przyciskPotwierdz = document.getElementById('potwierdz-zapis');
+        
+        if (przyciskZamknij) {
+            przyciskZamknij.onclick = () => {
+                this.ukryjPodglad();
+            };
+        }
+        
+        if (przyciskEdytuj) {
+            przyciskEdytuj.onclick = () => {
+                this.ukryjPodglad();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+        }
+        
+        if (przyciskPotwierdz) {
+            przyciskPotwierdz.onclick = () => {
+                this.zapiszPracownika();
+            };
+        }
+    }
+
+    async zapiszPracownika() {
+        this.formularz.classList.add('formularz-ladowanie');
+        
+        try {
+            // Tutaj byłoby rzeczywiste wywołanie API
+            // const odpowiedz = await fetch('/api/pracownicy', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(this.danePracownika || Object.fromEntries(new FormData(this.formularz)))
+            // });
+            
+            // Symulacja procesu zapisywania
+            await new Promise(resolve => setTimeout(resolve, 2500));
+            
+            this.pokazKomunikatSukcesu();
+            this.formularz.classList.remove('formularz-ladowanie');
+            this.wyczyscFormularz();
+            this.ukryjPodglad();
+            this.generujIdPracownika();
+            
+            // Przewiń na górę
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+        } catch (blad) {
+            console.error('❌ Błąd podczas zapisywania pracownika:', blad);
+            this.pokazKomunikatBledu('Wystąpił błąd podczas zapisywania danych pracownika. Spróbuj ponownie.');
+            this.formularz.classList.remove('formularz-ladowanie');
+        }
+    }
+
+    wyczyscFormularz() {
+        this.formularz.reset();
+        this.wyczyscWszystkieBledyFormularza();
+        this.danePracownika = {};
+        
+        // Przywróć domyślne wartości
+        document.getElementById('rodzaj-umowy').value = 'umowa-o-prace';
+        document.getElementById('godziny-pracy').value = '8';
+        document.getElementById('poziom-dostepu').value = 'pracownik';
+        document.getElementById('konto-aktywne').checked = true;
+        
+        this.generujIdPracownika();
+    }
+
+    pokazKomunikatSukcesu() {
+        const trescStrony = document.querySelector('.tresc-strony');
+        const komunikat = document.createElement('div');
+        komunikat.className = 'komunikat-sukcesu';
+        komunikat.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <div>
+                <strong>✅ Sukces!</strong><br>
+                <span>Pracownik ${this.danePracownika.imie || ''} ${this.danePracownika.nazwisko || ''} został pomyślnie dodany do systemu ewidencji obecności!</span>
+            </div>
+        `;
+        
+        trescStrony.insertBefore(komunikat, trescStrony.firstChild);
+        
+        // Usuń komunikat po 7 sekundach
+        setTimeout(() => {
+            if (komunikat.parentNode) {
+                komunikat.style.opacity = '0';
+                setTimeout(() => komunikat.remove(), 500);
+            }
+        }, 7000);
+    }
+
+    pokazKomunikatBledu(tresc) {
+        const trescStrony = document.querySelector('.tresc-strony');
+        const komunikat = document.createElement('div');
+        komunikat.className = 'komunikat-sukcesu';
+        komunikat.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+        komunikat.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>❌ Błąd!</strong><br>
+                <span>${tresc}</span>
+            </div>
+        `;
+        
+        trescStrony.insertBefore(komunikat, trescStrony.firstChild);
+        
+        // Usuń komunikat po 10 sekundach
+        setTimeout(() => {
+            if (komunikat.parentNode) {
+                komunikat.style.opacity = '0';
+                setTimeout(() => komunikat.remove(), 500);
+            }
+        }, 10000);
+    }
+
+    // Funkcje pomocnicze do formatowania danych
+    pobierzNazweDzialu(wartosc) {
+        const dzialy = {
+            'administracja': '🏢 Administracja',
+            'it': '💻 Informatyka (IT)',
+            'marketing': '📈 Marketing i Sprzedaż',
+            'hr': '👥 Zasoby Ludzkie (HR)',
+            'finanse': '💰 Finanse i Księgowość',
+            'produkcja': '🏭 Produkcja',
+            'logistyka': '🚚 Logistyka',
+            'jakosc': '✅ Kontrola Jakości',
+            'prawny': '⚖️ Dział Prawny',
+            'inne': '📋 Inne'
+        };
+        return dzialy[wartosc] || wartosc || 'Nie wybrano';
+    }
+
+    pobierzNazweUmowy(wartosc) {
+        const umowy = {
+            'umowa-o-prace': '📄 Umowa o Pracę',
+            'umowa-zlecenie': '📝 Umowa Zlecenie',
+            'umowa-o-dzielo': '🎯 Umowa o Dzieło',
+            'kontrakt-b2b': '🤝 Kontrakt B2B',
+            'staż': '🎓 Staż / Praktyki'
+        };
+        return umowy[wartosc] || wartosc || 'Umowa o Pracę';
+    }
+
+    pobierzPoziomDostepu(wartosc) {
+        const poziomy = {
+            'pracownik': '👤 Pracownik (podstawowy)',
+            'kierownik': '👨‍💼 Kierownik zespołu',
+            'menedzer': '👔 Menedżer działu',
+            'hr': '👥 Kadry (HR)',
+            'admin': '⚙️ Administrator systemu'
+        };
+        return poziomy[wartosc] || wartosc || 'Pracownik (podstawowy)';
+    }
+
+    pobierzWymiarGodzinowy(wartosc) {
+        const wymiary = {
+            '8': '⏰ Pełny etat (8 godzin)',
+            '7': '⏰ 7/8 etatu (7 godzin)',
+            '6': '⏰ 3/4 etatu (6 godzin)',
+            '4': '⏰ 1/2 etatu (4 godziny)',
+            '2': '⏰ 1/4 etatu (2 godziny)',
+            'inne': '⏰ Inny wymiar'
+        };
+        return wymiary[wartosc] || wartosc || 'Pełny etat (8 godzin)';
+    }
+
+    sformatujDate(dataString) {
+        if (!dataString) return '';
+        const data = new Date(dataString);
+        return data.toLocaleDateString('pl-PL', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+}
+
+// Inicjalizacja komponentu
+window.DodajPracownika = new DodajPracownikaKomponent();
+</script>

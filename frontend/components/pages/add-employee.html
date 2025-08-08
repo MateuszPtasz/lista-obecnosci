@@ -1,0 +1,846 @@
+<!-- ADD EMPLOYEE COMPONENT -->
+<div class="add-employee-component" id="add-employee-component">
+    <div class="page-header">
+        <h1><i class="fas fa-user-plus"></i> Dodaj pracownika</h1>
+        <p>Dodaj nowego pracownika do systemu obecności</p>
+    </div>
+
+    <div class="page-content">
+        <div class="form-container">
+            <form id="add-employee-form" class="employee-form">
+                
+                <!-- Dane podstawowe -->
+                <div class="form-section">
+                    <h3><i class="fas fa-user"></i> Dane podstawowe</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="firstName">Imię *</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                            <div class="form-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="lastName">Nazwisko *</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                            <div class="form-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" required>
+                            <div class="form-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">Telefon</label>
+                            <input type="tel" id="phone" name="phone">
+                            <div class="form-error"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dane zawodowe -->
+                <div class="form-section">
+                    <h3><i class="fas fa-briefcase"></i> Dane zawodowe</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="position">Stanowisko *</label>
+                            <input type="text" id="position" name="position" required>
+                            <div class="form-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="department">Dział</label>
+                            <select id="department" name="department">
+                                <option value="">Wybierz dział</option>
+                                <option value="it">IT</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="hr">HR</option>
+                                <option value="finance">Finanse</option>
+                                <option value="operations">Operacje</option>
+                            </select>
+                            <div class="form-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="startDate">Data rozpoczęcia pracy *</label>
+                            <input type="date" id="startDate" name="startDate" required>
+                            <div class="form-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="salary">Wynagrodzenie</label>
+                            <input type="number" id="salary" name="salary" step="0.01" min="0">
+                            <div class="form-error"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ustawienia systemu -->
+                <div class="form-section">
+                    <h3><i class="fas fa-cogs"></i> Ustawienia systemu</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="employeeId">ID Pracownika</label>
+                            <input type="text" id="employeeId" name="employeeId" placeholder="Automatycznie generowany">
+                            <small class="form-help">Pozostaw puste dla automatycznego generowania</small>
+                            <div class="form-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="accessLevel">Poziom dostępu</label>
+                            <select id="accessLevel" name="accessLevel">
+                                <option value="basic">Podstawowy</option>
+                                <option value="advanced">Zaawansowany</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                            <div class="form-error"></div>
+                        </div>
+                        
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="isActive" name="isActive" checked>
+                                <span class="checkmark"></span>
+                                Konto aktywne
+                            </label>
+                        </div>
+                        
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="emailNotifications" name="emailNotifications">
+                                <span class="checkmark"></span>
+                                Powiadomienia email
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Przyciski akcji -->
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="clearForm">
+                        <i class="fas fa-undo"></i> Wyczyść formularz
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Zapisz pracownika
+                    </button>
+                </div>
+            </form>
+
+            <!-- Podgląd danych -->
+            <div class="preview-card" id="employeePreview" style="display: none;">
+                <h3><i class="fas fa-eye"></i> Podgląd danych</h3>
+                <div class="preview-content">
+                    <!-- Dane będą wyświetlane tutaj -->
+                </div>
+                <div class="preview-actions">
+                    <button type="button" class="btn-secondary" id="editPreview">
+                        <i class="fas fa-edit"></i> Edytuj
+                    </button>
+                    <button type="button" class="btn-primary" id="confirmSave">
+                        <i class="fas fa-check"></i> Potwierdź
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Add Employee Component Styles */
+.add-employee-component {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+}
+
+.page-header h1 {
+    font-size: 2.2rem;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    margin: 0;
+    opacity: 0.9;
+}
+
+.form-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.employee-form {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.form-section {
+    margin-bottom: 40px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.form-section h3 {
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-section h3 i {
+    color: #667eea;
+    font-size: 20px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-group input.error,
+.form-group select.error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.form-help {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.form-error {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+    min-height: 16px;
+    font-weight: 500;
+}
+
+/* Checkbox Styles */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    padding-top: 10px;
+}
+
+.checkbox-label {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-weight: normal !important;
+    margin-bottom: 0 !important;
+    color: #2c3e50 !important;
+    font-size: 14px;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0;
+    accent-color: #667eea;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 2px solid #f8f9fa;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    color: #666;
+    border: 2px solid #e9ecef;
+    padding: 16px 32px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    transform: translateY(-1px);
+}
+
+/* Preview Card */
+.preview-card {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 2px solid #667eea;
+    margin-top: 30px;
+}
+
+.preview-card h3 {
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.preview-card h3 i {
+    color: #667eea;
+}
+
+.preview-content {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+}
+
+.preview-content h4 {
+    color: #667eea;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.preview-content h4:not(:first-child) {
+    margin-top: 25px;
+}
+
+.preview-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.preview-item:last-child {
+    border-bottom: none;
+}
+
+.preview-label {
+    font-weight: 600;
+    color: #666;
+    font-size: 14px;
+}
+
+.preview-value {
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.preview-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+}
+
+/* Success Message */
+.success-message {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 20px 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+    border: none;
+}
+
+.success-message i {
+    font-size: 24px;
+}
+
+.success-message span {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Loading State */
+.form-loading {
+    pointer-events: none;
+    opacity: 0.7;
+    position: relative;
+}
+
+.form-loading .btn-primary {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.form-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .add-employee-component {
+        padding: 10px;
+    }
+    
+    .page-header {
+        padding: 30px 15px;
+        margin-bottom: 20px;
+    }
+    
+    .page-header h1 {
+        font-size: 1.8rem;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .employee-form {
+        padding: 25px 20px;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        justify-content: center;
+    }
+    
+    .preview-card {
+        padding: 25px 20px;
+    }
+    
+    .preview-actions {
+        flex-direction: column;
+    }
+    
+    .preview-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-group input,
+    .form-group select {
+        padding: 12px 16px;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        padding: 14px 24px;
+        font-size: 13px;
+    }
+}
+</style>
+
+<script>
+// Add Employee Component Class
+class AddEmployeeClass {
+    constructor() {
+        this.form = null;
+        this.previewCard = null;
+        this.init();
+    }
+
+    init() {
+        // Auto-initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.initializeForm();
+            });
+        } else {
+            this.initializeForm();
+        }
+    }
+
+    initializeForm() {
+        this.form = document.getElementById('add-employee-form');
+        this.previewCard = document.getElementById('employeePreview');
+        const clearBtn = document.getElementById('clearForm');
+        
+        if (!this.form) {
+            console.error('Add employee form not found');
+            return;
+        }
+        
+        // Form submission
+        this.form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (this.validateForm()) {
+                this.showPreview();
+            }
+        });
+        
+        // Clear form
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                this.form.reset();
+                this.clearErrors();
+                this.hidePreview();
+                this.generateEmployeeId();
+            });
+        }
+        
+        // Real-time validation
+        const inputs = this.form.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('blur', () => {
+                this.validateField(input);
+            });
+            
+            input.addEventListener('input', () => {
+                this.clearFieldError(input);
+            });
+        });
+        
+        // Generate employee ID on load
+        this.generateEmployeeId();
+        
+        console.log('✅ Add employee form initialized');
+    }
+
+    validateForm() {
+        let isValid = true;
+        
+        // Required fields
+        const requiredFields = ['firstName', 'lastName', 'email', 'position', 'startDate'];
+        
+        requiredFields.forEach(fieldName => {
+            const field = this.form.querySelector(`[name="${fieldName}"]`);
+            if (!this.validateField(field)) {
+                isValid = false;
+            }
+        });
+        
+        // Email validation
+        const emailField = this.form.querySelector('[name="email"]');
+        if (emailField.value && !this.isValidEmail(emailField.value)) {
+            this.showFieldError(emailField, 'Nieprawidłowy format email');
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+
+    validateField(field) {
+        if (!field) return true;
+        
+        const value = field.value.trim();
+        const isRequired = field.hasAttribute('required');
+        
+        if (isRequired && !value) {
+            this.showFieldError(field, 'To pole jest wymagane');
+            return false;
+        }
+        
+        if (field.type === 'email' && value && !this.isValidEmail(value)) {
+            this.showFieldError(field, 'Nieprawidłowy format email');
+            return false;
+        }
+        
+        this.clearFieldError(field);
+        return true;
+    }
+
+    showFieldError(field, message) {
+        field.classList.add('error');
+        const errorElement = field.parentNode.querySelector('.form-error');
+        if (errorElement) {
+            errorElement.textContent = message;
+        }
+    }
+
+    clearFieldError(field) {
+        field.classList.remove('error');
+        const errorElement = field.parentNode.querySelector('.form-error');
+        if (errorElement) {
+            errorElement.textContent = '';
+        }
+    }
+
+    clearErrors() {
+        const errorFields = this.form.querySelectorAll('.error');
+        const errorMessages = this.form.querySelectorAll('.form-error');
+        
+        errorFields.forEach(field => field.classList.remove('error'));
+        errorMessages.forEach(msg => msg.textContent = '');
+    }
+
+    isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    generateEmployeeId() {
+        const employeeIdField = document.getElementById('employeeId');
+        if (employeeIdField && !employeeIdField.value) {
+            const id = 'EMP' + Date.now().toString().slice(-6);
+            employeeIdField.value = id;
+        }
+    }
+
+    showPreview() {
+        const previewContent = this.previewCard.querySelector('.preview-content');
+        const formData = new FormData(this.form);
+        let previewHTML = '';
+        
+        // Basic data
+        previewHTML += '<h4><i class="fas fa-user"></i> Dane podstawowe</h4>';
+        previewHTML += `<div class="preview-item"><span class="preview-label">Imię:</span><span class="preview-value">${formData.get('firstName') || '-'}</span></div>`;
+        previewHTML += `<div class="preview-item"><span class="preview-label">Nazwisko:</span><span class="preview-value">${formData.get('lastName') || '-'}</span></div>`;
+        previewHTML += `<div class="preview-item"><span class="preview-label">Email:</span><span class="preview-value">${formData.get('email') || '-'}</span></div>`;
+        previewHTML += `<div class="preview-item"><span class="preview-label">Telefon:</span><span class="preview-value">${formData.get('phone') || '-'}</span></div>`;
+        
+        // Work data
+        previewHTML += '<h4><i class="fas fa-briefcase"></i> Dane zawodowe</h4>';
+        previewHTML += `<div class="preview-item"><span class="preview-label">Stanowisko:</span><span class="preview-value">${formData.get('position') || '-'}</span></div>`;
+        previewHTML += `<div class="preview-item"><span class="preview-label">Dział:</span><span class="preview-value">${this.getDepartmentName(formData.get('department')) || '-'}</span></div>`;
+        previewHTML += `<div class="preview-item"><span class="preview-label">Data rozpoczęcia:</span><span class="preview-value">${formData.get('startDate') || '-'}</span></div>`;
+        previewHTML += `<div class="preview-item"><span class="preview-label">Wynagrodzenie:</span><span class="preview-value">${formData.get('salary') ? formData.get('salary') + ' PLN' : '-'}</span></div>`;
+        
+        // System settings
+        previewHTML += '<h4><i class="fas fa-cogs"></i> Ustawienia systemu</h4>';
+        previewHTML += `<div class="preview-item"><span class="preview-label">ID Pracownika:</span><span class="preview-value">${formData.get('employeeId') || 'Automatycznie generowany'}</span></div>`;
+        previewHTML += `<div class="preview-item"><span class="preview-label">Poziom dostępu:</span><span class="preview-value">${this.getAccessLevelName(formData.get('accessLevel'))}</span></div>`;
+        previewHTML += `<div class="preview-item"><span class="preview-label">Konto aktywne:</span><span class="preview-value">${formData.get('isActive') ? 'Tak' : 'Nie'}</span></div>`;
+        previewHTML += `<div class="preview-item"><span class="preview-label">Powiadomienia email:</span><span class="preview-value">${formData.get('emailNotifications') ? 'Tak' : 'Nie'}</span></div>`;
+        
+        previewContent.innerHTML = previewHTML;
+        this.previewCard.style.display = 'block';
+        
+        // Scroll to preview
+        this.previewCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Setup preview buttons
+        this.setupPreviewButtons();
+    }
+
+    hidePreview() {
+        this.previewCard.style.display = 'none';
+    }
+
+    setupPreviewButtons() {
+        const editBtn = document.getElementById('editPreview');
+        const confirmBtn = document.getElementById('confirmSave');
+        
+        if (editBtn) {
+            editBtn.onclick = () => {
+                this.hidePreview();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+        }
+        
+        if (confirmBtn) {
+            confirmBtn.onclick = () => {
+                this.saveEmployee();
+            };
+        }
+    }
+
+    async saveEmployee() {
+        this.form.classList.add('form-loading');
+        
+        try {
+            // Here would be the actual API call
+            // const response = await fetch('/api/employees', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(Object.fromEntries(new FormData(this.form)))
+            // });
+            
+            // Simulate save process
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            this.showSuccessMessage();
+            this.form.classList.remove('form-loading');
+            this.form.reset();
+            this.hidePreview();
+            this.generateEmployeeId();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+        } catch (error) {
+            console.error('Error saving employee:', error);
+            this.showErrorMessage('Wystąpił błąd podczas zapisywania pracownika.');
+            this.form.classList.remove('form-loading');
+        }
+    }
+
+    showSuccessMessage() {
+        const pageContent = document.querySelector('.page-content');
+        const successMsg = document.createElement('div');
+        successMsg.className = 'success-message';
+        successMsg.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>Pracownik został pomyślnie dodany do systemu!</span>
+        `;
+        
+        pageContent.insertBefore(successMsg, pageContent.firstChild);
+        
+        // Remove success message after 5 seconds
+        setTimeout(() => {
+            if (successMsg.parentNode) {
+                successMsg.remove();
+            }
+        }, 5000);
+    }
+
+    showErrorMessage(message) {
+        const pageContent = document.querySelector('.page-content');
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'success-message';
+        errorMsg.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+        errorMsg.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+        `;
+        
+        pageContent.insertBefore(errorMsg, pageContent.firstChild);
+        
+        // Remove error message after 7 seconds
+        setTimeout(() => {
+            if (errorMsg.parentNode) {
+                errorMsg.remove();
+            }
+        }, 7000);
+    }
+
+    getDepartmentName(value) {
+        const departments = {
+            'it': 'IT',
+            'marketing': 'Marketing',
+            'hr': 'HR',
+            'finance': 'Finanse',
+            'operations': 'Operacje'
+        };
+        return departments[value] || value;
+    }
+
+    getAccessLevelName(value) {
+        const levels = {
+            'basic': 'Podstawowy',
+            'advanced': 'Zaawansowany',
+            'admin': 'Administrator'
+        };
+        return levels[value] || value;
+    }
+}
+
+// Initialize the component
+window.AddEmployee = new AddEmployeeClass();
+</script>

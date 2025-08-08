@@ -1,0 +1,726 @@
+<!-- MOBILE CONFIG COMPONENT -->
+<div class="mobile-config-component" id="mobile-config-component">
+    <style>
+        /* Mobile Config Component Styles */
+        .mobile-config-component {
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .config-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .config-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+        }
+
+        .config-header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .config-section {
+            background: white;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .config-section h2 {
+            margin: 0 0 1.5rem 0;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .config-row:last-child {
+            border-bottom: none;
+        }
+
+        .config-info {
+            flex: 1;
+        }
+
+        .config-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .config-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* Toggle Switch Styles */
+        .toggle-container {
+            flex-shrink: 0;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ccc;
+            transition: all 0.3s ease;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        .toggle-switch input:focus + .toggle-slider {
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Version Management */
+        .version-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .version-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .version-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 5px;
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+        }
+
+        .btn-test {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .mobile-config-component {
+                padding: 10px;
+            }
+
+            .config-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .toggle-container {
+                align-self: flex-end;
+            }
+
+            .config-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Active Settings Counter */
+        .active-counter {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #28a745;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .config-section {
+            position: relative;
+        }
+    </style>
+
+    <!-- Header -->
+    <div class="config-header">
+        <h1><i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji Mobilnej</h1>
+        <p>Zarządzaj ustawieniami aplikacji mobilnej Lista Obecności</p>
+    </div>
+
+    <!-- Stats Panel -->
+    <div class="stats-panel">
+        <h3><i class="fas fa-chart-line"></i> Status Systemu</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" id="active-settings-count">0</div>
+                <div class="stat-label">Aktywne ustawienia</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="config-version-display">-</div>
+                <div class="stat-label">Wersja konfiguracji</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="server-status">🔄</div>
+                <div class="stat-label">Status serwera</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interface Section -->
+    <div class="config-section">
+        <h2><i class="fas fa-desktop"></i> Interfejs i Wyświetlanie</h2>
+        <div class="active-counter" id="interface-counter">0</div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Timer pracy</div>
+                <div class="config-description">Wyświetla licznik czasu od rozpoczęcia pracy na głównym ekranie</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="timer_enabled">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Statystyki dzienne</div>
+                <div class="config-description">Pokazuje podsumowanie pracy z bieżącego dnia w aplikacji</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="daily_stats">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Statystyki miesięczne</div>
+                <div class="config-description">Wyświetla podsumowanie miesięczne czasu pracy</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="monthly_stats">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Section -->
+    <div class="config-section">
+        <h2><i class="fas fa-shield-alt"></i> Bezpieczeństwo</h2>
+        <div class="active-counter" id="security-counter">0</div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Blokada pól podczas pracy</div>
+                <div class="config-description">Zablokuj edycję numeru pracownika podczas trwającej pracy</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="field_blocking">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Weryfikacja GPS</div>
+                <div class="config-description">Wymagaj aktywnej lokalizacji do rejestracji obecności</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="gps_verification">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="config-section">
+        <h2><i class="fas fa-star"></i> Funkcje</h2>
+        <div class="active-counter" id="features-counter">0</div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Wsparcie widgetów</div>
+                <div class="config-description">Umożliwia dodanie widgetu na ekran główny telefonu</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="widget_support">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Powiadomienia</div>
+                <div class="config-description">Wysyła powiadomienia o ważnych wydarzeniach</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="notifications">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Tryb offline</div>
+                <div class="config-description">Umożliwia ograniczoną pracę bez połączenia internetowego</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="offline_mode">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Section -->
+    <div class="config-section">
+        <h2><i class="fas fa-cogs"></i> Zaawansowane</h2>
+        <div class="active-counter" id="advanced-counter">0</div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Tryb debugowania</div>
+                <div class="config-description">Pokazuje dodatkowe informacje techniczne i diagnostyczne</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="debug_mode">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Auto-aktualizacje</div>
+                <div class="config-description">Automatyczne sprawdzanie i powiadomienia o aktualizacjach</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="auto_updates">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="config-row">
+            <div class="config-info">
+                <div class="config-label">Wymuś aktualizację</div>
+                <div class="config-description">Wymuś aktualizację dla wszystkich użytkowników aplikacji</div>
+            </div>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="forceUpdate">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Version Management -->
+    <div class="config-section">
+        <h2><i class="fas fa-mobile-alt"></i> Zarządzanie Wersją</h2>
+        
+        <div class="version-section">
+            <h4><i class="fas fa-info-circle"></i> Informacje o wersji aplikacji</h4>
+            <div style="margin-bottom: 15px;">
+                <strong>URL do Play Store:</strong><br>
+                <input type="text" id="playStoreUrl" class="version-input" placeholder="https://play.google.com/store/apps/details?id=...">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <strong>Komunikat o aktualizacji:</strong><br>
+                <textarea id="updateMessage" class="version-textarea" placeholder="Dostępna nowa wersja aplikacji z nowymi funkcjami..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="text-align: center; margin: 2rem 0;">
+        <button class="btn btn-test" onclick="MobileConfig.testConfiguration()">
+            <i class="fas fa-flask"></i> Przetestuj Konfigurację
+        </button>
+        <button class="btn btn-success" onclick="MobileConfig.saveConfiguration()">
+            <i class="fas fa-save"></i> Zapisz Konfigurację
+        </button>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="info-panel">
+        <h3><i class="fas fa-info-circle"></i> Informacje o konfiguracji</h3>
+        <p><strong>Ostatnia aktualizacja:</strong> <span id="last-update">Ładowanie...</span></p>
+        <p><strong>Aktywnych ustawień:</strong> <span id="total-active-settings">0</span> z 11</p>
+        <div id="result-message" style="margin-top: 15px;"></div>
+    </div>
+</div>
+
+<script>
+class MobileConfigClass {
+    constructor() {
+        this.currentConfig = {};
+        this.configFields = [
+            'timer_enabled', 'daily_stats', 'monthly_stats', 'field_blocking',
+            'gps_verification', 'widget_support', 'notifications', 'offline_mode',
+            'debug_mode', 'auto_updates', 'forceUpdate'
+        ];
+        this.init();
+    }
+
+    init() {
+        // Auto-initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.loadConfiguration();
+                this.setupEventListeners();
+            });
+        } else {
+            this.loadConfiguration();
+            this.setupEventListeners();
+        }
+    }
+
+    setupEventListeners() {
+        // Add change listeners to all checkboxes
+        this.configFields.forEach(field => {
+            const checkbox = document.getElementById(field);
+            if (checkbox) {
+                checkbox.addEventListener('change', () => this.updateCounters());
+            }
+        });
+    }
+
+    async loadConfiguration() {
+        try {
+            document.getElementById('server-status').textContent = '🔄';
+            console.log('Pobieranie konfiguracji mobilnej...');
+            
+            const response = await fetch('/api/mobile-config');
+            if (!response.ok) {
+                throw new Error(`Błąd serwera: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('Otrzymane dane:', data);
+            
+            if (!data || !data.config) {
+                throw new Error('Nieprawidłowy format danych - brak obiektu config');
+            }
+            
+            this.currentConfig = data.config;
+            
+            // Fill form with current configuration
+            this.configFields.forEach(key => {
+                const checkbox = document.getElementById(key);
+                if (checkbox && this.currentConfig.hasOwnProperty(key)) {
+                    checkbox.checked = this.currentConfig[key];
+                }
+            });
+            
+            // Update version info
+            if (data.version_info) {
+                document.getElementById('playStoreUrl').value = data.version_info.play_store_url || '';
+                document.getElementById('updateMessage').value = data.version_info.update_message || '';
+            }
+            
+            // Update info displays
+            document.getElementById('config-version-display').textContent = data.config_version || '1.0';
+            document.getElementById('last-update').textContent = data.last_update || 'Nieznana';
+            document.getElementById('server-status').textContent = '✅';
+            
+            this.updateCounters();
+            this.showMessage('Konfiguracja załadowana pomyślnie!', 'success');
+            
+        } catch (error) {
+            console.error('Błąd ładowania konfiguracji:', error);
+            document.getElementById('server-status').textContent = '❌';
+            this.showMessage(`Błąd ładowania konfiguracji: ${error.message}`, 'error');
+        }
+    }
+
+    updateCounters() {
+        const sections = {
+            'interface': ['timer_enabled', 'daily_stats', 'monthly_stats'],
+            'security': ['field_blocking', 'gps_verification'],
+            'features': ['widget_support', 'notifications', 'offline_mode'],
+            'advanced': ['debug_mode', 'auto_updates', 'forceUpdate']
+        };
+
+        let totalActive = 0;
+
+        Object.keys(sections).forEach(sectionName => {
+            const fields = sections[sectionName];
+            const activeCount = fields.filter(field => {
+                const checkbox = document.getElementById(field);
+                return checkbox && checkbox.checked;
+            }).length;
+
+            const counter = document.getElementById(`${sectionName}-counter`);
+            if (counter) {
+                counter.textContent = activeCount;
+            }
+
+            totalActive += activeCount;
+        });
+
+        document.getElementById('active-settings-count').textContent = totalActive;
+        document.getElementById('total-active-settings').textContent = totalActive;
+    }
+
+    async testConfiguration() {
+        try {
+            this.showMessage('🧪 Testowanie konfiguracji...', 'info');
+            
+            const testConfig = this.gatherConfiguration();
+            
+            const response = await fetch('/api/mobile-config/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(testConfig)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                let message = '✅ Test konfiguracji zakończony pomyślnie!\n\n';
+                message += `Aktywne ustawienia: ${Object.values(testConfig.config).filter(v => v).length}\n`;
+                message += `Tryb wymuszenia aktualizacji: ${testConfig.config.forceUpdate ? 'WŁĄCZONY' : 'wyłączony'}\n`;
+                message += `Status: Gotowa do zapisania`;
+                
+                this.showMessage(message, 'success');
+            } else {
+                this.showMessage(`❌ Błąd testu: ${result.detail || 'Nieznany błąd'}`, 'error');
+            }
+            
+        } catch (error) {
+            this.showMessage(`❌ Błąd testowania: ${error.message}`, 'error');
+        }
+    }
+
+    async saveConfiguration() {
+        try {
+            this.showMessage('💾 Zapisywanie konfiguracji...', 'info');
+            
+            const configData = this.gatherConfiguration();
+            
+            const response = await fetch('/api/mobile-config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(configData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                this.currentConfig = configData.config;
+                
+                let message = '✅ Konfiguracja została zapisana pomyślnie!\n\n';
+                message += `Aktywne ustawienia: ${Object.values(configData.config).filter(v => v).length} z 11\n`;
+                message += `Nowa wersja konfiguracji: ${result.config_version || 'nieznana'}`;
+                
+                this.showMessage(message, 'success');
+                
+                // Update displays
+                document.getElementById('config-version-display').textContent = result.config_version || '1.0';
+                document.getElementById('last-update').textContent = new Date().toLocaleString('pl-PL');
+                
+            } else {
+                this.showMessage(`❌ Błąd zapisywania: ${result.detail || 'Nieznany błąd'}`, 'error');
+            }
+            
+        } catch (error) {
+            this.showMessage(`❌ Błąd zapisywania: ${error.message}`, 'error');
+        }
+    }
+
+    gatherConfiguration() {
+        const config = {};
+        
+        this.configFields.forEach(key => {
+            const checkbox = document.getElementById(key);
+            config[key] = checkbox ? checkbox.checked : false;
+        });
+        
+        return {
+            config: config,
+            version_info: {
+                play_store_url: document.getElementById('playStoreUrl').value,
+                update_message: document.getElementById('updateMessage').value
+            }
+        };
+    }
+
+    showMessage(message, type) {
+        const container = document.getElementById('result-message');
+        const className = type === 'success' ? 'alert alert-success' : 
+                        type === 'error' ? 'alert alert-danger' : 'alert alert-info';
+        
+        container.innerHTML = `<div class="${className}" style="padding: 15px; border-radius: 8px; margin: 10px 0;">${message.replace(/\n/g, '<br>')}</div>`;
+        
+        // Auto-hide success messages after 5 seconds
+        if (type === 'success') {
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    }
+}
+
+// Initialize the component
+window.MobileConfig = new MobileConfigClass();
+</script>
