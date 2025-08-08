@@ -1,0 +1,41 @@
+<!-- Nowe menu górne - jaśniejsze i nowocześniejsze -->
+<nav class="top-navbar">
+  <div class="navbar-container">
+    <a href="index.html" class="navbar-brand">
+      <i class="fas fa-users"></i> Lista Obecności
+    </a>
+    
+    <button class="navbar-toggler" id="navbar-toggler" aria-label="Przełącz nawigację">
+      <i class="fas fa-bars"></i>
+    </button>
+    
+    <div class="navbar-collapse" id="navbarContent">
+      <ul class="navbar-links">
+        <li><a href="index.html" id="nav-dashboard"><i class="fas fa-tachometer-alt"></i> Pulpit</a></li>
+        <li><a href="employees.html" id="nav-team"><i class="fas fa-users"></i> Zespół</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" id="obecnoscDropdown">
+            <i class="fas fa-calendar-check"></i> Obecność <i class="fas fa-chevron-down ml-1"></i>
+          </a>
+          <div class="dropdown-menu">
+            <a href="attendance_day.html" id="nav-day"><i class="fas fa-calendar-day"></i> Dzień</a>
+            <a href="attendance_summary.html" id="nav-summary"><i class="fas fa-chart-bar"></i> Ewidencja</a>
+          </div>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" id="konfiguracjaDropdown">
+            <i class="fas fa-cog"></i> Konfiguracja <i class="fas fa-chevron-down ml-1"></i>
+          </a>
+          <div class="dropdown-menu">
+            <a href="mobile_config.html" id="nav-mobile-config"><i class="fas fa-mobile-alt"></i> Konfiguracja Aplikacji</a>
+            <a href="time_rounding.html" id="nav-time"><i class="fas fa-clock"></i> Zaokrąglanie Czasu Pracy</a>
+            <a href="app_version_management.html" id="nav-versions"><i class="fas fa-code-branch"></i> Zarządzanie wersji mobilnej</a>
+          </div>
+        </li>
+        <li><a href="terminal.html" id="nav-terminal"><i class="fas fa-terminal"></i> Terminal</a></li>
+        <li><a href="#" onclick="logout()" style="color: #e11d48;"><i class="fas fa-sign-out-alt"></i> Wyloguj</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div class="nav-overlay" id="navOverlay"></div>
