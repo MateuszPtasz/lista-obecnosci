@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nowy Dashboard — Lista Obecności</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root{
+      --brand:#2563eb; --brand-700:#1e40af; --brand-soft: rgba(37,99,235,.06);
+      --bg:#f5f7fb; --card:#ffffff; --border:#e9ecef; --text:#111827;
+    }
+    html,body{ height:100%; }
+    body{ margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(37,99,235,.08), transparent),
+      radial-gradient(800px 400px at 110% 10%, rgba(37,99,235,.06), transparent), var(--bg);
+      color:var(--text);
+    }
+    .shell{ max-width:1280px; margin:0 auto; padding:20px 20px 40px; }
+
+    /* Top Hero */
+    .hero{ position:sticky; top:0; z-index:5; margin:-10px 0 18px; padding:16px 18px; border-radius:16px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-700)); color:#fff;
+      box-shadow:0 10px 30px rgba(37,99,235,.25); display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .hero h1{ margin:0; font-size:20px; font-weight:800; letter-spacing:.2px; display:flex; align-items:center; gap:10px; }
+    .hero .actions{ display:flex; gap:10px; flex-wrap:wrap; }
+    .btn{ padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.12); color:#fff;
+      backdrop-filter: blur(6px); cursor:pointer; display:flex; align-items:center; gap:8px; transition:.15s ease; text-decoration:none; }
+    .btn:hover{ background:rgba(255,255,255,.18); transform: translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.12); }
+
+    /* Grid */
+    .grid{ display:grid; gap:16px; }
+    .grid-2{ grid-template-columns: 1.1fr .9fr; }
+    .grid-3{ grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 1100px){ .grid-2{ grid-template-columns:1fr; } }
+    @media (max-width: 900px){ .grid-3{ grid-template-columns:1fr; } }
+
+    .card{ background: rgba(255,255,255,.92); border:1px solid var(--border); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06); overflow:hidden; }
+    .card-h{ padding:16px 18px; border-bottom:1px solid #edf2f7; display:flex; align-items:center; gap:10px; background:linear-gradient(180deg,#ffffff, #f9fbff); }
+    .card-h h2{ margin:0; font-size:16px; font-weight:800; display:flex; align-items:center; gap:8px; color:#1f2937; }
+    .card-b{ padding:16px 18px; }
+
+    .placeholder{ padding:24px; text-align:center; color:#6b7280; }
+    .kpis{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
+    .kpi{ background:#fff; border:1px solid var(--border); border-radius:14px; padding:14px; display:flex; align-items:center; gap:12px; box-shadow:0 8px 22px rgba(0,0,0,.05); }
+    .kpi .icon{ width:40px; height:40px; border-radius:12px; background:var(--brand-soft); color:var(--brand-700); display:flex; align-items:center; justify-content:center; }
+    .kpi .meta{ line-height:1.2; }
+    .kpi .label{ font-size:12px; color:#6b7280; }
+    .kpi .value{ font-size:20px; font-weight:800; color:#111827; }
+
+    .twocol{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    @media (max-width: 900px){ .twocol{ grid-template-columns:1fr; } }
+
+    .footer-note{ margin-top:18px; color:#6b7280; font-size:12px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="hero">
+      <h1><i class="fas fa-gauge-high"></i> Nowy Dashboard</h1>
+      <div class="actions">
+        <a class="btn" href="employees.html"><i class="fas fa-user-plus"></i> Zespół</a>
+        <a class="btn" href="attendance_summary.html"><i class="fas fa-chart-bar"></i> Ewidencja</a>
+        <a class="btn" href="mobile_config.html"><i class="fas fa-mobile-screen"></i> Mobilne</a>
+        <a class="btn" href="terminal.html"><i class="fas fa-terminal"></i> Terminal</a>
+      </div>
+    </div>
+
+    <!-- KPI + Statusy szybkie (stats-overview) -->
+    <section class="card">
+      <div class="card-h"><h2><i class="fas fa-chart-simple"></i> Podstawowe wskaźniki</h2></div>
+      <div class="card-b" id="kpis-root">
+        <div class="kpis">
+          <div class="kpi"><div class="icon"><i class="fas fa-users"></i></div><div class="meta"><div class="label">Pracownicy</div><div class="value" id="kpi-workers">—</div></div></div>
+          <div class="kpi"><div class="icon"><i class="fas fa-person-digging"></i></div><div class="meta"><div class="label">W pracy teraz</div><div class="value" id="kpi-active">—</div></div></div>
+          <div class="kpi"><div class="icon"><i class="fas fa-clock"></i></div><div class="meta"><div class="label">Śr. godz./dzień</div><div class="value" id="kpi-avg">—</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Główna siatka: lewa (status/search + active-workers), prawa (calendar + recent) -->
+    <section class="grid grid-2" style="margin-top:16px;">
+      <div class="stackL">
+        <div class="card">
+          <div class="card-h"><h2><i class="fas fa-magnifying-glass"></i> Status pracowników</h2></div>
+          <div class="card-b" id="status-search-root"><div class="placeholder"><i class="fas fa-spinner fa-spin"></i> Ładowanie...</div></div>
+        </div>
+        <div class="card" style="margin-top:12px;">
+          <div class="card-h"><h2><i class="fas fa-user-check"></i> Aktywni pracownicy</h2></div>
+          <div class="card-b" id="active-workers-root"><div class="placeholder"><i class="fas fa-spinner fa-spin"></i> Ładowanie...</div></div>
+        </div>
+      </div>
+      <div class="stackR">
+        <div class="card">
+          <div class="card-h"><h2><i class="fas fa-calendar-alt"></i> Kalendarz</h2></div>
+          <div class="card-b" id="calendar-root"><div class="placeholder"><i class="fas fa-spinner fa-spin"></i> Ładowanie...</div></div>
+        </div>
+        <div class="card" style="margin-top:12px;">
+          <div class="card-h"><h2><i class="fas fa-wave-square"></i> Ostatnie aktywności</h2></div>
+          <div class="card-b" id="recent-root"><div class="placeholder"><i class="fas fa-spinner fa-spin"></i> Ładowanie...</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terminal (opcjonalnie) -->
+    <section class="card" style="margin-top:16px;">
+      <div class="card-h"><h2><i class="fas fa-terminal"></i> Terminal administracyjny</h2></div>
+      <div class="card-b" id="terminal-root"><div class="placeholder"><i class="fas fa-spinner fa-spin"></i> Ładowanie...</div></div>
+    </section>
+
+    <div class="footer-note">UI w wersji eksperymentalnej. Docelowo zastąpi legacy index.html.</div>
+  </div>
+
+  <script>
+    // Helper: bezpieczne doładowanie komponentu + ewentualna inicjalizacja
+    async function loadComponent(targetId, componentPath, initName){
+      const root = document.getElementById(targetId);
+      try{
+        const res = await fetch(componentPath, { cache:'no-store' });
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const html = await res.text();
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const scripts = Array.from(tmp.querySelectorAll('script'));
+        scripts.forEach(s=>s.remove());
+        root.innerHTML = tmp.innerHTML;
+        for(const s of scripts){
+          const ns = document.createElement('script');
+          ns.textContent = s.textContent;
+          document.body.appendChild(ns);
+        }
+        if(initName && window[initName]?.init){ window[initName].init(); }
+      }catch(err){
+        root.innerHTML = `<div style="color:#e74c3c;">Błąd ładowania komponentu (${componentPath}): ${err.message}</div>`;
+        if(window.StatusMessage?.error){ StatusMessage.error('Błąd ładowania: '+componentPath); }
+      }
+    }
+
+    // KPI: prosty fetch do istniejących endpointów (fallback bez twardych zależności)
+    async function loadKpis(){
+      const set = (id,val)=>{ const el = document.getElementById(id); if(el) el.textContent = val; };
+      try{
+        const [workersRes, activeRes] = await Promise.all([
+          fetch('/api/workers', { credentials:'include' }),
+          fetch('/api/active_workers', { credentials:'include' })
+        ]);
+        let workers = 0, active = 0;
+        if(workersRes.ok){ const data = await workersRes.json(); workers = Array.isArray(data)? data.length : (data.count||0); }
+        if(activeRes.ok){ const data = await activeRes.json(); active = Array.isArray(data)? data.length : (data.count||0); }
+        set('kpi-workers', workers || '—');
+        set('kpi-active', active || '—');
+        // Średnia godzin/dzień — jeśli nie ma API, zostawiamy placeholder
+        set('kpi-avg', '—');
+      }catch(e){ set('kpi-workers','—'); set('kpi-active','—'); set('kpi-avg','—'); }
+    }
+
+    (async function init(){
+      // Globalny system komunikatów (opcjonalny, ale przydatny na dashboardzie)
+      await loadComponent('terminal-root', './components/common/status-message.html');
+      // Załaduj layoutowe komponenty
+      loadKpis();
+      loadComponent('status-search-root', './components/dashboard/worker-status-search.html', 'WorkerStatusSearchComponent');
+      loadComponent('active-workers-root', './components/dashboard/active-workers.html');
+      loadComponent('calendar-root', './components/dashboard/calendar-widget.html');
+      loadComponent('recent-root', './components/dashboard/recent-activity.html');
+      loadComponent('terminal-root', './components/dashboard/terminal.html');
+    })();
+  </script>
+</body>
+</html>
