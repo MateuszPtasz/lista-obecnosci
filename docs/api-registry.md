@@ -4,7 +4,7 @@
 
 ### 💬 Status Message Component API
 **Komponent**: `frontend/components/common/status-message.html`  
-**Strona testowa**: `frontend/test-status-message.html`
+**Strona testowa**: `frontend/status-message-test.html`
 
 **Specjalność**: Komponent nie wymaga dedykowanych endpointów API
 - **Funkcja**: Uniwersalny system wyświetlania komunikatów systemowych

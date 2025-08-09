@@ -330,28 +330,33 @@
 
         async function loadCurrentVersion() {
             try {
-                const response = await fetch('/app-version');
+                // Używaj spójnego endpointu API i wysyłaj cookies
+                const response = await fetch('/api/app-version', { credentials: 'include' });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
-                
-                document.getElementById('current-version-display').textContent = data.version_info.current_version;
-                document.getElementById('minimum-version-display').textContent = data.version_info.minimum_version;
-                document.getElementById('config-version-display').textContent = data.config_version;
-                
-                const updateStatus = data.version_info.update_required ? 'WYMAGANA' : 'OPCJONALNA';
+
+                const vi = data.version_info || data || {};
+                document.getElementById('current-version-display').textContent = vi.current_version ?? '-';
+                document.getElementById('minimum-version-display').textContent = vi.minimum_version ?? '-';
+                document.getElementById('config-version-display').textContent = data.config_version ?? '-';
+
+                const updateStatus = vi.update_required ? 'WYMAGANA' : 'OPCJONALNA';
                 document.getElementById('update-status-display').textContent = updateStatus;
-                
+
                 // Wypełnij formularz aktualnymi danymi
-                document.getElementById('new-version').value = data.version_info.current_version;
-                document.getElementById('min-version').value = data.version_info.minimum_version;
-                document.getElementById('play-store-url').value = data.version_info.play_store_url;
-                document.getElementById('update-message').value = data.version_info.update_message;
-                document.getElementById('force-update').checked = data.version_info.update_required;
-                
+                document.getElementById('new-version').value = vi.current_version ?? '';
+                document.getElementById('min-version').value = vi.minimum_version ?? '';
+                document.getElementById('play-store-url').value = vi.play_store_url ?? '';
+                document.getElementById('update-message').value = vi.update_message ?? '';
+                document.getElementById('force-update').checked = !!vi.update_required;
+
                 // Załaduj funkcje
-                features = data.version_info.update_features || [''];
+                features = Array.isArray(vi.update_features) ? vi.update_features : [''];
                 renderFeatures();
-                
+
                 showMessage('✅ Załadowano aktualną konfigurację', 'success');
+                // Opcjonalnie odśwież historię
+                loadVersionHistory();
             } catch (error) {
                 showMessage('❌ Błąd ładowania konfiguracji: ' + error.message, 'error');
             }
@@ -373,7 +378,7 @@
         function renderFeatures() {
             const container = document.getElementById('feature-list');
             container.innerHTML = '';
-            
+
             features.forEach((feature, index) => {
                 const div = document.createElement('div');
                 div.className = 'feature-item';
@@ -402,54 +407,56 @@
             const playStoreUrl = document.getElementById('play-store-url').value;
             const updateMessage = document.getElementById('update-message').value;
             const forceUpdate = document.getElementById('force-update').checked;
-            
+
             // Walidacja
             if (!newVersion || !minVersion || !playStoreUrl || !updateMessage) {
                 showMessage('❌ Wypełnij wszystkie wymagane pola!', 'error');
                 return;
             }
-            
+
             if (!isValidVersion(newVersion) || !isValidVersion(minVersion)) {
                 showMessage('❌ Nieprawidłowy format wersji! Użyj formatu X.Y.Z (np. 1.2.3)', 'error');
                 return;
             }
-            
+
             const filteredFeatures = features.filter(f => f.trim() !== '');
             if (filteredFeatures.length === 0) {
                 showMessage('❌ Dodaj przynajmniej jedną nową funkcję!', 'error');
                 return;
             }
-            
+
             const configData = {
                 APP_VERSION_INFO: {
                     current_version: newVersion,
                     minimum_version: minVersion,
-                    update_required: forceUpdate,
+                    update_required: !!forceUpdate,
                     update_message: updateMessage,
                     play_store_url: playStoreUrl,
                     update_features: filteredFeatures
                 }
             };
-            
+
             try {
                 showMessage('💾 Zapisywanie konfiguracji...', 'info');
-                
+
+                // Zapis wersji odbywa się poprzez endpoint /mobile-config (server obsługuje APP_VERSION_INFO tutaj)
                 const response = await fetch('/mobile-config', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include',
                     body: JSON.stringify(configData)
                 });
-                
-                const result = await response.json();
-                
+
+                const result = await response.json().catch(() => ({}));
+
                 if (response.ok) {
                     showMessage('✅ Konfiguracja została zapisana! Nowe ustawienia są już aktywne.', 'success');
                     loadCurrentVersion(); // Odśwież status
                     loadVersionHistory(); // Odśwież historię
                 } else {
-                    showMessage('❌ Błąd zapisywania: ' + (result.detail || 'Nieznany błąd'), 'error');
+                    showMessage('❌ Błąd zapisywania: ' + (result.detail || result.message || 'Nieznany błąd'), 'error');
                 }
             } catch (error) {
                 showMessage('❌ Błąd sieci: ' + error.message, 'error');
@@ -458,37 +465,67 @@
 
         async function testVersion() {
             const newVersion = document.getElementById('new-version').value;
-            
+
             if (!newVersion || !isValidVersion(newVersion)) {
                 showMessage('❌ Wprowadź prawidłową wersję do testowania!', 'error');
                 return;
             }
-            
+
             try {
                 showMessage('🧪 Testowanie konfiguracji...', 'info');
-                
-                const response = await fetch('/app-version/check', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        current_version: newVersion
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    let message = `🧪 Test dla wersji ${newVersion}:\n`;
-                    message += `• Aktualizacja dostępna: ${result.update_available ? 'TAK' : 'NIE'}\n`;
-                    message += `• Aktualizacja wymagana: ${result.update_required ? 'TAK' : 'NIE'}\n`;
-                    message += `• Najnowsza wersja: ${result.latest_version}`;
-                    
-                    showMessage(message, 'info');
-                } else {
-                    showMessage('❌ Błąd testowania: ' + (result.detail || 'Nieznany błąd'), 'error');
+
+                // Najpierw spróbuj dedykowanego endpointu check (może nie być dostępny w każdej wersji serwera)
+                let result;
+                let usedServerCheck = false;
+                try {
+                    let resp = await fetch('/api/app-version/check', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ current_version: newVersion })
+                    });
+                    if (!resp.ok) {
+                        // Spróbuj starszej ścieżki
+                        resp = await fetch('/app-version/check', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ current_version: newVersion })
+                        });
+                    }
+                    if (resp.ok) {
+                        result = await resp.json();
+                        usedServerCheck = true;
+                    }
+                } catch {}
+
+                // Jeśli endpoint check nie istnieje, policz lokalnie na podstawie /api/app-version
+                if (!result) {
+                    const res = await fetch('/api/app-version', { credentials: 'include' });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const data = await res.json();
+                    const vi = data.version_info || data || {};
+
+                    const cmp = compareVersions(newVersion, vi.current_version || '0.0.0');
+                    const update_available = cmp < 0; // jeśli nowa < aktualna, to aktualizacja dostępna (dla urządzenia z nową?)
+                    const minCmp = compareVersions(newVersion, vi.minimum_version || '0.0.0');
+                    const update_required = minCmp < 0; // jeśli nowa < minimalna, to wymagaj aktualizacji
+
+                    result = {
+                        update_available,
+                        update_required,
+                        latest_version: vi.current_version || '-',
+                        play_store_url: vi.play_store_url || null,
+                        update_message: vi.update_message || null
+                    };
                 }
+
+                let message = `🧪 Test dla wersji ${newVersion}:\n`;
+                message += `• Aktualizacja dostępna: ${result.update_available ? 'TAK' : 'NIE'}\n`;
+                message += `• Aktualizacja wymagana: ${result.update_required ? 'TAK' : 'NIE'}\n`;
+                message += `• Najnowsza wersja: ${result.latest_version ?? '-'}${usedServerCheck ? ' (server)' : ' (local calc)'}`;
+
+                showMessage(message, 'info');
             } catch (error) {
                 showMessage('❌ Błąd testowania: ' + error.message, 'error');
             }
@@ -498,13 +535,24 @@
             return /^[0-9]+\.[0-9]+\.[0-9]+$/.test(version);
         }
 
+        function compareVersions(a, b) {
+            // Zwraca 1 jeśli a>b, -1 jeśli a<b, 0 jeśli równy
+            const pa = (a || '0.0.0').split('.').map(n => parseInt(n, 10) || 0);
+            const pb = (b || '0.0.0').split('.').map(n => parseInt(n, 10) || 0);
+            for (let i = 0; i < 3; i++) {
+                if (pa[i] > pb[i]) return 1;
+                if (pa[i] < pb[i]) return -1;
+            }
+            return 0;
+        }
+
         function showMessage(message, type) {
             const container = document.getElementById('result-message');
             const className = type === 'success' ? 'success-box' : 
                             type === 'error' ? 'error-box' : 'warning-box';
-            
+
             container.innerHTML = `<div class="${className}">${message.replace(/\n/g, '<br>')}</div>`;
-            
+
             // Auto-hide po 5 sekundach dla success
             if (type === 'success') {
                 setTimeout(() => {

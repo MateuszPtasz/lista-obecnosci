@@ -316,11 +316,15 @@
     // Załaduj aktualną konfigurację zaokrąglania
     async function loadRoundingConfiguration() {
       try {
-        const response = await fetch('/api/time-rounding-config');
-        if (!response.ok) throw new Error('Błąd serwera');
-        
+        const response = await fetch('/api/time-rounding-config', { credentials: 'include' });
+        if (!response.ok) throw new Error('Błąd serwera ' + response.status);
         const data = await response.json();
-        currentRoundingConfig = data.config;
+        // Obsługa różnych formatów odpowiedzi
+        const cfg = (data && (data.config || data.TIME_ROUNDING_CONFIG)) ? (data.config || data.TIME_ROUNDING_CONFIG) : (data || {});
+        // Ujednolicenie nazw pól (wsteczna kompatybilność)
+        if (cfg.interval_minutes && !cfg.rounding_minutes) cfg.rounding_minutes = cfg.interval_minutes;
+        if (cfg.direction && !cfg.rounding_direction) cfg.rounding_direction = cfg.direction;
+        currentRoundingConfig = cfg;
         
         // Wypełnij formularz
         Object.keys(currentRoundingConfig).forEach(key => {
@@ -367,7 +371,7 @@
         ['rounding_minutes', 'max_early_minutes', 'max_late_minutes'].forEach(key => {
           const element = document.getElementById(key);
           if (element) {
-            newConfig[key] = parseInt(element.value);
+            newConfig[key] = parseInt(element.value, 10);
           }
         });
         
@@ -377,27 +381,32 @@
           newConfig['rounding_direction'] = directionElement.value;
         }
         
+        // Mapowanie dla wstecznej kompatybilności backendu
+        newConfig['interval_minutes'] = newConfig.rounding_minutes;
+        newConfig['direction'] = newConfig.rounding_direction;
+        
         // Wyślij do serwera
         const response = await fetch('/api/time-rounding-config', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(newConfig)
         });
         
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.detail || 'Błąd serwera');
+          // Spróbuj odczytać JSON, jak się nie uda to zwykły tekst
+          let errorText = 'Błąd serwera ' + response.status;
+          try { const e = await response.json(); errorText = e.detail || JSON.stringify(e); } catch {}
+          throw new Error(errorText);
         }
         
-        const result = await response.json();
-        const newVersion = result.new_version || result.version || 'Nieznana';
-        showMessage(`✅ Konfiguracja zaokrąglania została zapisana! Wersja: ${newVersion}`, 'success');
+        // Odpowiedź może mieć różny format; nie polegamy na new_version
+        const result = await response.json().catch(() => ({}));
+        currentRoundingConfig = (result.config || result.TIME_ROUNDING_CONFIG || newConfig);
+        showMessage('✅ Konfiguracja zaokrąglania została zapisana.', 'success');
         
-        // Aktualizuj przykłady
-        currentRoundingConfig = newConfig;
-        updateRoundingExamples();
+        // Odśwież formularz z serwera (żeby mieć aktualny stan)
+        await loadRoundingConfiguration();
         
       } catch (error) {
         console.error('Błąd zapisywania:', error);
@@ -538,7 +547,7 @@
       loadRoundingConfiguration();
       
       // Aktualizuj przykłady przy zmianie ustawień
-      ['rounding_minutes', 'rounding_direction', 'enabled'].forEach(id => {
+      ['rounding_minutes', 'rounding_direction', 'enabled', 'start_time_rounding', 'end_time_rounding', 'apply_to_breaks'].forEach(id => {
         const element = document.getElementById(id);
         if (element) {
           element.addEventListener('change', updateRoundingExamples);

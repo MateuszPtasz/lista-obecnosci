@@ -40,11 +40,20 @@ frontend/
 - employee-details.html — Szczegóły pracownika (GET /api/attendance_details, PATCH/DELETE /api/logs/{id})
   - test: frontend/employee-details-test.html
 
+### Config (`/components/config/`)
+- mobile-config.html — konfiguracja aplikacji mobilnej (sekcje: czasowe, bezpieczeństwo, interfejs, zaawansowane, aktualizacje)
+  - test: frontend/mobile-config-test.html
+
+### Common (`/components/common/`)
+- status-message.html — System komunikatów (success/error/warning/info/loading; updateProgress/updateMessage/hide/hideAll)
+  - test: frontend/status-message-test.html
+
 ## 🌐 API używane przez komponenty
 - GET /api/workers; POST /api/workers; PUT /api/worker/{id}; DELETE /api/workers/{id}; DELETE /api/workers/batch; POST /api/import_employees_csv
 - POST /api/start; POST /api/stop; POST /api/admin/force-stop
 - GET /api/workers/status; GET /api/active_workers
 - GET /api/attendance_by_date; GET /api/attendance_summary; GET /api/attendance_details; GET /api/employees_without_logs; POST /api/logs/batch; PATCH/DELETE /api/logs/{id}
+- GET /api/mobile-config; POST /api/mobile-config; GET /api/app-version; POST /api/app-version
 
 ## 🧪 Strony testowe
 - frontend/work-test.html — test work-management
@@ -53,6 +62,8 @@ frontend/
 - frontend/attendance-day-test.html — test obecności dnia
 - frontend/attendance-summary-test.html — test ewidencji
 - frontend/employee-details-test.html — test szczegółów pracownika
+- frontend/mobile-config-test.html — test konfiguracji mobilnej
+- frontend/status-message-test.html — test systemu komunikatów
 
 ## 🧱 Wzorzec komponentu (lightweight)
 ```html

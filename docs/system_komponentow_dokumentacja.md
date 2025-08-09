@@ -28,6 +28,14 @@ Obecność:
 - components/attendance/employee-details.html — Szczegóły pracownika (lista wpisów, edycja, hurtowa edycja, eksporty)
   - test: frontend/employee-details-test.html
 
+Konfiguracja:
+- components/config/mobile-config.html — Konfiguracja aplikacji mobilnej (przełączniki funkcji, bezpieczeństwo, interfejs, zaawansowane, aktualizacje)
+  - test: frontend/mobile-config-test.html
+
+Wspólne:
+- components/common/status-message.html — System komunikatów (StatusMessage: success/error/warning/info/loading; hide/hideAll; updateProgress/updateMessage/completeLoading)
+  - test: frontend/status-message-test.html
+
 ## API wykorzystywane przez komponenty
 
 Pracownicy:
@@ -52,6 +60,12 @@ Obecność:
 - PATCH /api/logs/{id} — edycja wpisu (czas/typ dnia)
 - DELETE /api/logs/{id} — usunięcie wpisu
 
+Konfiguracja mobilna:
+- GET /api/mobile-config — pobranie konfiguracji mobilnej (MOBILE_APP_CONFIG lub { config: {...} })
+- POST /api/mobile-config — zapis konfiguracji mobilnej ({ MOBILE_APP_CONFIG: {...} })
+- GET /api/app-version — pobranie informacji o wersji aplikacji (current/minimum/url/komunikat)
+- POST /api/app-version — zapis informacji o wersji ({ version_info: {...} })
+
 Uwagi dot. autoryzacji:
 - W testowych stronach bez logowania żądania admina mogą zwracać 401 — operacje zapisu używają fetch z credentials:'include'.
 - Tam gdzie to możliwe komponenty korzystają z danych już załadowanych (np. edycja pracownika z listy) by zredukować dodatkowe GET.
@@ -65,6 +79,8 @@ Uwagi dot. autoryzacji:
   - http://localhost:8080/frontend/attendance-day-test.html
   - http://localhost:8080/frontend/attendance-summary-test.html
   - http://localhost:8080/frontend/employee-details-test.html
+  - http://localhost:8080/frontend/mobile-config-test.html
+  - http://localhost:8080/frontend/status-message-test.html
 - Strony testowe dynamicznie dołączają plik komponentu i wywołują window.Komponent.init().
 
 ## Wzorzec komponentu (skrót)
@@ -88,12 +104,16 @@ Uwagi dot. autoryzacji:
 - frontend/components/attendance/attendance-day.html
 - frontend/components/attendance/attendance-summary.html
 - frontend/components/attendance/employee-details.html
+- frontend/components/config/mobile-config.html
+- frontend/components/common/status-message.html
 - frontend/work-test.html
 - frontend/worker-status-search-test.html
 - frontend/employees-list-test.html
 - frontend/attendance-day-test.html
 - frontend/attendance-summary-test.html
 - frontend/employee-details-test.html
+- frontend/mobile-config-test.html
+- frontend/status-message-test.html
 
 ## Notatki implementacyjne
 

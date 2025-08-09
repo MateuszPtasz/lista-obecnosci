@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test: Komponent Konfiguracja Mobilna</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2Pkf1R9a8T5F3zYxC2xZq9Z3t0G5eQ2JQb6xQ+M7F4Z8xjQd8HqY3rW9kg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body{ font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f4f7fb; margin:0; padding:24px; }
+    .container{ max-width:1100px; margin:0 auto; }
+    .test-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .test-header h1{ font-size:20px; margin:0; }
+    .hint{ color:#64748b; font-size:.95rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="test-header">
+      <h1>Komponent: Konfiguracja Aplikacji Mobilnej</h1>
+      <div class="hint">Strona testowa komponentu</div>
+    </div>
+    <div id="app"></div>
+  </div>
+
+  <script>
+  async function loadComponent(path, mountSelector){
+    const mount = document.querySelector(mountSelector);
+    const res = await fetch(path, { cache: 'no-store' });
+    const html = await res.text();
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html.trim();
+
+    // Extract and append styles and scripts to ensure execution
+    const frag = tpl.content.cloneNode(true);
+    const styles = Array.from(frag.querySelectorAll('style'));
+    const scripts = Array.from(frag.querySelectorAll('script'));
+
+    styles.forEach(s => { document.head.appendChild(s); });
+
+    // Remove styles/scripts from fragment to avoid duplicates
+    styles.forEach(s => s.remove());
+    scripts.forEach(s => s.remove());
+
+    // Append the main HTML
+    mount.appendChild(frag);
+
+    // Recreate scripts to execute
+    for (const s of scripts){
+      const ns = document.createElement('script');
+      if (s.src) ns.src = s.src; else ns.textContent = s.textContent;
+      document.body.appendChild(ns);
+    }
+  }
+
+  (async function(){
+    await loadComponent('./components/config/mobile-config.html', '#app');
+    if (window.MobileConfigComponent && typeof window.MobileConfigComponent.init === 'function') {
+      window.MobileConfigComponent.init();
+    }
+  })();
+  </script>
+</body>
+</html>
