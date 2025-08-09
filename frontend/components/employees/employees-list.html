@@ -1,0 +1,267 @@
+<!-- KOMPONENT: Lista pracowników (wyodrębniony z frontend/employees.html) -->
+<div class="employees-list card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-users text-primary"></i>
+      Zarządzanie zespołem
+    </h3>
+    <p class="card-subtitle">Lista wszystkich pracowników w systemie</p>
+  </div>
+
+  <div class="card-body">
+    <div class="toolbar" style="display:flex; flex-wrap:wrap; gap:.5rem; align-items:center;">
+      <button id="emp-refresh" class="btn btn-primary" title="Odśwież listę">
+        <i class="fas fa-rotate"></i> Odśwież listę
+      </button>
+      <a href="employee_add.html" class="btn btn-success" title="Dodaj pracownika">
+        <i class="fas fa-plus"></i> Dodaj pracownika
+      </a>
+      <button id="emp-import-btn" class="btn btn-info" title="Importuj pracowników z CSV">
+        <i class="fas fa-file-import"></i> Import CSV
+      </button>
+      <input type="file" id="emp-csv-input" accept=".csv" style="display:none;" />
+      <button id="emp-delete-selected" class="btn btn-danger" title="Usuń zaznaczonych" style="margin-left:auto;">
+        <i class="fas fa-trash"></i> Usuń zaznaczonych
+      </button>
+      <div id="emp-import-msg" style="flex-basis:100%; min-height:1.5rem;"></div>
+    </div>
+
+    <div class="table-wrap" style="margin-top: .75rem;">
+      <table class="table" id="emp-table">
+        <thead>
+          <tr>
+            <th style="width:42px;"><input type="checkbox" id="emp-select-all" title="Zaznacz wszystko" /></th>
+            <th><i class="fas fa-user"></i> Pracownik</th>
+            <th style="width:110px;"><i class="fas fa-id-card"></i> ID</th>
+            <th style="width:110px;"><i class="fas fa-key"></i> PIN</th>
+            <th style="width:150px;"><i class="fas fa-coins"></i> Stawka</th>
+            <th style="width:220px;"><i class="fas fa-cogs"></i> Akcje</th>
+          </tr>
+        </thead>
+        <tbody id="emp-tbody">
+          <tr>
+            <td colspan="6" style="text-align:center; padding: 2rem; color:#6c757d;">
+              <i class="fas fa-spinner fa-spin text-primary" style="font-size: 1.75rem;"></i>
+              <div style="margin-top:.5rem;">Ładowanie pracowników...</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+  .employees-list.card{ background: rgba(255,255,255,.95); border:1px solid #e9ecef; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06); overflow:hidden; }
+  .employees-list .card-header{ padding:18px 22px; border-bottom:1px solid #edf2f7; background:linear-gradient(180deg,#ffffff,#f9fbff); }
+  .employees-list .card-title{ margin:0; font-size:18px; font-weight:800; color:#2c3e50; display:flex; align-items:center; gap:8px; }
+  .employees-list .card-subtitle{ margin:.25rem 0 0; color:#64748b; }
+  .employees-list .card-body{ padding:18px 22px; }
+  .employees-list .table{ width:100%; border-collapse: collapse; }
+  .employees-list .table th, .employees-list .table td{ padding:10px 12px; border-bottom:1px solid #eef2f7; vertical-align: middle; }
+  .employees-list .table thead th{ background:#f8fafc; font-weight:700; color:#334155; position:sticky; top:0; z-index:1; }
+  .employees-list .btn{ display:inline-flex; align-items:center; gap:.45rem; padding:.5rem .75rem; border-radius:10px; border:1px solid transparent; font-weight:600; cursor:pointer; transition: transform .12s ease, box-shadow .2s ease, background .2s ease; }
+  .employees-list .btn:hover{ transform: translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
+  .employees-list .btn-primary{ background:#2563eb; border-color:#2563eb; color:#fff; }
+  .employees-list .btn-success{ background:#16a34a; border-color:#16a34a; color:#fff; }
+  .employees-list .btn-info{ background:#0ea5e9; border-color:#0ea5e9; color:#fff; }
+  .employees-list .btn-secondary{ background:#64748b; border-color:#64748b; color:#fff; }
+  .employees-list .btn-danger{ background:#dc2626; border-color:#dc2626; color:#fff; }
+  .employees-list .badge{ display:inline-block; padding:.35em .6em; font-size:.8rem; font-weight:700; line-height:1; color:#111827; background:#eef2ff; border-radius:.5rem; }
+  .employees-list .emp-name{ display:flex; align-items:center; gap:.5rem; font-weight:700; }
+  .employees-list .emp-name i{ color:#2563eb; font-size:1.1rem; }
+  .employees-list .actions{ display:flex; gap:.4rem; flex-wrap:wrap; }
+</style>
+
+<script>
+(function(){
+  const state = { bound:false };
+
+  function getApiUrl(endpoint){
+    if(!endpoint.startsWith('/api/')) endpoint = '/api' + endpoint;
+    return endpoint; // zawsze względnie
+  }
+
+  function normalizeEmployee(e){
+    let first = e.first_name, last = e.last_name;
+    if(typeof first === 'undefined' && typeof last === 'undefined' && e.name){
+      const parts = String(e.name).split(' ');
+      first = parts[0] || '';
+      last = parts.slice(1).join(' ') || '';
+    }
+    return {
+      id: e.id,
+      first_name: first || '',
+      last_name: last || '',
+      pin: e.pin || '',
+      hourly_rate: e.hourly_rate ?? e.rate ?? e.stawka ?? 0
+    };
+  }
+
+  function rowHtml(emp){
+    const fullName = `${emp.first_name} ${emp.last_name}`.trim();
+    return `
+      <tr>
+        <td><input type="checkbox" class="emp-checkbox" value="${emp.id}"></td>
+        <td>
+          <div class="emp-name"><i class="fas fa-user-circle"></i><strong>${fullName}</strong></div>
+        </td>
+        <td><span class="badge">#${emp.id}</span></td>
+        <td><span style="font-weight:600; font-family:monospace;"><i class="fas fa-key"></i> ${emp.pin || '----'}</span></td>
+        <td><span style="font-weight:700; color:#16a34a;"><i class="fas fa-coins"></i> ${emp.hourly_rate} zł/h</span></td>
+        <td>
+          <div class="actions">
+            <a href="employee_edit.html?id=${emp.id}" class="btn btn-secondary btn-sm" title="Edytuj">
+              <i class="fas fa-edit"></i> Edytuj
+            </a>
+            <button class="btn btn-danger btn-sm emp-del" data-id="${emp.id}" title="Usuń">
+              <i class="fas fa-xmark"></i> Usuń
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  }
+
+  async function loadEmployees(){
+    const tbody = document.getElementById('emp-tbody');
+    if(!tbody) return;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align:center; padding: 2rem; color:#6c757d;">
+          <i class=\"fas fa-spinner fa-spin text-primary\" style=\"font-size: 1.75rem;\"></i>
+          <div style=\"margin-top:.5rem;\">Ładowanie pracowników...</div>
+        </td>
+      </tr>`;
+    try{
+      const res = await fetch(getApiUrl('/workers'));
+      if(!res.ok){ throw new Error('HTTP '+res.status); }
+      const list = await res.json();
+      const normalized = (Array.isArray(list)?list:[]).map(normalizeEmployee);
+      if(normalized.length === 0){
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align:center; padding: 2rem; color:#6b7280;">
+              <i class=\"fas fa-user-slash\" style=\"font-size:2rem; opacity:.6;\"></i>
+              <div style=\"margin-top:.5rem;\">Brak pracowników. Dodaj pierwszego pracownika.</div>
+            </td>
+          </tr>`;
+        return;
+      }
+      tbody.innerHTML = normalized.map(rowHtml).join('');
+      bindRowActions();
+    }catch(err){
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="color:#b91c1c; padding:1rem 12px;">
+            <i class=\"fas fa-triangle-exclamation\"></i> Błąd podczas ładowania pracowników: ${err.message}
+          </td>
+        </tr>`;
+    }
+  }
+
+  function getSelectedIds(){
+    return Array.from(document.querySelectorAll('.emp-checkbox:checked')).map(cb => cb.value);
+  }
+
+  function bindRowActions(){
+    document.querySelectorAll('.emp-del').forEach(btn => {
+      btn.addEventListener('click', async (e)=>{
+        const id = btn.getAttribute('data-id');
+        if(!id) return;
+        if(!confirm('Czy na pewno chcesz usunąć tego pracownika?')) return;
+        try{
+          const res = await fetch(getApiUrl(`/workers/${id}`), { method:'DELETE' });
+          if(!res.ok) throw new Error('HTTP '+res.status);
+          await loadEmployees();
+        }catch(err){ alert('Błąd usuwania: '+err.message); }
+      });
+    });
+  }
+
+  async function deleteSelected(){
+    const ids = getSelectedIds();
+    if(ids.length === 0){ alert('Zaznacz co najmniej jednego pracownika.'); return; }
+    if(!confirm(`Czy na pewno chcesz usunąć ${ids.length} pracowników?`)) return;
+    try{
+      const res = await fetch(getApiUrl('/workers/batch'),{
+        method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify(ids)
+      });
+      if(!res.ok){
+        let msg = 'HTTP '+res.status;
+        try{ const j = await res.json(); if(j && j.detail) msg = j.detail; }catch{}
+        throw new Error(msg);
+      }
+      await loadEmployees();
+    }catch(err){ alert('Błąd grupowego usuwania: '+err.message); }
+  }
+
+  async function handleCsvImport(file){
+    const msg = document.getElementById('emp-import-msg');
+    if(!file){ return; }
+    msg.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Przetwarzanie pliku CSV...</span>';
+    try{
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      const employees = []; const errors = [];
+      let lineNumber = 0;
+      for(const line of lines){
+        lineNumber++;
+        const low = line.toLowerCase();
+        if(lineNumber === 1 && (low.includes('imie') || low.includes('nazwisko'))) continue;
+        const vals = line.split(',').map(v => v.trim());
+        if(vals.length !== 4){ errors.push(`Wiersz ${lineNumber}: Nieprawidłowa liczba kolumn (oczekiwano: 4, otrzymano: ${vals.length})`); continue; }
+        const [first_name, last_name, pin, hourly_rate] = vals;
+        if(!first_name || !last_name){ errors.push(`Wiersz ${lineNumber}: Brak imienia lub nazwiska`); continue; }
+        if(!/^\d+$/.test(pin)){ errors.push(`Wiersz ${lineNumber}: PIN musi być liczbą`); continue; }
+        const rate = parseFloat(hourly_rate);
+        if(isNaN(rate) || rate <= 0){ errors.push(`Wiersz ${lineNumber}: Nieprawidłowa stawka godzinowa`); continue; }
+        employees.push({ first_name, last_name, pin, hourly_rate: rate });
+      }
+      if(errors.length){
+        msg.innerHTML = `<div class="alert alert-warning"><strong>Znaleziono błędy w pliku:</strong><br>${errors.join('<br>')}</div>`;
+        return;
+      }
+      if(employees.length === 0) throw new Error('Brak poprawnych danych w pliku CSV.');
+      const res = await fetch(getApiUrl('/import_employees_csv'),{
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ employees })
+      });
+      const result = await res.json().catch(()=>({}));
+      if(!res.ok){ throw new Error(result.detail || 'Wystąpił błąd podczas importu'); }
+      let message = `<div class="alert alert-success">Pomyślnie zaimportowano ${result.imported ?? employees.length} pracowników.</div>`;
+      if(result.errors && result.errors.length){
+        message += `<div class=\"alert alert-warning\"><strong>Problemy przy imporcie niektórych rekordów:</strong><br>${result.errors.map(err => `Wiersz ${err.row}: ${err.error}`).join('<br>')}</div>`;
+      }
+      msg.innerHTML = message;
+      await loadEmployees();
+    }catch(err){
+      msg.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Błąd: ${err.message}</span>`;
+    }
+  }
+
+  function bindOnce(){
+    if(state.bound) return; state.bound = true;
+    const refresh = document.getElementById('emp-refresh');
+    const selectAll = document.getElementById('emp-select-all');
+    const delSel = document.getElementById('emp-delete-selected');
+    const importBtn = document.getElementById('emp-import-btn');
+    const csvInput = document.getElementById('emp-csv-input');
+
+    refresh?.addEventListener('click', loadEmployees);
+    delSel?.addEventListener('click', deleteSelected);
+    importBtn?.addEventListener('click', ()=> csvInput?.click());
+    csvInput?.addEventListener('change', (e)=>{ const f = e.target.files?.[0]; handleCsvImport(f); e.target.value=''; });
+
+    selectAll?.addEventListener('click', ()=>{
+      const all = document.querySelectorAll('.emp-checkbox');
+      all.forEach(cb => { cb.checked = selectAll.checked; });
+    });
+  }
+
+  function init(){
+    bindOnce();
+    loadEmployees();
+  }
+
+  window.EmployeesListComponent = { init, refresh: loadEmployees };
+})();
+</script>
