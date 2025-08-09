@@ -13,9 +13,9 @@
       <button id="emp-refresh" class="btn btn-primary" title="Odśwież listę">
         <i class="fas fa-rotate"></i> Odśwież listę
       </button>
-      <a href="employee_add.html" class="btn btn-success" title="Dodaj pracownika">
-        <i class="fas fa-plus"></i> Dodaj pracownika
-      </a>
+      <button id="emp-open-add" class="btn btn-success" title="Dodaj pracownika">
+        <i class="fas fa-user-plus"></i> Dodaj pracownika
+      </button>
       <button id="emp-import-btn" class="btn btn-info" title="Importuj pracowników z CSV">
         <i class="fas fa-file-import"></i> Import CSV
       </button>
@@ -51,6 +51,107 @@
   </div>
 </div>
 
+<!-- Modal dodawania pracownika -->
+<div class="emp-modal" id="emp-add-modal" aria-hidden="true" style="display:none;">
+  <div class="emp-modal__backdrop" data-close></div>
+  <div class="emp-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="emp-add-title">
+    <div class="emp-modal__header">
+      <h3 id="emp-add-title"><i class="fas fa-user-plus"></i> Nowy pracownik</h3>
+      <button class="emp-modal__close" type="button" title="Zamknij" data-close><i class="fas fa-xmark"></i></button>
+    </div>
+    <form id="emp-add-form" class="emp-modal__body">
+      <div class="emp-grid">
+        <div class="emp-field">
+          <label for="emp-first" class="emp-label">Imię</label>
+          <input id="emp-first" type="text" class="emp-input" placeholder="Jan" required />
+        </div>
+        <div class="emp-field">
+          <label for="emp-last" class="emp-label">Nazwisko</label>
+          <input id="emp-last" type="text" class="emp-input" placeholder="Kowalski" required />
+        </div>
+        <div class="emp-field">
+          <label for="emp-id" class="emp-label">ID pracownika</label>
+          <input id="emp-id" type="text" class="emp-input" placeholder="np. JK001" required />
+        </div>
+        <div class="emp-field">
+          <label for="emp-pin" class="emp-label">PIN (4-6 cyfr)</label>
+          <input id="emp-pin" type="text" inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" class="emp-input" placeholder="1234" required />
+        </div>
+        <div class="emp-field">
+          <label for="emp-rate" class="emp-label">Stawka (zł/h)</label>
+          <input id="emp-rate" type="number" step="0.01" min="0" class="emp-input" placeholder="25.00" required />
+        </div>
+        <details class="emp-adv">
+          <summary>Stawki specjalne (opcjonalnie)</summary>
+          <div class="emp-adv-grid">
+            <div class="emp-field">
+              <label for="emp-rate-sat" class="emp-label">Soboty</label>
+              <input id="emp-rate-sat" type="number" step="0.01" min="0" class="emp-input" placeholder="0.00" />
+            </div>
+            <div class="emp-field">
+              <label for="emp-rate-sun" class="emp-label">Niedziele/Święta</label>
+              <input id="emp-rate-sun" type="number" step="0.01" min="0" class="emp-input" placeholder="0.00" />
+            </div>
+            <div class="emp-field">
+              <label for="emp-rate-night" class="emp-label">Noce</label>
+              <input id="emp-rate-night" type="number" step="0.01" min="0" class="emp-input" placeholder="0.00" />
+            </div>
+            <div class="emp-field">
+              <label for="emp-rate-ot" class="emp-label">Nadgodziny</label>
+              <input id="emp-rate-ot" type="number" step="0.01" min="0" class="emp-input" placeholder="0.00" />
+            </div>
+          </div>
+        </details>
+      </div>
+      <div id="emp-add-msg" class="emp-msg" aria-live="polite"></div>
+      <div class="emp-modal__footer">
+        <button type="button" class="btn btn-secondary" data-close><i class="fas fa-arrow-left"></i> Anuluj</button>
+        <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Zapisz</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal edycji pracownika (analogiczny wygląd do dodawania) -->
+<div class="emp-modal" id="emp-edit-modal" aria-hidden="true" style="display:none;">
+  <div class="emp-modal__backdrop" data-edit-close></div>
+  <div class="emp-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="emp-edit-title">
+    <div class="emp-modal__header">
+      <h3 id="emp-edit-title"><i class="fas fa-user-edit"></i> Edytuj pracownika</h3>
+      <button class="emp-modal__close" type="button" title="Zamknij" data-edit-close><i class="fas fa-xmark"></i></button>
+    </div>
+    <form id="emp-edit-form" class="emp-modal__body">
+      <div class="emp-grid">
+        <div class="emp-field">
+          <label for="emp-edit-first" class="emp-label">Imię</label>
+          <input id="emp-edit-first" type="text" class="emp-input" required />
+        </div>
+        <div class="emp-field">
+          <label for="emp-edit-last" class="emp-label">Nazwisko</label>
+          <input id="emp-edit-last" type="text" class="emp-input" required />
+        </div>
+        <div class="emp-field">
+          <label for="emp-edit-id" class="emp-label">ID pracownika</label>
+          <input id="emp-edit-id" type="text" class="emp-input" required />
+        </div>
+        <div class="emp-field">
+          <label for="emp-edit-pin" class="emp-label">PIN (4-6 cyfr)</label>
+          <input id="emp-edit-pin" type="text" inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" class="emp-input" />
+        </div>
+        <div class="emp-field">
+          <label for="emp-edit-rate" class="emp-label">Stawka (zł/h)</label>
+          <input id="emp-edit-rate" type="number" step="0.01" min="0" class="emp-input" required />
+        </div>
+      </div>
+      <div id="emp-edit-msg" class="emp-msg" aria-live="polite"></div>
+      <div class="emp-modal__footer">
+        <button type="button" class="btn btn-secondary" data-edit-close><i class="fas fa-arrow-left"></i> Anuluj</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Zapisz</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <style>
   .employees-list.card{ background: rgba(255,255,255,.95); border:1px solid #e9ecef; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06); overflow:hidden; }
   .employees-list .card-header{ padding:18px 22px; border-bottom:1px solid #edf2f7; background:linear-gradient(180deg,#ffffff,#f9fbff); }
@@ -71,11 +172,33 @@
   .employees-list .emp-name{ display:flex; align-items:center; gap:.5rem; font-weight:700; }
   .employees-list .emp-name i{ color:#2563eb; font-size:1.1rem; }
   .employees-list .actions{ display:flex; gap:.4rem; flex-wrap:wrap; }
+
+  /* Modal */
+  .emp-modal__backdrop{ position:fixed; inset:0; background:rgba(15,23,42,.45); backdrop-filter: blur(2px); z-index:9998; }
+  .emp-modal__dialog{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(720px, 94vw); background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.25); border:1px solid #e5e7eb; overflow:hidden; z-index:9999; }
+  .emp-modal__header{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; background:linear-gradient(180deg,#ffffff,#f9fbff); border-bottom:1px solid #eef2f7; }
+  .emp-modal__header h3{ margin:0; font-size:18px; font-weight:800; color:#1f2937; display:flex; align-items:center; gap:8px; }
+  .emp-modal__close{ background:transparent; border:none; color:#334155; font-size:18px; cursor:pointer; border-radius:8px; padding:6px; }
+  .emp-modal__close:hover{ background:#f1f5f9; }
+  .emp-modal__body{ padding:16px 18px; }
+  .emp-modal__footer{ display:flex; justify-content:flex-end; gap:.5rem; padding:12px 18px; border-top:1px solid #eef2f7; background:#fafafa; border-bottom-left-radius:16px; border-bottom-right-radius:16px; }
+  .emp-grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+  .emp-field{ display:flex; flex-direction:column; gap:6px; }
+  .emp-label{ font-size:.9rem; color:#334155; font-weight:600; }
+  .emp-input{ height:40px; border:1px solid #d1d5db; border-radius:10px; padding:0 12px; font-size:14px; transition:border-color .2s, box-shadow .2s; }
+  .emp-input:focus{ outline:none; border-color:#2563eb; box-shadow:0 0 0 4px rgba(37,99,235,.1); }
+  .emp-adv{ grid-column: 1 / -1; border:1px dashed #e5e7eb; border-radius:12px; padding:10px 12px; background:#f8fafc; }
+  .emp-adv summary{ cursor:pointer; font-weight:700; color:#2563eb; }
+  .emp-adv-grid{ margin-top:10px; display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+  .emp-msg{ min-height: 24px; margin: 6px 2px; font-size:.95rem; }
+  .emp-msg--ok{ color:#16a34a; }
+  .emp-msg--err{ color:#dc2626; }
+  @media (max-width:720px){ .emp-grid{ grid-template-columns:1fr; } .emp-adv-grid{ grid-template-columns:1fr; } }
 </style>
 
 <script>
 (function(){
-  const state = { bound:false };
+  const state = { bound:false, list:[], editingId:null };
 
   function getApiUrl(endpoint){
     if(!endpoint.startsWith('/api/')) endpoint = '/api' + endpoint;
@@ -102,21 +225,17 @@
     const fullName = `${emp.first_name} ${emp.last_name}`.trim();
     return `
       <tr>
-        <td><input type="checkbox" class="emp-checkbox" value="${emp.id}"></td>
+        <td><input type=\"checkbox\" class=\"emp-checkbox\" value=\"${emp.id}\"></td>
         <td>
-          <div class="emp-name"><i class="fas fa-user-circle"></i><strong>${fullName}</strong></div>
+          <div class=\"emp-name\"><i class=\"fas fa-user-circle\"></i><strong>${fullName}</strong></div>
         </td>
-        <td><span class="badge">#${emp.id}</span></td>
-        <td><span style="font-weight:600; font-family:monospace;"><i class="fas fa-key"></i> ${emp.pin || '----'}</span></td>
-        <td><span style="font-weight:700; color:#16a34a;"><i class="fas fa-coins"></i> ${emp.hourly_rate} zł/h</span></td>
+        <td><span class=\"badge\">#${emp.id}</span></td>
+        <td><span style=\"font-weight:600; font-family:monospace;\"><i class=\"fas fa-key\"></i> ${emp.pin || '----'}</span></td>
+        <td><span style=\"font-weight:700; color:#16a34a;\"><i class=\"fas fa-coins\"></i> ${emp.hourly_rate} zł/h</span></td>
         <td>
-          <div class="actions">
-            <a href="employee_edit.html?id=${emp.id}" class="btn btn-secondary btn-sm" title="Edytuj">
-              <i class="fas fa-edit"></i> Edytuj
-            </a>
-            <button class="btn btn-danger btn-sm emp-del" data-id="${emp.id}" title="Usuń">
-              <i class="fas fa-xmark"></i> Usuń
-            </button>
+          <div class=\"actions\">
+            <a href=\"/frontend/employee_edit.html?id=${emp.id}\" class=\"btn btn-secondary btn-sm emp-edit\" data-id=\"${emp.id}\" title=\"Edytuj\">\n              <i class=\"fas fa-edit\"></i> Edytuj\n            </a>
+            <button class=\"btn btn-danger btn-sm emp-del\" data-id=\"${emp.id}\" title=\"Usuń\">\n              <i class=\"fas fa-xmark\"></i> Usuń\n            </button>
           </div>
         </td>
       </tr>`;
@@ -137,12 +256,13 @@
       if(!res.ok){ throw new Error('HTTP '+res.status); }
       const list = await res.json();
       const normalized = (Array.isArray(list)?list:[]).map(normalizeEmployee);
+      state.list = normalized; // zapamiętaj listę do edycji bez dodatkowego GET
       if(normalized.length === 0){
         tbody.innerHTML = `
           <tr>
             <td colspan="6" style="text-align:center; padding: 2rem; color:#6b7280;">
-              <i class=\"fas fa-user-slash\" style=\"font-size:2rem; opacity:.6;\"></i>
-              <div style=\"margin-top:.5rem;\">Brak pracowników. Dodaj pierwszego pracownika.</div>
+              <i class="fas fa-user-slash" style="font-size:2rem; opacity:.6;"></i>
+              <div style="margin-top:.5rem;">Brak pracowników. Dodaj pierwszego pracownika.</div>
             </td>
           </tr>`;
         return;
@@ -153,7 +273,7 @@
       tbody.innerHTML = `
         <tr>
           <td colspan="6" style="color:#b91c1c; padding:1rem 12px;">
-            <i class=\"fas fa-triangle-exclamation\"></i> Błąd podczas ładowania pracowników: ${err.message}
+            <i class="fas fa-triangle-exclamation"></i> Błąd podczas ładowania pracowników: ${err.message}
           </td>
         </tr>`;
     }
@@ -161,6 +281,83 @@
 
   function getSelectedIds(){
     return Array.from(document.querySelectorAll('.emp-checkbox:checked')).map(cb => cb.value);
+  }
+
+  function openEditModalById(id){
+    const emp = state.list.find(e => String(e.id) === String(id));
+    if(!emp){ alert('Nie znaleziono pracownika w bieżącej liście.'); return; }
+    openEditModal(emp);
+  }
+
+  function openEditModal(emp){
+    const m = document.getElementById('emp-edit-modal');
+    if(!m) return;
+    if(m.parentNode !== document.body){ document.body.appendChild(m); }
+    // wypełnij pola
+    document.getElementById('emp-edit-first').value = emp.first_name || '';
+    document.getElementById('emp-edit-last').value = emp.last_name || '';
+    document.getElementById('emp-edit-id').value = emp.id || '';
+    document.getElementById('emp-edit-pin').value = emp.pin || '';
+    document.getElementById('emp-edit-rate').value = emp.hourly_rate ?? 0;
+    document.getElementById('emp-edit-msg').textContent = '';
+
+    state.editingId = emp.id; // oryginalny ID do endpointu
+
+    m.style.display = 'block';
+    m.setAttribute('aria-hidden','false');
+    document.body.classList.add('emp-modal-open');
+    document.getElementById('emp-edit-first')?.focus();
+  }
+
+  function closeEditModal(){
+    const m = document.getElementById('emp-edit-modal');
+    if(!m) return;
+    m.style.display = 'none';
+    m.setAttribute('aria-hidden','true');
+    document.body.classList.remove('emp-modal-open');
+    state.editingId = null;
+  }
+
+  async function submitEdit(e){
+    e.preventDefault();
+    if(!state.editingId){ closeEditModal(); return; }
+    const msg = document.getElementById('emp-edit-msg');
+
+    const payload = {
+      first_name: document.getElementById('emp-edit-first').value.trim(),
+      last_name: document.getElementById('emp-edit-last').value.trim(),
+      pin: document.getElementById('emp-edit-pin').value.trim(),
+      hourly_rate: parseFloat(document.getElementById('emp-edit-rate').value) || 0,
+      new_id: document.getElementById('emp-edit-id').value.trim()
+    };
+
+    if(!payload.first_name || !payload.last_name || !payload.new_id || payload.hourly_rate <= 0){
+      msg.className = 'emp-msg emp-msg--err';
+      msg.textContent = 'Uzupełnij poprawnie wymagane pola.';
+      return;
+    }
+
+    msg.className = 'emp-msg';
+    msg.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Zapisuję...</span>';
+
+    try{
+      const res = await fetch(getApiUrl(`/worker/${encodeURIComponent(state.editingId)}`), {
+        method:'PUT',
+        headers:{ 'Content-Type':'application/json' },
+        credentials:'include',
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok){
+        const t = await res.text().catch(()=> '');
+        throw new Error(t || ('HTTP '+res.status));
+      }
+      msg.className = 'emp-msg emp-msg--ok';
+      msg.textContent = 'Zapisano zmiany.';
+      setTimeout(async ()=>{ closeEditModal(); await loadEmployees(); }, 400);
+    }catch(err){
+      msg.className = 'emp-msg emp-msg--err';
+      msg.textContent = 'Błąd zapisu: ' + err.message;
+    }
   }
 
   function bindRowActions(){
@@ -174,6 +371,15 @@
           if(!res.ok) throw new Error('HTTP '+res.status);
           await loadEmployees();
         }catch(err){ alert('Błąd usuwania: '+err.message); }
+      });
+    });
+    // Zamiast przechodzić na stronę – otwórz modal edycji z danymi z listy
+    document.querySelectorAll('.emp-edit').forEach(link => {
+      link.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const id = link.getAttribute('data-id');
+        if(!id) return;
+        openEditModalById(id);
       });
     });
   }
@@ -218,7 +424,7 @@
         employees.push({ first_name, last_name, pin, hourly_rate: rate });
       }
       if(errors.length){
-        msg.innerHTML = `<div class="alert alert-warning"><strong>Znaleziono błędy w pliku:</strong><br>${errors.join('<br>')}</div>`;
+        msg.innerHTML = `<div class=\"alert alert-warning\"><strong>Znaleziono błędy w pliku:</strong><br>${errors.join('<br>')}</div>`;
         return;
       }
       if(employees.length === 0) throw new Error('Brak poprawnych danych w pliku CSV.');
@@ -227,14 +433,75 @@
       });
       const result = await res.json().catch(()=>({}));
       if(!res.ok){ throw new Error(result.detail || 'Wystąpił błąd podczas importu'); }
-      let message = `<div class="alert alert-success">Pomyślnie zaimportowano ${result.imported ?? employees.length} pracowników.</div>`;
+      let message = `<div class=\"alert alert-success\">Pomyślnie zaimportowano ${result.imported ?? employees.length} pracowników.</div>`;
       if(result.errors && result.errors.length){
-        message += `<div class=\"alert alert-warning\"><strong>Problemy przy imporcie niektórych rekordów:</strong><br>${result.errors.map(err => `Wiersz ${err.row}: ${err.error}`).join('<br>')}</div>`;
+        message += `<div class=\\\"alert alert-warning\\\"><strong>Problemy przy imporcie niektórych rekordów:</strong><br>${result.errors.map(err => `Wiersz ${err.row}: ${err.error}`).join('<br>')}</div>`;
       }
       msg.innerHTML = message;
       await loadEmployees();
     }catch(err){
-      msg.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Błąd: ${err.message}</span>`;
+      msg.innerHTML = `<span class=\"text-danger\"><i class=\"fas fa-exclamation-triangle\"></i> Błąd: ${err.message}</span>`;
+    }
+  }
+
+  // Modal helpers (dodawanie)
+  function openModal(){
+    const m = document.getElementById('emp-add-modal');
+    if(!m) return;
+    // Przenieś modal na koniec <body> aby uniknąć problemów ze stacking context
+    if(m.parentNode !== document.body){ document.body.appendChild(m); }
+    m.style.display = 'block';
+    m.setAttribute('aria-hidden','false');
+    document.body.classList.add('emp-modal-open');
+    document.getElementById('emp-first')?.focus();
+  }
+  function closeModal(){
+    const m = document.getElementById('emp-add-modal');
+    if(!m) return;
+    m.style.display = 'none';
+    m.setAttribute('aria-hidden','true');
+    document.body.classList.remove('emp-modal-open');
+    // clear form and message
+    document.getElementById('emp-add-form')?.reset();
+    const msg = document.getElementById('emp-add-msg'); if(msg) msg.textContent='';
+  }
+
+  async function submitAdd(e){
+    e.preventDefault();
+    const msg = document.getElementById('emp-add-msg');
+    const data = {
+      id: document.getElementById('emp-id').value.trim(),
+      first_name: document.getElementById('emp-first').value.trim(),
+      last_name: document.getElementById('emp-last').value.trim(),
+      pin: document.getElementById('emp-pin').value.trim(),
+      hourly_rate: parseFloat(document.getElementById('emp-rate').value) || 0,
+      rate_saturday: parseFloat(document.getElementById('emp-rate-sat').value) || 0,
+      rate_sunday: parseFloat(document.getElementById('emp-rate-sun').value) || 0,
+      rate_night: parseFloat(document.getElementById('emp-rate-night').value) || 0,
+      rate_overtime: parseFloat(document.getElementById('emp-rate-ot').value) || 0
+    };
+    // walidacje proste
+    if(!data.id || !data.first_name || !data.last_name || !/^\d{4,6}$/.test(data.pin) || data.hourly_rate <= 0){
+      msg.className = 'emp-msg emp-msg--err';
+      msg.textContent = 'Uzupełnij poprawnie wymagane pola.';
+      return;
+    }
+    msg.className = 'emp-msg';
+    msg.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Zapisuję...</span>';
+    try{
+      const res = await fetch(getApiUrl('/workers'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+      const j = await res.json().catch(()=>({}));
+      if(!res.ok){
+        const err = (j && j.detail) ? j.detail : ('HTTP '+res.status);
+        throw new Error(err);
+      }
+      msg.className = 'emp-msg emp-msg--ok';
+      msg.textContent = 'Pracownik dodany pomyślnie.';
+      // odśwież listę po krótkiej pauzie i zamknij modal
+      setTimeout(async ()=>{ closeModal(); await loadEmployees(); }, 500);
+    }catch(error){
+      msg.className = 'emp-msg emp-msg--err';
+      msg.textContent = 'Błąd dodawania: ' + error.message;
     }
   }
 
@@ -245,6 +512,12 @@
     const delSel = document.getElementById('emp-delete-selected');
     const importBtn = document.getElementById('emp-import-btn');
     const csvInput = document.getElementById('emp-csv-input');
+    const addOpen = document.getElementById('emp-open-add');
+    const modal = document.getElementById('emp-add-modal');
+    const addForm = document.getElementById('emp-add-form');
+    // Elementy modala edycji
+    const editModal = document.getElementById('emp-edit-modal');
+    const editForm = document.getElementById('emp-edit-form');
 
     refresh?.addEventListener('click', loadEmployees);
     delSel?.addEventListener('click', deleteSelected);
@@ -255,6 +528,17 @@
       const all = document.querySelectorAll('.emp-checkbox');
       all.forEach(cb => { cb.checked = selectAll.checked; });
     });
+
+    addOpen?.addEventListener('click', openModal);
+    modal?.querySelectorAll('[data-close]')?.forEach(el => el.addEventListener('click', closeModal));
+    addForm?.addEventListener('submit', submitAdd);
+
+    // Zamknięcia i submit dla modala edycji
+    editModal?.querySelectorAll('[data-edit-close]')?.forEach(el => el.addEventListener('click', closeEditModal));
+    editForm?.addEventListener('submit', submitEdit);
+
+    // ESC zamyka oba modalne okna
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape'){ closeModal(); closeEditModal(); } });
   }
 
   function init(){

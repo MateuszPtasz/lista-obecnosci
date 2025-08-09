@@ -11,40 +11,19 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
-  // Bardziej niezawodne wykrywanie URL API z fallback'ami dla Firefox
+  // Minimalistyczne i bezpieczne budowanie URL API: zawsze względne do bieżącego origin,
+  // aby przeglądarka wysyłała ciasteczka sesji i nie traciła autoryzacji.
   function getApiUrl(endpoint) {
-    const currentUrl = window.location;
-    
-    // Debug dla Firefox
-    console.log('Firefox Debug - window.location:', {
-      hostname: currentUrl.hostname,
-      port: currentUrl.port,
-      protocol: currentUrl.protocol,
-      href: currentUrl.href,
-      origin: currentUrl.origin
-    });
-    
-    // Upewnij się, że endpoint ma prefiks /api/
-    let apiEndpoint = endpoint;
     if (!endpoint.startsWith('/api/')) {
-      apiEndpoint = '/api' + endpoint;
+      return '/api' + endpoint;
     }
-    
-    // Firefox fallback: sprawdź czy jesteśmy na localhost z portem
-    if (currentUrl.hostname === 'localhost' || currentUrl.hostname === '127.0.0.1') {
-      return `http://${currentUrl.hostname}:8000${apiEndpoint}`;
-    } else if (currentUrl.port && currentUrl.port !== '80' && currentUrl.port !== '443') {
-      return `http://${currentUrl.hostname}:${currentUrl.port}${apiEndpoint}`;
-    } else {
-      // Fallback dla względnych URL
-      return apiEndpoint;
-    }
+    return endpoint;
   }
 
   const apiUrl = getApiUrl(`/worker/${originalId}`);
-  console.log('Trying API URL for fetch:', apiUrl); // Debug dla Firefox
+  console.log('API GET URL:', apiUrl);
 
-  fetch(apiUrl)
+  fetch(apiUrl, { credentials: 'include' })
   .then(response => {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -90,31 +69,32 @@ document.addEventListener('DOMContentLoaded', function() {
       rate_overtime: parseFloat(document.getElementById('rate_overtime').value)
     };
 
-    // Dynamiczna konfiguracja URL API dla PUT
+    // Dynamiczna konfiguracja URL API dla PUT (również względna)
     const updateApiUrl = getApiUrl(`/worker/${originalId}`);
-  console.log('Trying API URL for PUT:', updateApiUrl); // Debug dla Firefox
+    console.log('API PUT URL:', updateApiUrl);
 
-  try {
-    const response = await fetch(updateApiUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedWorker),
-    });
+    try {
+      const response = await fetch(updateApiUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: 'include',
+        body: JSON.stringify(updatedWorker),
+      });
 
-    if (response.ok) {
-      alert("Zapisano zmiany!");
-      window.location.href = "employees.html";
-    } else {
-      const errorData = await response.text();
-      console.error('Błąd zapisu:', errorData);
-      alert("Błąd zapisu: " + response.status);
+      if (response.ok) {
+        alert("Zapisano zmiany!");
+        window.location.href = "employees.html";
+      } else {
+        const errorData = await response.text();
+        console.error('Błąd zapisu:', errorData);
+        alert("Błąd zapisu: " + response.status);
+      }
+    } catch (error) {
+      console.error('Błąd zapisu:', error);
+      alert("Błąd zapisu - sprawdź połączenie z serwerem");
     }
-  } catch (error) {
-    console.error('Błąd zapisu:', error);
-    alert("Błąd zapisu - sprawdź połączenie z serwerem");
-  }
   });
 });
 
