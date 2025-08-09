@@ -20,6 +20,14 @@ Pracownicy:
   - funkcje: odświeżanie, dodawanie (modal), edycja (modal), import CSV, usuwanie pojedyncze i grupowe
   - test: frontend/employees-list-test.html
 
+Obecność:
+- components/attendance/attendance-day.html — Obecność wybrany dzień
+  - test: frontend/attendance-day-test.html
+- components/attendance/attendance-summary.html — Ewidencja czasu pracy (zakres dat, suma, eksporty, dodawanie dni pracy)
+  - test: frontend/attendance-summary-test.html
+- components/attendance/employee-details.html — Szczegóły pracownika (lista wpisów, edycja, hurtowa edycja, eksporty)
+  - test: frontend/employee-details-test.html
+
 ## API wykorzystywane przez komponenty
 
 Pracownicy:
@@ -35,9 +43,18 @@ Status/zmiany:
 - GET /api/workers/status — zbiorczy status pracowników (fallback: GET /api/employees + GET /api/active_workers)
 - GET /api/active_workers — pracownicy aktualnie w pracy
 
+Obecność:
+- GET /api/attendance_by_date?date=YYYY-MM-DD — obecność dla dnia
+- GET /api/attendance_summary?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD — ewidencja zbiorcza
+- GET /api/attendance_details?worker_id={id}&date_from=...&date_to=... — szczegóły pracownika (logs + summary)
+- GET /api/employees_without_logs?date_from=...&date_to=... — pracownicy bez logów w okresie (do dodania dni pracy)
+- POST /api/logs/batch — dodawanie wielu dni pracy jednocześnie
+- PATCH /api/logs/{id} — edycja wpisu (czas/typ dnia)
+- DELETE /api/logs/{id} — usunięcie wpisu
+
 Uwagi dot. autoryzacji:
-- W testowych stronach bez logowania żądania admina (np. PUT /api/worker/{id}) mogą zwracać 401.
-- Komponent employees-list ładuje dane do edycji z aktualnej listy (brak GET /api/worker/{id}); zapis (PUT) używa fetch z credentials:'include'.
+- W testowych stronach bez logowania żądania admina mogą zwracać 401 — operacje zapisu używają fetch z credentials:'include'.
+- Tam gdzie to możliwe komponenty korzystają z danych już załadowanych (np. edycja pracownika z listy) by zredukować dodatkowe GET.
 
 ## Jak uruchomić test komponentu
 
@@ -45,6 +62,9 @@ Uwagi dot. autoryzacji:
   - http://localhost:8080/frontend/work-test.html
   - http://localhost:8080/frontend/worker-status-search-test.html
   - http://localhost:8080/frontend/employees-list-test.html
+  - http://localhost:8080/frontend/attendance-day-test.html
+  - http://localhost:8080/frontend/attendance-summary-test.html
+  - http://localhost:8080/frontend/employee-details-test.html
 - Strony testowe dynamicznie dołączają plik komponentu i wywołują window.Komponent.init().
 
 ## Wzorzec komponentu (skrót)
@@ -65,9 +85,15 @@ Uwagi dot. autoryzacji:
 - frontend/components/dashboard/worker-status-search.html
 - frontend/components/dashboard/recent-activity.html
 - frontend/components/employees/employees-list.html
+- frontend/components/attendance/attendance-day.html
+- frontend/components/attendance/attendance-summary.html
+- frontend/components/attendance/employee-details.html
 - frontend/work-test.html
 - frontend/worker-status-search-test.html
 - frontend/employees-list-test.html
+- frontend/attendance-day-test.html
+- frontend/attendance-summary-test.html
+- frontend/employee-details-test.html
 
 ## Notatki implementacyjne
 

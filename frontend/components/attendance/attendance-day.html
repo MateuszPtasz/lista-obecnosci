@@ -1,0 +1,204 @@
+<!-- KOMPONENT: Obecność – Dzień (wyodrębniony z frontend/attendance_day.html) -->
+<div class="attendance-day card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-calendar-day text-primary"></i>
+      Obecność – wybrany dzień
+    </h3>
+    <p class="card-subtitle">Zarządzaj obecnością pracowników w wybranym dniu</p>
+  </div>
+
+  <div class="card-body">
+    <div class="form-group mb-4">
+      <label for="att-date" class="form-label">
+        <i class="fas fa-calendar"></i>
+        Wybierz datę:
+      </label>
+      <div class="form-row" style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+        <input type="date" id="att-date" class="form-control" style="max-width: 200px;">
+        <button id="att-show" class="btn btn-primary" title="Pokaż obecność">
+          <i class="fas fa-search"></i>
+          Pokaż obecność
+        </button>
+        <button id="att-today" class="btn btn-secondary" title="Ustaw dzisiejszą datę">
+          <i class="fas fa-calendar-check"></i>
+          Dziś
+        </button>
+      </div>
+    </div>
+
+    <div id="att-results">
+      <div class="placeholder" style="padding: 16px; color:#6b7280;">
+        <i class="fas fa-info-circle"></i>
+        Wybierz datę i kliknij „Pokaż obecność”.
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .attendance-day.card{ background: rgba(255,255,255,.95); border:1px solid #e9ecef; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06); overflow:hidden; }
+  .attendance-day .card-header{ padding:18px 22px; border-bottom:1px solid #edf2f7; background:linear-gradient(180deg,#ffffff,#f9fbff); }
+  .attendance-day .card-title{ margin:0; font-size:18px; font-weight:800; color:#2c3e50; display:flex; align-items:center; gap:8px; }
+  .attendance-day .card-subtitle{ margin:.25rem 0 0; color:#64748b; }
+  .attendance-day .card-body{ padding:18px 22px; }
+  .attendance-day .btn{ display:inline-flex; align-items:center; gap:.45rem; padding:.5rem .75rem; border-radius:10px; border:1px solid transparent; font-weight:600; cursor:pointer; transition: transform .12s ease, box-shadow .2s ease, background .2s ease; }
+  .attendance-day .btn:hover{ transform: translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
+  .attendance-day .btn-primary{ background:#2563eb; border-color:#2563eb; color:#fff; }
+  .attendance-day .btn-secondary{ background:#64748b; border-color:#64748b; color:#fff; }
+  .attendance-day .table{ width:100%; border-collapse: collapse; }
+  .attendance-day .table th, .attendance-day .table td{ padding:10px 12px; border-bottom:1px solid #eef2f7; vertical-align: middle; }
+  .attendance-day .table thead th{ background:#f8fafc; font-weight:700; color:#334155; position:sticky; top:0; z-index:1; }
+  .attendance-day .text-muted{ color:#94a3b8; }
+  .attendance-day .text-danger{ color:#dc2626; }
+  .attendance-day .text-success{ color:#16a34a; }
+  .attendance-day .text-primary{ color:#2563eb; }
+  .attendance-day .badge{ display:inline-block; padding:.35em .6em; font-size:.8rem; font-weight:700; line-height:1; color:#111827; background:#eef2ff; border-radius:.5rem; }
+</style>
+
+<script>
+(function(){
+  const state = { bound:false };
+
+  function qs(id){ return document.getElementById(id); }
+
+  function getApiUrl(endpoint){
+    if(!endpoint.startsWith('/api/')) endpoint = '/api' + endpoint;
+    return endpoint;
+  }
+
+  function todayStr(){
+    const d = new Date();
+    const off = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - off*60000);
+    return local.toISOString().slice(0,10);
+  }
+
+  function mapLink(lat, lon){
+    if(lat == null || lon == null) return '<span class="text-muted">-</span>';
+    const la = Number(lat).toFixed(5), lo = Number(lon).toFixed(5);
+    return `<a href="https://www.google.com/maps?q=${la},${lo}" target="_blank" class="btn btn-sm btn-primary" title="Pokaż na mapie">
+      <i class="fas fa-map-marker-alt"></i> Mapa
+    </a>`;
+  }
+
+  function renderResults(data, date){
+    const container = qs('att-results');
+    if(!container) return;
+    if(!Array.isArray(data) || data.length === 0){
+      container.innerHTML = `
+        <div class="card">
+          <div class="card-body" style="padding:16px; text-align:center;">
+            <i class="fas fa-calendar-times text-muted" style="font-size: 2.2rem;"></i>
+            <h3 class="mt-3 text-muted" style="margin:.5rem 0 0;">Brak danych</h3>
+            <p class="text-muted" style="margin:.25rem 0;">Brak danych obecności dla dnia ${date}.</p>
+          </div>
+        </div>`;
+      return;
+    }
+
+    let html = `
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-users text-success"></i>
+            Obecność na dzień ${date}
+          </h3>
+          <p class="card-subtitle">${data.length} rekordów obecności</p>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Pracownik</th>
+                <th>Wejście</th>
+                <th>Wyjście</th>
+                <th>Czas pracy</th>
+                <th>Lokalizacja wejścia</th>
+                <th>Lokalizacja wyjścia</th>
+              </tr>
+            </thead>
+            <tbody>`;
+
+    for(const item of data){
+      const startTime = item.start_time || '<span class="text-muted">-</span>';
+      const stopTime = item.stop_time || '<span class="text-muted">-</span>';
+      const duration = item.duration || '<span class="text-muted">-</span>';
+      const startLoc = (item.start_lat!=null && item.start_lon!=null) ? mapLink(item.start_lat, item.start_lon) : '<span class="text-muted">-</span>';
+      const stopLoc = (item.stop_lat!=null && item.stop_lon!=null) ? mapLink(item.stop_lat, item.stop_lon) : '<span class="text-muted">-</span>';
+      const name = item.name || item.employee_name || item.worker_name || '<span class="text-muted">(nieznany)</span>';
+
+      html += `
+        <tr>
+          <td><strong>${name}</strong></td>
+          <td><i class="fas fa-sign-in-alt text-success"></i> ${startTime}</td>
+          <td><i class="fas fa-sign-out-alt text-danger"></i> ${stopTime}</td>
+          <td><i class="fas fa-clock text-primary"></i> <strong>${duration}</strong></td>
+          <td>${startLoc}</td>
+          <td>${stopLoc}</td>
+        </tr>`;
+    }
+
+    html += `</tbody></table></div></div>`;
+    container.innerHTML = html;
+  }
+
+  async function load(date){
+    const container = qs('att-results');
+    const d = date || qs('att-date')?.value;
+    if(!d){ alert('Wybierz datę'); return; }
+    if(container){
+      container.innerHTML = `
+        <div style="padding: 24px; text-align:center; color:#6c757d;">
+          <i class=\"fas fa-spinner fa-spin text-primary\" style=\"font-size: 1.5rem;\"></i>
+          <div style=\"margin-top:.5rem;\">Ładowanie obecności...</div>
+        </div>`;
+    }
+
+    try{
+      const url = getApiUrl(`/attendance_by_date?date=${encodeURIComponent(d)}`);
+      const res = await fetch(url, { credentials: 'include' });
+      if(!res.ok){
+        const t = await res.text().catch(()=> '');
+        throw new Error(t || ('HTTP '+res.status));
+      }
+      const data = await res.json();
+      renderResults(data, d);
+    }catch(err){
+      if(container){
+        container.innerHTML = `
+          <div class=\"card\">
+            <div class=\"card-body\" style=\"padding:16px; text-align:center;\">
+              <i class=\"fas fa-exclamation-triangle text-danger\" style=\"font-size: 2.2rem;\"></i>
+              <h3 class=\"mt-3 text-danger\" style=\"margin:.5rem 0 0;\">Błąd połączenia</h3>
+              <p class=\"text-muted\">Nie udało się pobrać danych obecności.</p>
+              <button class=\"btn btn-primary\" id=\"att-retry\"><i class=\"fas fa-rotate\"></i> Spróbuj ponownie</button>
+            </div>
+          </div>`;
+        qs('att-retry')?.addEventListener('click', ()=> load(d));
+      }
+      console.error(err);
+    }
+  }
+
+  function setDate(d){ const el = qs('att-date'); if(el){ el.value = d; } }
+
+  function bindOnce(){
+    if(state.bound) return; state.bound = true;
+    const btn = qs('att-show');
+    const today = qs('att-today');
+    const date = qs('att-date');
+
+    btn?.addEventListener('click', ()=> load());
+    today?.addEventListener('click', ()=>{ setDate(todayStr()); load(); });
+    date?.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); load(); } });
+
+    // domyślnie ustaw dzisiejszą datę, ale nie ładuj automatycznie (użytkownik sam zdecyduje)
+    if(date && !date.value){ date.value = todayStr(); }
+  }
+
+  function init(){ bindOnce(); }
+
+  window.AttendanceDayComponent = { init, load, setDate };
+})();
+</script>

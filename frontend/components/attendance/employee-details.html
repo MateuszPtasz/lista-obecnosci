@@ -1,0 +1,367 @@
+<!-- KOMPONENT: Szczegóły pracownika (ewidencja po pracowniku w zakresie dat) -->
+<div class="employee-details card">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-user-circle text-primary"></i>
+      <span id="ed-title">Szczegóły pracownika</span>
+    </h3>
+    <p class="card-subtitle">Czas pracy, obecności i edycja wpisów w wybranym zakresie</p>
+  </div>
+
+  <div class="card-body">
+    <div class="ed-top" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
+      <div class="form-group">
+        <label class="form-label" for="ed-worker"><i class="fas fa-id-card"></i> ID pracownika</label>
+        <input id="ed-worker" type="text" class="form-control" placeholder="np. JK001" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="ed-from"><i class="fas fa-calendar"></i> Od</label>
+        <input id="ed-from" type="date" class="form-control" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="ed-to"><i class="fas fa-calendar"></i> Do</label>
+        <input id="ed-to" type="date" class="form-control" />
+      </div>
+      <div class="form-group" style="display:flex; gap:.5rem;">
+        <button id="ed-show" class="btn btn-primary"><i class="fas fa-search"></i> Pokaż</button>
+        <button id="ed-this-month" class="btn btn-secondary"><i class="fas fa-calendar"></i> Ten miesiąc</button>
+      </div>
+      <div style="margin-left:auto; display:flex; gap:.5rem;">
+        <a id="ed-edit-profile" href="#" class="btn btn-info" target="_blank" title="Edytuj profil">
+          <i class="fas fa-user-gear"></i> Edytuj profil
+        </a>
+      </div>
+    </div>
+
+    <div id="ed-summary" class="ed-summary" style="margin-top:10px;"></div>
+
+    <div id="ed-export" style="display:none; margin:12px 0;">
+      <button id="ed-csv" class="btn btn-success"><i class="fas fa-file-excel"></i> Export CSV</button>
+      <button id="ed-pdf" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Export do PDF</button>
+      <button id="ed-print" class="btn btn-info"><i class="fas fa-print"></i> Drukuj</button>
+    </div>
+
+    <div id="ed-bulk" class="card" style="display:none; margin:12px 0;">
+      <div class="card-header"><h4 class="card-title"><i class="fas fa-layer-group text-warning"></i> Hurtowa edycja zaznaczonych</h4></div>
+      <div class="card-body" style="display:flex; gap:12px; flex-wrap:wrap;">
+        <div class="form-group">
+          <label class="form-label" for="ed-bulk-start">Nowa godz. wejścia</label>
+          <input id="ed-bulk-start" type="time" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="ed-bulk-stop">Nowa godz. wyjścia</label>
+          <input id="ed-bulk-stop" type="time" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="ed-bulk-type">Typ dnia</label>
+          <select id="ed-bulk-type" class="form-control">
+            <option value="">(bez zmiany)</option>
+            <option value="obecny">Obecny</option>
+            <option value="nieobecny">Nieobecny</option>
+            <option value="urlop">Urlop</option>
+            <option value="chorobowe">Chorobowe</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:.5rem; align-items:flex-end;">
+          <button id="ed-bulk-apply" class="btn btn-warning"><i class="fas fa-check"></i> Zatwierdź</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ed-table-wrap" style="min-height:80px;">
+      <div class="placeholder" style="padding: 16px; color:#6b7280;">
+        <i class="fas fa-info-circle"></i>
+        Uzupełnij zakres i kliknij „Pokaż”.
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .employee-details.card{ background: rgba(255,255,255,.95); border:1px solid #e9ecef; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06); overflow:hidden; }
+  .employee-details .card-header{ padding:18px 22px; border-bottom:1px solid #edf2f7; background:linear-gradient(180deg,#ffffff,#f9fbff); }
+  .employee-details .card-title{ margin:0; font-size:18px; font-weight:800; color:#2c3e50; display:flex; align-items:center; gap:8px; }
+  .employee-details .card-subtitle{ margin:.25rem 0 0; color:#64748b; }
+  .employee-details .card-body{ padding:18px 22px; }
+  .employee-details .btn{ display:inline-flex; align-items:center; gap:.45rem; padding:.5rem .75rem; border-radius:10px; border:1px solid transparent; font-weight:600; cursor:pointer; transition: transform .12s ease, box-shadow .2s ease, background .2s ease; }
+  .employee-details .btn:hover{ transform: translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
+  .employee-details .btn-primary{ background:#2563eb; border-color:#2563eb; color:#fff; }
+  .employee-details .btn-secondary{ background:#64748b; border-color:#64748b; color:#fff; }
+  .employee-details .btn-success{ background:#16a34a; border-color:#16a34a; color:#fff; }
+  .employee-details .btn-info{ background:#0ea5e9; border-color:#0ea5e9; color:#fff; }
+  .employee-details .btn-danger{ background:#dc2626; border-color:#dc2626; color:#fff; }
+  .employee-details .btn-warning{ background:#f59e0b; border-color:#f59e0b; color:#fff; }
+  .employee-details .table{ width:100%; border-collapse: collapse; }
+  .employee-details .table th, .employee-details .table td{ padding:10px 12px; border-bottom:1px solid #eef2f7; vertical-align: middle; }
+  .employee-details .table thead th{ background:#f8fafc; font-weight:700; color:#334155; position:sticky; top:0; z-index:1; }
+  .employee-details .text-muted{ color:#94a3b8; }
+  .employee-details .text-danger{ color:#dc2626; }
+  .employee-details .text-success{ color:#16a34a; }
+  .employee-details .text-primary{ color:#2563eb; }
+  .employee-details .badge{ display:inline-block; padding:.35em .6em; font-size:.8rem; font-weight:700; line-height:1; color:#111827; background:#eef2ff; border-radius:.5rem; }
+  .employee-details .badge-warning{ background:#fef3c7; color:#92400e; }
+  .employee-details .badge-danger{ background:#fee2e2; color:#991b1b; }
+  .employee-details .badge-primary{ background:#e0e7ff; color:#1e40af; }
+</style>
+
+<script>
+(function(){
+  const state = { bound:false, workerId:null, range:null, data:[] };
+
+  const qs = (id)=> document.getElementById(id);
+  function getApiUrl(endpoint){ if(!endpoint.startsWith('/api/')) endpoint = '/api' + endpoint; return endpoint; }
+  function tzIso(date){ const d=new Date(date); const off=d.getTimezoneOffset(); return new Date(d - off*60000).toISOString().slice(0,10); }
+  function thisMonth(){ const now = new Date(); const s = tzIso(new Date(now.getFullYear(), now.getMonth(), 1)); const e = tzIso(new Date(now.getFullYear(), now.getMonth()+1, 0)); return {start:s, end:e}; }
+
+  function personTitle(name){ qs('ed-title').textContent = name ? `Szczegóły: ${name}` : 'Szczegóły pracownika'; }
+
+  function statusSelect(log){
+    const obecny = log.typ === 'Obecny' || log.is_present === true || log.is_present === 'tak';
+    const urlop = log.is_holiday === true || log.is_holiday === 'tak';
+    const chor = log.is_sick === true || log.is_sick === 'tak';
+    let val = obecny? 'obecny': 'nieobecny';
+    if(urlop) val = 'urlop';
+    if(chor) val = 'chorobowe';
+    return val;
+  }
+
+  function mapLink(lat,lon){ if(lat==null||lon==null) return '<span class="text-muted">-</span>'; const la=Number(lat).toFixed(5), lo=Number(lon).toFixed(5); return `<a class=\"btn btn-sm btn-primary\" target=\"_blank\" href=\"https://www.google.com/maps?q=${la},${lo}\"><i class=\"fas fa-map-marker-alt\"></i> Mapa</a>`; }
+
+  function renderTable(data){
+    const wrap = qs('ed-table-wrap'); if(!wrap) return;
+    if(!Array.isArray(data) || !data.length){
+      wrap.innerHTML = `<div class=\"card\"><div class=\"card-body\" style=\"padding:16px; text-align:center;\"><i class=\"fas fa-circle-info text-muted\"></i> Brak danych dla zakresu.</div></div>`;
+      qs('ed-export').style.display = 'none';
+      qs('ed-bulk').style.display = 'none';
+      return;
+    }
+    let html = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width:38px;"><input type="checkbox" id="ed-select-all" /></th>
+            <th>Data</th>
+            <th>Wejście</th>
+            <th>Wyjście</th>
+            <th>Czas pracy</th>
+            <th>Status</th>
+            <th>Kwota</th>
+            <th>Lokalizacja wejścia</th>
+            <th>Lokalizacja wyjścia</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody>`;
+    for(const log of data){
+      const date = log.date || log.day || '';
+      const start = (log.start || '').slice(0,5);
+      const stop = (log.stop || '').slice(0,5);
+      const duration = log.duration || '-';
+      const amount = (typeof log.kwota === 'number')? log.kwota.toFixed(2)+' zł' : (typeof log.amount === 'number'? log.amount.toFixed(2)+' zł' : '-');
+      const typ = log.typ || (statusSelect(log)==='obecny'?'Obecny':'Nieobecny');
+      const stVal = statusSelect(log);
+      const sid = `s-${log.log_id}`;
+      const iid = `i-${log.log_id}`;
+      const oid = `o-${log.log_id}`;
+      html += `
+        <tr data-id="${log.log_id}" data-date="${date}">
+          <td><input type="checkbox" class="ed-row" value="${log.log_id}" /></td>
+          <td>${date}</td>
+          <td><input id="${sid}" type="time" class="form-control" value="${start}" ${stVal==='nieobecny'?'disabled':''} /></td>
+          <td><input id="${iid}" type="time" class="form-control" value="${stop}" ${stVal==='nieobecny'?'disabled':''} /></td>
+          <td>${duration}</td>
+          <td>
+            <select id="${oid}" class="form-control ed-type">
+              <option value="obecny" ${stVal==='obecny'?'selected':''}>Obecny</option>
+              <option value="nieobecny" ${stVal==='nieobecny'?'selected':''}>Nieobecny</option>
+              <option value="urlop" ${stVal==='urlop'?'selected':''}>Urlop</option>
+              <option value="chorobowe" ${stVal==='chorobowe'?'selected':''}>Chorobowe</option>
+            </select>
+          </td>
+          <td><strong class="text-success">${amount}</strong></td>
+          <td>${mapLink(log.start_lat, log.start_lon)}</td>
+          <td>${mapLink(log.stop_lat, log.stop_lon)}</td>
+          <td>
+            <button class="btn btn-primary btn-sm ed-save" data-id="${log.log_id}"><i class="fas fa-save"></i> Zapisz</button>
+            <button class="btn btn-danger btn-sm ed-del" data-id="${log.log_id}"><i class="fas fa-trash"></i> Usuń</button>
+          </td>
+        </tr>`;
+    }
+    html += `</tbody></table>`;
+    wrap.innerHTML = html;
+
+    // bind
+    qs('ed-select-all')?.addEventListener('change', (e)=>{
+      document.querySelectorAll('.ed-row').forEach(cb => cb.checked = e.target.checked);
+      toggleBulk();
+    });
+    document.querySelectorAll('.ed-row').forEach(cb => cb.addEventListener('change', toggleBulk));
+    document.querySelectorAll('.ed-type').forEach(sel => sel.addEventListener('change', onTypeChange));
+    document.querySelectorAll('.ed-save').forEach(btn => btn.addEventListener('click', onSaveRow));
+    document.querySelectorAll('.ed-del').forEach(btn => btn.addEventListener('click', onDeleteRow));
+
+    qs('ed-export').style.display = 'block';
+  }
+
+  function toggleBulk(){
+    const any = Array.from(document.querySelectorAll('.ed-row')).some(cb => cb.checked);
+    qs('ed-bulk').style.display = any ? 'block' : 'none';
+  }
+
+  function onTypeChange(e){
+    const sel = e.target; const tr = sel.closest('tr');
+    const start = tr.querySelector('input[type="time"]:nth-of-type(1)');
+    const stop = tr.querySelector('input[type="time"]:nth-of-type(2)');
+    if(sel.value === 'nieobecny'){ start.disabled = true; stop.disabled = true; }
+    else { start.disabled = false; stop.disabled = false; }
+  }
+
+  function buildPayload(date, start, stop, type){
+    const isHoliday = type==='urlop' ? 'tak' : 'nie';
+    const isSick = type==='chorobowe' ? 'tak' : 'nie';
+    const isPresent = type==='obecny';
+    return {
+      start_time: `${date}T${start || '00:00'}:00`,
+      stop_time: `${date}T${stop || '00:00'}:00`,
+      is_holiday: isHoliday,
+      is_sick: isSick,
+      is_present: isPresent
+    };
+  }
+
+  async function onSaveRow(e){
+    const id = e.currentTarget.getAttribute('data-id');
+    const tr = e.currentTarget.closest('tr');
+    const date = tr.getAttribute('data-date');
+    const start = tr.querySelector('input[type="time"]:nth-of-type(1)').value;
+    const stop = tr.querySelector('input[type="time"]:nth-of-type(2)').value;
+    const type = tr.querySelector('select.ed-type').value;
+    try{
+      const res = await fetch(getApiUrl(`/logs/${id}`), { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(buildPayload(date,start,stop,type)) });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      await reload();
+    }catch(err){ alert('Błąd zapisu: '+err.message); }
+  }
+
+  async function onDeleteRow(e){
+    const id = e.currentTarget.getAttribute('data-id'); if(!confirm('Usunąć wpis?')) return;
+    try{
+      const res = await fetch(getApiUrl(`/logs/${id}`), { method:'DELETE', credentials:'include' });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      await reload();
+    }catch(err){ alert('Błąd usuwania: '+err.message); }
+  }
+
+  async function applyBulk(){
+    const ids = Array.from(document.querySelectorAll('.ed-row:checked')).map(cb => cb.value);
+    if(ids.length===0){ alert('Zaznacz wiersze.'); return; }
+    const start = qs('ed-bulk-start').value; const stop = qs('ed-bulk-stop').value; const type = qs('ed-bulk-type').value;
+    try{
+      for(const id of ids){
+        const tr = document.querySelector(`tr[data-id="${id}"]`);
+        const date = tr.getAttribute('data-date');
+        const s = start || tr.querySelector('input[type="time"]:nth-of-type(1)').value;
+        const o = stop || tr.querySelector('input[type="time"]:nth-of-type(2)').value;
+        const t = type || tr.querySelector('select.ed-type').value;
+        const res = await fetch(getApiUrl(`/logs/${id}`), { method:'PATCH', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(buildPayload(date,s,o,t)) });
+        if(!res.ok) throw new Error('HTTP '+res.status);
+      }
+      await reload();
+    }catch(err){ alert('Błąd hurtowej edycji: '+err.message); }
+  }
+
+  function attachExport(){
+    const toCSV = ()=>{
+      const table = document.querySelector('#ed-table-wrap table'); if(!table){ alert('Brak danych'); return; }
+      const rows = Array.from(table.rows);
+      let csv = '';
+      if(rows.length){
+        csv += Array.from(rows[0].cells).map(c => '"'+c.innerText.replace(/"/g,'""')+'"').join(',') + '\n';
+        for(let i=1;i<rows.length;i++) csv += Array.from(rows[i].cells).map(c => '"'+c.innerText.replace(/"/g,'""')+'"').join(',') + '\n';
+      }
+      const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='szczegoly_pracownika.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    };
+    qs('ed-csv')?.addEventListener('click', (e)=>{ e.preventDefault(); toCSV(); });
+    qs('ed-pdf')?.addEventListener('click', (e)=>{ e.preventDefault(); window.print(); });
+    qs('ed-print')?.addEventListener('click', (e)=>{ e.preventDefault(); window.print(); });
+  }
+
+  async function load(workerId, from, to){
+    if(!workerId || !from || !to){ alert('Podaj ID pracownika i zakres dat'); return; }
+    state.workerId = workerId; state.range = {start:from, end:to};
+    const wrap = qs('ed-table-wrap');
+    wrap.innerHTML = `<div style=\"padding: 24px; text-align:center; color:#6c757d;\"><i class=\"fas fa-spinner fa-spin text-primary\" style=\"font-size:1.5rem;\"></i><div style=\"margin-top:.5rem;\">Ładowanie...</div></div>`;
+    try{
+      const url = getApiUrl(`/attendance_details?worker_id=${encodeURIComponent(workerId)}&date_from=${encodeURIComponent(from)}&date_to=${encodeURIComponent(to)}`);
+      const res = await fetch(url, { credentials:'include' });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const json = await res.json();
+      const logs = Array.isArray(json.logs) ? json.logs : [];
+      const name = (logs[0]?.name) || json.name || '';
+      personTitle(name);
+      state.data = logs;
+      renderTable(logs);
+      qs('ed-export').style.display = logs.length? 'block':'none';
+      // Link do edycji profilu
+      const edit = qs('ed-edit-profile'); if(edit){ edit.href = `/frontend/employee_edit.html?id=${encodeURIComponent(workerId)}`; }
+      renderSummary(json.summary, logs);
+      attachExport();
+    }catch(err){
+      wrap.innerHTML = `<div class=\"card\"><div class=\"card-body\" style=\"padding:16px; text-align:center;\"><i class=\"fas fa-triangle-exclamation text-danger\" style=\"font-size:2rem;\"></i><div class=\"mt-2\">Błąd pobierania danych.</div><button id=\"ed-retry\" class=\"btn btn-primary\" style=\"margin-top:8px;\"><i class=\"fas fa-rotate\"></i> Spróbuj ponownie</button></div></div>`;
+      qs('ed-retry')?.addEventListener('click', ()=> load(workerId, from, to));
+      console.error(err);
+    }
+  }
+
+  function renderSummary(sum, logs){
+    const box = qs('ed-summary'); if(!box) return; if(!sum){ box.innerHTML=''; return; }
+    // policz dodatkowo godziny wg typów dni
+    let godzinySoboty=0, godzinyNiedziele=0, godzinySwieta=0, godzinyZwykle=0;
+    for(const it of logs){
+      const d = new Date((it.date||'')+ 'T00:00:00');
+      const h = parseFloat(it.duration)||0;
+      if(it.is_holiday==='tak' || it.is_holiday===true) godzinySwieta += h;
+      else if(d.getDay()===0) godzinyNiedziele += h;
+      else if(d.getDay()===6) godzinySoboty += h;
+      else godzinyZwykle += h;
+    }
+    box.innerHTML = `
+      <div class=\"card\"><div class=\"card-body\">
+        <div style=\"display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:10px;\">
+          <div><strong>Dni:</strong> ${sum.dni ?? '-'} </div>
+          <div><strong>Godzin:</strong> ${(sum.godziny ?? 0).toFixed ? sum.godziny.toFixed(2) : sum.godziny ?? '-'} </div>
+          <div><strong>Soboty:</strong> ${sum.soboty ?? 0} — ${godzinySoboty.toFixed(2)}h — ${(sum.kwota_soboty ?? 0).toFixed ? (sum.kwota_soboty).toFixed(2): (sum.kwota_soboty ?? 0)} zł</div>
+          <div><strong>Niedziele:</strong> ${sum.niedziele ?? 0} — ${godzinyNiedziele.toFixed(2)}h — ${(sum.kwota_niedziele ?? 0).toFixed ? (sum.kwota_niedziele).toFixed(2): (sum.kwota_niedziele ?? 0)} zł</div>
+          <div><strong>Święta:</strong> ${sum.swieta ?? 0} — ${godzinySwieta.toFixed(2)}h — ${(sum.kwota_swieta ?? 0).toFixed ? (sum.kwota_swieta).toFixed(2): (sum.kwota_swieta ?? 0)} zł</div>
+          <div><strong>Zwykłe dni:</strong> ${godzinyZwykle.toFixed(2)}h — ${(sum.kwota_zwykle ?? 0).toFixed ? (sum.kwota_zwykle).toFixed(2): (sum.kwota_zwykle ?? 0)} zł</div>
+          <div style=\"grid-column:1/-1;\"><strong>SUMA:</strong> <span class=\"text-primary\">${(sum.kwota ?? 0).toFixed ? sum.kwota.toFixed(2) : sum.kwota ?? 0} zł</span></div>
+        </div>
+      </div></div>`;
+  }
+
+  async function reload(){ if(state.workerId && state.range){ await load(state.workerId, state.range.start, state.range.end); } }
+
+  function bindOnce(){
+    if(state.bound) return; state.bound = true;
+    qs('ed-show')?.addEventListener('click', ()=>{ const w=qs('ed-worker').value.trim(); const f=qs('ed-from').value; const t=qs('ed-to').value; load(w,f,t); });
+    qs('ed-this-month')?.addEventListener('click', ()=>{ const r=thisMonth(); qs('ed-from').value=r.start; qs('ed-to').value=r.end; });
+    qs('ed-bulk-apply')?.addEventListener('click', applyBulk);
+
+    // Autoload z parametrów URL (gdy komponent osadzony na stronie z parametrami)
+    try{
+      const p = new URLSearchParams(location.search);
+      const w = p.get('worker_id'); const f = p.get('start'); const t = p.get('end');
+      if(w){ qs('ed-worker').value = w; }
+      if(f){ qs('ed-from').value = f; }
+      if(t){ qs('ed-to').value = t; }
+      if(w && f && t){ setTimeout(()=> load(w,f,t), 50); }
+    }catch{}
+  }
+
+  function init(){ bindOnce(); }
+
+  window.EmployeeDetailsComponent = { init, load };
+})();
+</script>

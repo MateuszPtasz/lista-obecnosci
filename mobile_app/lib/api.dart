@@ -204,7 +204,7 @@ Future<Map<String, dynamic>> checkWorkerStatus(String numerPracownika) async {
     final response = await _fetchWithRetry(url);
 
     print(
-      '📱 Sprawdzanie statusu pracownika ${numerPracownika}: ${response.statusCode}',
+      '📱 Sprawdzanie statusu pracownika $numerPracownika: ${response.statusCode}',
     );
     if (response.statusCode == 200) {
       try {

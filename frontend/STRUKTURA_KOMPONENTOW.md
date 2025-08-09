@@ -32,15 +32,27 @@ frontend/
   - Edit: PUT /api/worker/{id} (modal, new_id zmienia ID, credentials:'include')
   - UX: modal pod body, wysoki z-index, body.scroll lock, sticky header fix
 
+### Attendance (`/components/attendance/`)
+- attendance-day.html — Obecność wybrany dzień (GET /api/attendance_by_date)
+  - test: frontend/attendance-day-test.html
+- attendance-summary.html — Ewidencja (GET /api/attendance_summary, employees_without_logs, POST /api/logs/batch)
+  - test: frontend/attendance-summary-test.html
+- employee-details.html — Szczegóły pracownika (GET /api/attendance_details, PATCH/DELETE /api/logs/{id})
+  - test: frontend/employee-details-test.html
+
 ## 🌐 API używane przez komponenty
 - GET /api/workers; POST /api/workers; PUT /api/worker/{id}; DELETE /api/workers/{id}; DELETE /api/workers/batch; POST /api/import_employees_csv
 - POST /api/start; POST /api/stop; POST /api/admin/force-stop
 - GET /api/workers/status; GET /api/active_workers
+- GET /api/attendance_by_date; GET /api/attendance_summary; GET /api/attendance_details; GET /api/employees_without_logs; POST /api/logs/batch; PATCH/DELETE /api/logs/{id}
 
 ## 🧪 Strony testowe
 - frontend/work-test.html — test work-management
 - frontend/worker-status-search-test.html — test statusów
 - frontend/employees-list-test.html — test listy pracowników
+- frontend/attendance-day-test.html — test obecności dnia
+- frontend/attendance-summary-test.html — test ewidencji
+- frontend/employee-details-test.html — test szczegółów pracownika
 
 ## 🧱 Wzorzec komponentu (lightweight)
 ```html
@@ -54,9 +66,9 @@ frontend/
 
 ## 🔐 Autoryzacja w trybie testowym
 - Strony testowe nie wymuszają logowania admina.
-- Edycja pracownika w komponencie używa danych z listy (bez GET /api/worker/{id}); zapis przez PUT z credentials:'include'.
+- Operacje zapisu używają credentials:'include'.
 
 ## 📌 Uwagi
 - Używamy ścieżek względnych /api/... dla zgodności ciasteczek.
-- Modale przenosimy pod body i nadajemy wysoki z-index (uniknięcie kolizji ze sticky header).
 - Guardy init zapobiegają wielokrotnemu bindowaniu zdarzeń.
+- Komponenty mają spójny wizualnie styl; w przyszłości można podmienić globalny temat przez CSS variables.

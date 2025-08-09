@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'api.dart'; // Importujemy główny plik API
 
 class ApiDiagnosticsPage extends StatefulWidget {
-  const ApiDiagnosticsPage({Key? key}) : super(key: key);
+  const ApiDiagnosticsPage({super.key});
 
   @override
   State<ApiDiagnosticsPage> createState() => _ApiDiagnosticsPageState();
@@ -65,7 +65,7 @@ class _ApiDiagnosticsPageState extends State<ApiDiagnosticsPage> {
     // Test 2: Połączenie z serwerem - podstawowy test
     await _runTest('Podstawowe połączenie z serwerem', () async {
       try {
-        final url = Uri.parse('$baseUrl');
+        final url = Uri.parse(baseUrl);
         final response = await http.get(url).timeout(Duration(seconds: 5));
 
         return {
