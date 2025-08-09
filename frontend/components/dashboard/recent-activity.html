@@ -1,0 +1,789 @@
+<!-- DASHBOARD RECENT ACTIVITY COMPONENT -->
+<div class="recent-activity-component" id="recent-activity-component">
+    <!-- Header komponentu -->
+    <div class="activity-header">
+        <h3><i class="fas fa-history"></i> Ostatnie Aktywności</h3>
+        <div class="activity-controls">
+            <select id="activity-filter" class="filter-select">
+                <option value="all">Wszystkie aktywności</option>
+                <option value="login">Logowania</option>
+                <option value="logout">Wylogowania</option>
+                <option value="checkin">Wejścia</option>
+                <option value="checkout">Wyjścia</option>
+                <option value="system">System</option>
+            </select>
+            <button id="activity-refresh" class="refresh-btn">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Lista aktywności -->
+    <div class="activity-container" id="activity-container">
+        <div class="activity-loading" id="activity-loading">
+            <div class="loading-spinner">
+                <i class="fas fa-circle-notch fa-spin"></i>
+            </div>
+            <span>Ładowanie aktywności...</span>
+        </div>
+
+        <!-- Aktywności będą wstawiane tutaj przez JavaScript -->
+        <div class="activity-timeline" id="activity-timeline">
+            <!-- Timeline items will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Więcej aktywności -->
+    <div class="activity-footer">
+        <button id="load-more" class="load-more-btn">
+            <i class="fas fa-chevron-down"></i>
+            Załaduj więcej aktywności
+        </button>
+        <div class="activity-count">
+            Wyświetlono <span id="shown-count">0</span> z <span id="total-count">0</span> aktywności
+        </div>
+    </div>
+</div>
+
+<style>
+/* RECENT ACTIVITY COMPONENT STYLES */
+.recent-activity-component {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 20px 0;
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header komponentu */
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.activity-header h3 {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.activity-header h3 i {
+    color: #667eea;
+    font-size: 1.2rem;
+}
+
+.activity-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 13px;
+    background: white;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.refresh-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+}
+
+.refresh-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.refresh-btn.loading i {
+    animation: spin 1s linear infinite;
+}
+
+/* Kontener aktywności */
+.activity-container {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    position: relative;
+    min-height: 300px;
+}
+
+.activity-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #666;
+    gap: 15px;
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    color: #667eea;
+}
+
+/* Timeline aktywności */
+.activity-timeline {
+    position: relative;
+    padding: 10px 0;
+}
+
+.activity-timeline::before {
+    content: '';
+    position: absolute;
+    left: 25px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #667eea, #764ba2);
+    border-radius: 1px;
+}
+
+/* Element aktywności */
+.activity-item {
+    position: relative;
+    padding: 15px 0 15px 60px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.activity-item:hover {
+    background: rgba(102, 126, 234, 0.05);
+    transform: translateX(5px);
+}
+
+.activity-item::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 20px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px currentColor;
+    z-index: 2;
+}
+
+/* Różne kolory dla różnych typów aktywności */
+.activity-item.login::before { color: #28a745; }
+.activity-item.logout::before { color: #ffc107; }
+.activity-item.checkin::before { color: #17a2b8; }
+.activity-item.checkout::before { color: #fd7e14; }
+.activity-item.system::before { color: #6f42c1; }
+.activity-item.error::before { color: #dc3545; }
+
+/* Ikona aktywności */
+.activity-icon {
+    position: absolute;
+    left: 8px;
+    top: 15px;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    z-index: 3;
+}
+
+.activity-item.login .activity-icon { background: #28a745; }
+.activity-item.logout .activity-icon { background: #ffc107; color: #333; }
+.activity-item.checkin .activity-icon { background: #17a2b8; }
+.activity-item.checkout .activity-icon { background: #fd7e14; }
+.activity-item.system .activity-icon { background: #6f42c1; }
+.activity-item.error .activity-icon { background: #dc3545; }
+
+/* Zawartość aktywności */
+.activity-content {
+    margin-bottom: 8px;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.activity-description {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+
+.activity-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #888;
+}
+
+.activity-time {
+    font-weight: 500;
+}
+
+.activity-user {
+    background: #f8f9fa;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    color: #495057;
+}
+
+/* Footer komponentu */
+.activity-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 2px solid #f8f9fa;
+}
+
+.load-more-btn {
+    background: #f8f9fa;
+    color: #666;
+    border: 2px solid #e9ecef;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.load-more-btn:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    transform: translateY(-1px);
+}
+
+.load-more-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.activity-count {
+    font-size: 12px;
+    color: #888;
+    font-weight: 500;
+}
+
+/* Empty state */
+.activity-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #666;
+    gap: 15px;
+}
+
+.activity-empty i {
+    font-size: 3rem;
+    color: #ccc;
+}
+
+.activity-empty p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Scrollbar styling */
+.activity-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.activity-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.activity-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #667eea, #764ba2);
+    border-radius: 10px;
+}
+
+.activity-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a67d8, #6b46c1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .recent-activity-component {
+        padding: 20px 15px;
+        max-height: 500px;
+    }
+    
+    .activity-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .activity-controls {
+        justify-content: space-between;
+    }
+    
+    .filter-select {
+        flex: 1;
+    }
+    
+    .activity-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .activity-timeline::before {
+        left: 20px;
+    }
+    
+    .activity-item {
+        padding-left: 50px;
+    }
+    
+    .activity-item::before {
+        left: 14px;
+    }
+    
+    .activity-icon {
+        left: 3px;
+        width: 26px;
+        height: 26px;
+        font-size: 12px;
+    }
+}
+
+/* Animacje */
+.activity-item {
+    animation: slideInLeft 0.4s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Pulse animation dla nowych elementów */
+.activity-item.new {
+    animation: newItemPulse 1s ease-out;
+}
+
+@keyframes newItemPulse {
+    0% {
+        background: rgba(102, 126, 234, 0.2);
+    }
+    100% {
+        background: transparent;
+    }
+}
+</style>
+
+<script>
+// RECENT ACTIVITY COMPONENT CLASS
+class RecentActivityComponent {
+    constructor() {
+        this.activities = [];
+        this.filteredActivities = [];
+        this.currentFilter = 'all';
+        this.refreshInterval = null;
+        this.refreshRate = 60000; // 60 sekund
+        this.pageSize = 10;
+        this.currentPage = 1;
+        this.init();
+    }
+
+    init() {
+        console.log('📋 Recent Activity Component inicjalizowany...');
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.setupComponent();
+            });
+        } else {
+            this.setupComponent();
+        }
+    }
+
+    setupComponent() {
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        // Pierwsze załadowanie danych
+        this.loadActivities();
+        
+        // Start auto-refresh
+        this.startAutoRefresh();
+        
+        console.log('✅ Recent Activity Component zainicjalizowany');
+    }
+
+    setupEventListeners() {
+        // Filter select
+        const filterSelect = document.getElementById('activity-filter');
+        if (filterSelect) {
+            filterSelect.addEventListener('change', (e) => {
+                this.currentFilter = e.target.value;
+                this.applyFilter();
+            });
+        }
+
+        // Refresh button
+        const refreshBtn = document.getElementById('activity-refresh');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                this.refreshActivities();
+            });
+        }
+
+        // Load more button
+        const loadMoreBtn = document.getElementById('load-more');
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', () => {
+                this.loadMoreActivities();
+            });
+        }
+    }
+
+    async loadActivities() {
+        try {
+            this.showLoadingState();
+            
+            // Nowe: Spróbuj realnych endpointów, potem fallback do mocka
+            const endpoints = ['/api/dashboard/recent-activity', '/api/recent-activities'];
+            let payload = null;
+
+            for (const url of endpoints) {
+                try {
+                    const resp = await fetch(url);
+                    if (resp.ok) {
+                        payload = await resp.json();
+                        break;
+                    }
+                } catch (_) { /* ignoruj i próbuj następny */ }
+            }
+
+            let data = null;
+            if (payload) {
+                // Akceptuj dwa formaty: { activities: [...] } lub bezpośrednio [...]
+                data = Array.isArray(payload) ? payload : (payload.activities || []);
+            } else {
+                // Fallback do mocka (krótsze czekanie)
+                await new Promise(r => setTimeout(r, 300));
+                data = this.getMockActivities();
+            }
+
+            this.activities = data;
+            this.applyFilter();
+            
+        } catch (error) {
+            console.error('❌ Błąd podczas ładowania aktywności:', error);
+            this.showErrorState();
+        }
+    }
+
+    getMockActivities() {
+        const users = ['Jan Kowalski', 'Anna Nowak', 'Piotr Wiśniewski', 'Maria Kowalczyk', 'Tomasz Wójcik'];
+        const activities = [];
+        const now = new Date();
+
+        for (let i = 0; i < 25; i++) {
+            const timeAgo = Math.floor(Math.random() * 480); // Ostatnie 8 godzin
+            const activityTime = new Date(now.getTime() - timeAgo * 60000);
+            const user = users[Math.floor(Math.random() * users.length)];
+            
+            const activityTypes = [
+                {
+                    type: 'login',
+                    title: 'Logowanie do systemu',
+                    description: `${user} zalogował się do systemu`,
+                    icon: 'fas fa-sign-in-alt'
+                },
+                {
+                    type: 'logout',
+                    title: 'Wylogowanie z systemu',
+                    description: `${user} wylogował się z systemu`,
+                    icon: 'fas fa-sign-out-alt'
+                },
+                {
+                    type: 'checkin',
+                    title: 'Wejście do pracy',
+                    description: `${user} rozpoczął pracę`,
+                    icon: 'fas fa-clock'
+                },
+                {
+                    type: 'checkout',
+                    title: 'Wyjście z pracy',
+                    description: `${user} zakończył pracę`,
+                    icon: 'fas fa-clock'
+                },
+                {
+                    type: 'system',
+                    title: 'Aktualizacja systemu',
+                    description: 'Zaktualizowano konfigurację aplikacji mobilnej',
+                    icon: 'fas fa-cog'
+                }
+            ];
+
+            const activity = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+            
+            activities.push({
+                id: `act_${Date.now()}_${i}`,
+                type: activity.type,
+                title: activity.title,
+                description: activity.description,
+                user: activity.type === 'system' ? 'System' : user,
+                time: activityTime,
+                icon: activity.icon
+            });
+        }
+
+        return activities.sort((a, b) => b.time - a.time);
+    }
+
+    applyFilter() {
+        if (this.currentFilter === 'all') {
+            this.filteredActivities = [...this.activities];
+        } else {
+            this.filteredActivities = this.activities.filter(
+                activity => activity.type === this.currentFilter
+            );
+        }
+
+        this.currentPage = 1;
+        this.renderActivities();
+        this.updateCounts();
+    }
+
+    renderActivities() {
+        const timeline = document.getElementById('activity-timeline');
+        const loading = document.getElementById('activity-loading');
+        
+        if (!timeline) return;
+
+        // Ukryj loading
+        if (loading) {
+            loading.style.display = 'none';
+        }
+
+        // Clear existing activities
+        timeline.innerHTML = '';
+
+        if (this.filteredActivities.length === 0) {
+            this.showEmptyState();
+            return;
+        }
+
+        // Render activities for current page
+        const startIndex = 0;
+        const endIndex = this.currentPage * this.pageSize;
+        const activitiesToShow = this.filteredActivities.slice(startIndex, endIndex);
+
+        activitiesToShow.forEach((activity, index) => {
+            const activityElement = this.createActivityElement(activity);
+            activityElement.style.animationDelay = `${index * 0.1}s`;
+            timeline.appendChild(activityElement);
+        });
+
+        // Update load more button
+        this.updateLoadMoreButton();
+    }
+
+    createActivityElement(activity) {
+        const div = document.createElement('div');
+        div.className = `activity-item ${activity.type}`;
+        
+        const timeString = this.formatRelativeTime(activity.time);
+        
+        div.innerHTML = `
+            <div class="activity-icon">
+                <i class="${activity.icon}"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">${activity.title}</div>
+                <div class="activity-description">${activity.description}</div>
+                <div class="activity-meta">
+                    <span class="activity-time">${timeString}</span>
+                    <span class="activity-user">${activity.user}</span>
+                </div>
+            </div>
+        `;
+
+        return div;
+    }
+
+    formatRelativeTime(date) {
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'Teraz';
+        if (diffMins < 60) return `${diffMins} min temu`;
+        if (diffHours < 24) return `${diffHours}h temu`;
+        return `${diffDays} dni temu`;
+    }
+
+    showLoadingState() {
+        const loading = document.getElementById('activity-loading');
+        const timeline = document.getElementById('activity-timeline');
+        
+        if (loading) loading.style.display = 'flex';
+        if (timeline) timeline.innerHTML = '';
+    }
+
+    showEmptyState() {
+        const timeline = document.getElementById('activity-timeline');
+        if (!timeline) return;
+
+        timeline.innerHTML = `
+            <div class="activity-empty">
+                <i class="fas fa-clipboard"></i>
+                <p>Brak aktywności do wyświetlenia</p>
+            </div>
+        `;
+    }
+
+    showErrorState() {
+        const timeline = document.getElementById('activity-timeline');
+        const loading = document.getElementById('activity-loading');
+        
+        if (loading) loading.style.display = 'none';
+        
+        if (timeline) {
+            timeline.innerHTML = `
+                <div class="activity-empty">
+                    <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
+                    <p>Błąd podczas ładowania aktywności</p>
+                </div>
+            `;
+        }
+    }
+
+    updateCounts() {
+        const shownCount = Math.min(this.currentPage * this.pageSize, this.filteredActivities.length);
+        const totalCount = this.filteredActivities.length;
+        
+        const shownElement = document.getElementById('shown-count');
+        const totalElement = document.getElementById('total-count');
+        
+        if (shownElement) shownElement.textContent = shownCount;
+        if (totalElement) totalElement.textContent = totalCount;
+    }
+
+    updateLoadMoreButton() {
+        const loadMoreBtn = document.getElementById('load-more');
+        if (!loadMoreBtn) return;
+
+        const hasMore = (this.currentPage * this.pageSize) < this.filteredActivities.length;
+        loadMoreBtn.disabled = !hasMore;
+        loadMoreBtn.style.display = hasMore ? 'flex' : 'none';
+    }
+
+    loadMoreActivities() {
+        this.currentPage++;
+        this.renderActivities();
+    }
+
+    async refreshActivities() {
+        const refreshBtn = document.getElementById('activity-refresh');
+        
+        if (refreshBtn) {
+            refreshBtn.classList.add('loading');
+        }
+
+        await this.loadActivities();
+
+        if (refreshBtn) {
+            setTimeout(() => {
+                refreshBtn.classList.remove('loading');
+            }, 500);
+        }
+    }
+
+    startAutoRefresh() {
+        this.refreshInterval = setInterval(() => {
+            this.loadActivities();
+        }, this.refreshRate);
+        
+        console.log(`🔄 Auto-refresh aktywności uruchomiony (co ${this.refreshRate/1000}s)`);
+    }
+
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+            console.log('⏸️ Auto-refresh aktywności zatrzymany');
+        }
+    }
+
+    destroy() {
+        this.stopAutoRefresh();
+        console.log('🗑️ Recent Activity Component zniszczony');
+    }
+}
+
+// Inicjalizacja komponentu
+window.RecentActivity = new RecentActivityComponent();
+
+// Cleanup przy opuszczeniu strony
+window.addEventListener('beforeunload', () => {
+    if (window.RecentActivity) {
+        window.RecentActivity.destroy();
+    }
+});
+</script>

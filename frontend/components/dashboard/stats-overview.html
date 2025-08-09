@@ -1,0 +1,865 @@
+<!-- INFORMACJE SZYBKIE - STATYSTYKI DASHBOARD -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-chart-line text-success"></i>
+            Informacje Szybkie
+        </h3>
+        <p class="card-subtitle">Kluczowe statystyki systemu w czasie rzeczywistym</p>
+    </div>
+    <div class="card-body">
+        <!-- Główne statystyki -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card bg-primary text-white">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="stat-present">23</div>
+                        <div class="stat-label">Obecni dziś</div>
+                        <div class="stat-change text-success">
+                            <i class="fas fa-arrow-up"></i> +3 od wczoraj
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card bg-success text-white">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="stat-hours">8.2h</div>
+                        <div class="stat-label">Średni czas pracy</div>
+                        <div class="stat-change">
+                            <span class="text-light">bez zmian</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card bg-info text-white">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="stat-efficiency">94%</div>
+                        <div class="stat-label">Efektywność</div>
+                        <div class="stat-change text-success">
+                            <i class="fas fa-arrow-up"></i> +2% w tym miesiącu
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card bg-warning text-white">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="stat-absences">2</div>
+                        <div class="stat-label">Nieobecności</div>
+                        <div class="stat-change text-danger">
+                            <i class="fas fa-arrow-up"></i> +1 od wczoraj
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Przyciski akcji -->
+        <div class="action-buttons mt-4">
+            <button class="btn btn-primary btn-sm" onclick="refreshStats()">
+                <i class="fas fa-sync-alt"></i>
+                Odśwież
+            </button>
+            <small class="text-muted ms-3">
+                Ostatnie odświeżenie: <span id="last-refresh">teraz</span>
+            </small>
+        </div>
+    </div>
+</div>
+
+<style>
+/* STATS OVERVIEW COMPONENT STYLES */
+.stat-card {
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.stat-change {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.action-buttons {
+    border-top: 1px solid #e9ecef;
+    padding-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .stat-number {
+        font-size: 28px;
+    }
+    
+    .stat-card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+}
+</style>
+
+<script>
+function refreshStats() {
+    console.log('🔄 Odświeżanie statystyk...');
+    
+    const refreshBtn = document.querySelector('button[onclick="refreshStats()"]');
+    if (refreshBtn) {
+        const originalText = refreshBtn.innerHTML;
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ładowanie...';
+        refreshBtn.disabled = true;
+        
+        setTimeout(() => {
+            // Update mock data
+            document.getElementById('stat-present').textContent = Math.floor(Math.random() * 10) + 20;
+            document.getElementById('stat-hours').textContent = (Math.random() * 2 + 7).toFixed(1) + 'h';
+            document.getElementById('stat-efficiency').textContent = Math.floor(Math.random() * 10) + 90 + '%';
+            document.getElementById('stat-absences').textContent = Math.floor(Math.random() * 5);
+            
+            refreshBtn.innerHTML = originalText;
+            refreshBtn.disabled = false;
+            
+            const now = new Date();
+            document.getElementById('last-refresh').textContent = now.toLocaleTimeString('pl-PL', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }, 1000);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📊 Stats Overview Component załadowany');
+    setInterval(() => {
+        if (!document.hidden) refreshStats();
+    }, 30000);
+});
+</script>
+
+        <!-- Karta: Status systemu -->
+        <div class="stat-card system-card">
+            <div class="stat-icon">
+                <i class="fas fa-server"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number system-status" id="system-status">
+                    <span class="status-indicator online">ONLINE</span>
+                </div>
+                <div class="stat-label">Status systemu</div>
+                <div class="stat-detail" id="system-detail">
+                    <span class="uptime">Uptime: --</span>
+                    <span class="db-status">DB: --</span>
+                </div>
+            </div>
+            <div class="stat-trend positive">
+                <i class="fas fa-check-circle"></i>
+                <span>OK</span>
+            </div>
+        </div>
+
+        <!-- Karta: Dzisiaj nieobecni -->
+        <div class="stat-card absence-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-times"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number" id="absent-today">
+                    <span class="loading-placeholder">--</span>
+                </div>
+                <div class="stat-label">Nieobecni dzisiaj</div>
+                <div class="stat-detail" id="absence-detail">
+                    <span class="sick-leave">L4: --</span>
+                    <span class="vacation">Urlop: --</span>
+                </div>
+            </div>
+            <div class="stat-trend neutral">
+                <i class="fas fa-minus"></i>
+                <span id="absence-trend">--</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Sekcja informacyjna -->
+    <div class="stats-footer">
+        <div class="update-info">
+            <i class="fas fa-info-circle"></i>
+            <span>Dane aktualizowane automatycznie co 30 sekund</span>
+        </div>
+        <div class="api-status" id="api-status">
+            <i class="fas fa-plug"></i>
+            <span>API: Połączono</span>
+        </div>
+    </div>
+</div>
+
+<style>
+/* DASHBOARD STATS OVERVIEW COMPONENT STYLES */
+.dashboard-stats-component {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 16px;
+    margin: 20px 0;
+}
+
+/* Header sekcji statystyk */
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.stats-header h2 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stats-header h2 i {
+    color: #667eea;
+    font-size: 1.6rem;
+}
+
+.refresh-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #666;
+    font-size: 14px;
+}
+
+.time-stamp {
+    font-weight: 600;
+    color: #667eea;
+}
+
+.refresh-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.refresh-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.refresh-btn.loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Siatka kart statystyk */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* Podstawowa karta statystyki */
+.stat-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.stat-card:hover::before {
+    left: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+/* Ikona w karcie */
+.stat-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: white;
+    flex-shrink: 0;
+}
+
+/* Różne kolory dla różnych kart */
+.employees-card .stat-icon {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.sessions-card .stat-icon {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.shifts-card .stat-icon {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.hours-card .stat-icon {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+}
+
+.system-card .stat-icon {
+    background: linear-gradient(135deg, #fa709a, #fee140);
+}
+
+.absence-card .stat-icon {
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
+    color: #666;
+}
+
+/* Zawartość karty */
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    line-height: 1;
+}
+
+.stat-number.system-status {
+    font-size: 1.4rem;
+}
+
+.status-indicator {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-indicator.online {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-indicator.offline {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.stat-detail {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    color: #888;
+}
+
+.stat-detail span {
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Wskaźnik trendu */
+.stat-trend {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.stat-trend.positive {
+    background: #d4edda;
+    color: #155724;
+}
+
+.stat-trend.negative {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.stat-trend.neutral {
+    background: #e2e3e5;
+    color: #6c757d;
+}
+
+.stat-trend i {
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+/* Loading placeholder */
+.loading-placeholder {
+    background: linear-gradient(90deg, #e9ecef 25%, #f8f9fa 50%, #e9ecef 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Stopka statystyk */
+.stats-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-top: 2px solid #e9ecef;
+    color: #666;
+    font-size: 13px;
+}
+
+.update-info, .api-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.api-status {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.api-status.error {
+    color: #dc3545;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-stats-component {
+        padding: 15px;
+    }
+    
+    .stats-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+    
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
+    }
+    
+    .stat-number {
+        font-size: 1.8rem;
+    }
+    
+    .stats-footer {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .stat-detail {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .refresh-info {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* Animacje przy załadowaniu */
+.stat-card {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
+.stat-card:nth-child(5) { animation-delay: 0.5s; }
+.stat-card:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script>
+// DASHBOARD STATS OVERVIEW COMPONENT CLASS
+class DashboardStatsComponent {
+    constructor() {
+        this.refreshInterval = null;
+        this.apiEndpoint = '/api/dashboard/stats';
+        this.refreshRate = 30000; // 30 sekund
+        this.init();
+    }
+
+    init() {
+        console.log('📊 Dashboard Stats Component inicjalizowany...');
+        
+        // Auto-inicjalizacja gdy DOM jest gotowy
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.setupComponent();
+            });
+        } else {
+            this.setupComponent();
+        }
+    }
+
+    setupComponent() {
+        // Setup manual refresh button
+        const refreshBtn = document.getElementById('manual-refresh');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                this.refreshStats(true);
+            });
+        }
+
+        // Pierwsze załadowanie danych
+        this.loadStats();
+
+        // Setup automatycznego odświeżania
+        this.startAutoRefresh();
+
+        console.log('✅ Dashboard Stats Component zainicjalizowany');
+    }
+
+    async loadStats() {
+        try {
+            this.showLoadingState();
+            
+            // Tutaj byłoby rzeczywiste wywołanie API
+            // const response = await fetch(this.apiEndpoint);
+            // const data = await response.json();
+            
+            // Symulacja danych API
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const mockData = this.getMockData();
+            
+            this.updateStatsDisplay(mockData);
+            this.updateTimestamp();
+            this.setApiStatus(true);
+            
+        } catch (error) {
+            console.error('❌ Błąd podczas ładowania statystyk:', error);
+            this.showErrorState();
+            this.setApiStatus(false);
+        }
+    }
+
+    getMockData() {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const currentHour = now.getHours();
+        
+        return {
+            employees: {
+                total: 47,
+                active: 43,
+                inactive: 4,
+                trend: "+2"
+            },
+            sessions: {
+                active: Math.floor(Math.random() * 35) + 15,
+                current: Math.floor(Math.random() * 25) + 10,
+                peak: 34,
+                trend: "stabilne"
+            },
+            shifts: {
+                completed: Math.floor(currentHour * 2.3),
+                onTime: Math.floor(currentHour * 2.1),
+                late: Math.floor(Math.random() * 3),
+                trend: "+3"
+            },
+            hours: {
+                total: Math.floor(currentHour * 18.7),
+                planned: currentHour * 20,
+                overtime: Math.floor(Math.random() * 12),
+                trend: "+2.5h"
+            },
+            system: {
+                status: "online",
+                uptime: "99.8%",
+                dbStatus: "OK"
+            },
+            absence: {
+                total: Math.floor(Math.random() * 8) + 2,
+                sickLeave: Math.floor(Math.random() * 4) + 1,
+                vacation: Math.floor(Math.random() * 4) + 1,
+                trend: "stabilne"
+            }
+        };
+    }
+
+    updateStatsDisplay(data) {
+        // Pracownicy
+        document.getElementById('total-employees').textContent = data.employees.total;
+        document.getElementById('employees-detail').innerHTML = `
+            <span class="active-count">Aktywni: ${data.employees.active}</span>
+            <span class="inactive-count">Nieaktywni: ${data.employees.inactive}</span>
+        `;
+        document.getElementById('employees-trend').textContent = data.employees.trend;
+
+        // Sesje
+        document.getElementById('active-sessions').textContent = data.sessions.active;
+        document.getElementById('sessions-detail').innerHTML = `
+            <span class="current-sessions">Obecnie: ${data.sessions.current}</span>
+            <span class="peak-sessions">Szczyt: ${data.sessions.peak}</span>
+        `;
+        document.getElementById('sessions-trend').textContent = data.sessions.trend;
+
+        // Zmiany
+        document.getElementById('completed-shifts').textContent = data.shifts.completed;
+        document.getElementById('shifts-detail').innerHTML = `
+            <span class="on-time">Na czas: ${data.shifts.onTime}</span>
+            <span class="late">Opóźnione: ${data.shifts.late}</span>
+        `;
+        document.getElementById('shifts-trend').textContent = data.shifts.trend;
+
+        // Godziny
+        document.getElementById('total-hours').textContent = data.hours.total + 'h';
+        document.getElementById('hours-detail').innerHTML = `
+            <span class="planned-hours">Planowane: ${data.hours.planned}h</span>
+            <span class="overtime">Nadgodziny: ${data.hours.overtime}h</span>
+        `;
+        document.getElementById('hours-trend').textContent = data.hours.trend;
+
+        // Status systemu
+        const systemStatus = document.getElementById('system-status');
+        const statusIndicator = systemStatus.querySelector('.status-indicator');
+        statusIndicator.textContent = data.system.status.toUpperCase();
+        statusIndicator.className = `status-indicator ${data.system.status}`;
+        
+        document.getElementById('system-detail').innerHTML = `
+            <span class="uptime">Uptime: ${data.system.uptime}</span>
+            <span class="db-status">DB: ${data.system.dbStatus}</span>
+        `;
+
+        // Nieobecności
+        document.getElementById('absent-today').textContent = data.absence.total;
+        document.getElementById('absence-detail').innerHTML = `
+            <span class="sick-leave">L4: ${data.absence.sickLeave}</span>
+            <span class="vacation">Urlop: ${data.absence.vacation}</span>
+        `;
+        document.getElementById('absence-trend').textContent = data.absence.trend;
+    }
+
+    showLoadingState() {
+        const numbers = document.querySelectorAll('.stat-number');
+        numbers.forEach(num => {
+            if (!num.classList.contains('system-status')) {
+                num.innerHTML = '<span class="loading-placeholder">--</span>';
+            }
+        });
+    }
+
+    showErrorState() {
+        const numbers = document.querySelectorAll('.stat-number');
+        numbers.forEach(num => {
+            if (!num.classList.contains('system-status')) {
+                num.textContent = 'Błąd';
+            }
+        });
+    }
+
+    updateTimestamp() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('pl-PL');
+        const timestampElement = document.querySelector('.time-stamp');
+        if (timestampElement) {
+            timestampElement.textContent = timeString;
+        }
+    }
+
+    setApiStatus(connected) {
+        const apiStatus = document.getElementById('api-status');
+        if (apiStatus) {
+            apiStatus.className = connected ? 'api-status' : 'api-status error';
+            apiStatus.innerHTML = `
+                <i class="fas fa-plug"></i>
+                <span>API: ${connected ? 'Połączono' : 'Błąd połączenia'}</span>
+            `;
+        }
+    }
+
+    async refreshStats(manual = false) {
+        const refreshBtn = document.getElementById('manual-refresh');
+        
+        if (manual && refreshBtn) {
+            refreshBtn.classList.add('loading');
+        }
+
+        await this.loadStats();
+
+        if (manual && refreshBtn) {
+            setTimeout(() => {
+                refreshBtn.classList.remove('loading');
+            }, 500);
+        }
+    }
+
+    startAutoRefresh() {
+        this.refreshInterval = setInterval(() => {
+            this.refreshStats();
+        }, this.refreshRate);
+        
+        console.log(`🔄 Auto-refresh uruchomiony (co ${this.refreshRate/1000}s)`);
+    }
+
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+            console.log('⏸️ Auto-refresh zatrzymany');
+        }
+    }
+
+    destroy() {
+        this.stopAutoRefresh();
+        console.log('🗑️ Dashboard Stats Component zniszczony');
+    }
+}
+
+// Inicjalizacja komponentu
+window.DashboardStats = new DashboardStatsComponent();
+
+// Cleanup przy opuszczeniu strony
+window.addEventListener('beforeunload', () => {
+    if (window.DashboardStats) {
+        window.DashboardStats.destroy();
+    }
+});
+</script>

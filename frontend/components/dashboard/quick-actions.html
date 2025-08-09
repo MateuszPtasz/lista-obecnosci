@@ -1,0 +1,1868 @@
+<!-- SZYBKIE AKCJE - KOMPONENT DASHBOARD -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-bolt text-warning"></i>
+            Szybkie Akcje
+        </h3>
+        <p class="card-subtitle">Najczęściej używane funkcje systemu</p>
+    </div>
+    <div class="card-body">
+        <!-- Grid szybkich akcji -->
+        <div class="quick-actions-grid">
+            <!-- Dodaj Pracownika -->
+            <div class="action-card" onclick="openAddEmployee()">
+                <div class="action-icon bg-success">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="action-content">
+                    <h5>Dodaj Pracownika</h5>
+                    <p>Zarejestruj nową osobę</p>
+                </div>
+                <div class="action-shortcut">
+                    <span>Ctrl+N</span>
+                </div>
+            </div>
+
+            <!-- Rozpocznij Pracę -->
+            <div class="action-card" onclick="focusStartWork()">
+                <div class="action-icon bg-primary">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="action-content">
+                    <h5>Rozpocznij Pracę</h5>
+                    <p>Zaloguj pracownika</p>
+                </div>
+                <div class="action-shortcut">
+                    <span>Ctrl+S</span>
+                </div>
+            </div>
+
+            <!-- Zakończ Pracę -->
+            <div class="action-card" onclick="focusStopWork()">
+                <div class="action-icon bg-danger">
+                    <i class="fas fa-stop"></i>
+                </div>
+                <div class="action-content">
+                    <h5>Zakończ Pracę</h5>
+                    <p>Wyloguj pracownika</p>
+                </div>
+                <div class="action-shortcut">
+                    <span>Ctrl+E</span>
+                </div>
+            </div>
+
+            <!-- Odśwież Status -->
+            <div class="action-card" onclick="refreshAllData()">
+                <div class="action-icon bg-info">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="action-content">
+                    <h5>Odśwież Dane</h5>
+                    <p>Aktualizuj wszystko</p>
+                </div>
+                <div class="action-shortcut">
+                    <span>F5</span>
+                </div>
+            </div>
+
+            <!-- Lista Pracowników -->
+            <div class="action-card" onclick="goToEmployees()">
+                <div class="action-icon bg-secondary">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="action-content">
+                    <h5>Zespół</h5>
+                    <p>Zarządzaj pracownikami</p>
+                </div>
+                <div class="action-shortcut">
+                    <span>Ctrl+U</span>
+                </div>
+            </div>
+
+            <!-- Raporty -->
+            <div class="action-card" onclick="openReports()">
+                <div class="action-icon bg-dark">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="action-content">
+                    <h5>Raporty</h5>
+                    <p>Ewidencja i statystyki</p>
+                </div>
+                <div class="action-shortcut">
+                    <span>Ctrl+R</span>
+                </div>
+            </div>
+
+            <!-- Terminal -->
+            <div class="action-card" onclick="focusTerminal()">
+                <div class="action-icon bg-dark">
+                    <i class="fas fa-terminal"></i>
+                </div>
+                <div class="action-content">
+                    <h5>Terminal</h5>
+                    <p>Diagnostyka systemu</p>
+                </div>
+                <div class="action-shortcut">
+                    <span>Ctrl+T</span>
+                </div>
+            </div>
+
+            <!-- Konfiguracja -->
+            <div class="action-card" onclick="openConfig()">
+                <div class="action-icon bg-warning">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="action-content">
+                    <h5>Konfiguracja</h5>
+                    <p>Ustawienia systemu</p>
+                </div>
+                <div class="action-shortcut">
+                    <span>Ctrl+,</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statystyki szybkich akcji -->
+        <div class="actions-stats mt-4">
+            <div class="row text-center">
+                <div class="col-3">
+                    <div class="stat-item">
+                        <strong class="text-success" id="today-logins">12</strong>
+                        <small class="text-muted d-block">Logowania dziś</small>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="stat-item">
+                        <strong class="text-primary" id="active-sessions">8</strong>
+                        <small class="text-muted d-block">Aktywne sesje</small>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="stat-item">
+                        <strong class="text-info" id="quick-actions-used">23</strong>
+                        <small class="text-muted d-block">Akcji użyto</small>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="stat-item">
+                        <strong class="text-warning" id="shortcuts-used">7</strong>
+                        <small class="text-muted d-block">Skróty użyte</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* QUICK ACTIONS COMPONENT STYLES */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.action-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    border-color: #007bff;
+}
+
+.action-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    color: white;
+    font-size: 20px;
+}
+
+.action-icon.bg-success { background-color: #28a745; }
+.action-icon.bg-primary { background-color: #007bff; }
+.action-icon.bg-danger { background-color: #dc3545; }
+.action-icon.bg-info { background-color: #17a2b8; }
+.action-icon.bg-secondary { background-color: #6c757d; }
+.action-icon.bg-dark { background-color: #343a40; }
+.action-icon.bg-warning { 
+    background-color: #ffc107; 
+    color: #212529; 
+}
+
+.action-content h5 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.action-content p {
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+}
+
+.action-shortcut {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.actions-stats {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.stat-item {
+    padding: 10px;
+}
+
+.stat-item strong {
+    font-size: 20px;
+    display: block;
+}
+
+.stat-item small {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .action-card {
+        padding: 12px;
+    }
+    
+    .action-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .action-content h5 {
+        font-size: 13px;
+    }
+    
+    .action-content p {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// QUICK ACTIONS FUNCTIONALITY
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Quick Actions Component załadowany');
+    
+    // Initialize keyboard shortcuts
+    setupKeyboardShortcuts();
+    
+    // Load stats
+    loadQuickActionsStats();
+    
+    // Update stats every 30 seconds
+    setInterval(loadQuickActionsStats, 30000);
+});
+
+// Keyboard shortcuts
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey) {
+            switch(e.key) {
+                case 'n':
+                case 'N':
+                    e.preventDefault();
+                    openAddEmployee();
+                    break;
+                case 's':
+                case 'S':
+                    e.preventDefault();
+                    focusStartWork();
+                    break;
+                case 'e':
+                case 'E':
+                    e.preventDefault();
+                    focusStopWork();
+                    break;
+                case 'u':
+                case 'U':
+                    e.preventDefault();
+                    goToEmployees();
+                    break;
+                case 'r':
+                case 'R':
+                    e.preventDefault();
+                    openReports();
+                    break;
+                case 't':
+                case 'T':
+                    e.preventDefault();
+                    focusTerminal();
+                    break;
+                case ',':
+                    e.preventDefault();
+                    openConfig();
+                    break;
+            }
+        }
+        
+        if (e.key === 'F5') {
+            e.preventDefault();
+            refreshAllData();
+        }
+    });
+}
+
+// Action functions
+function openAddEmployee() {
+    console.log('🆕 Otwieranie formularza dodawania pracownika...');
+    window.location.href = 'employees.html';
+    updateActionUsage('add-employee');
+}
+
+function focusStartWork() {
+    console.log('▶️ Fokus na rozpoczęcie pracy...');
+    const startInput = document.getElementById('workerId');
+    if (startInput) {
+        startInput.focus();
+        startInput.scrollIntoView({ behavior: 'smooth' });
+    }
+    updateActionUsage('start-work');
+}
+
+function focusStopWork() {
+    console.log('⏹️ Fokus na zakończenie pracy...');
+    const stopInput = document.getElementById('stopWorkerId');
+    if (stopInput) {
+        stopInput.focus();
+        stopInput.scrollIntoView({ behavior: 'smooth' });
+    }
+    updateActionUsage('stop-work');
+}
+
+function refreshAllData() {
+    console.log('🔄 Odświeżanie wszystkich danych...');
+    
+    // Refresh different components
+    if (typeof loadActiveWorkers === 'function') {
+        loadActiveWorkers();
+    }
+    if (typeof refreshWorkerStatus === 'function') {
+        refreshWorkerStatus();
+    }
+    
+    // Show feedback
+    showActionFeedback('Dane zostały odświeżone!', 'success');
+    updateActionUsage('refresh');
+}
+
+function goToEmployees() {
+    console.log('👥 Przejście do zespołu...');
+    window.location.href = 'employees.html';
+    updateActionUsage('employees');
+}
+
+function openReports() {
+    console.log('📊 Otwieranie raportów...');
+    window.location.href = 'attendance_summary.html';
+    updateActionUsage('reports');
+}
+
+function focusTerminal() {
+    console.log('💻 Fokus na terminal...');
+    const terminalInput = document.getElementById('terminal-input');
+    if (terminalInput) {
+        terminalInput.focus();
+        terminalInput.scrollIntoView({ behavior: 'smooth' });
+    }
+    updateActionUsage('terminal');
+}
+
+function openConfig() {
+    console.log('⚙️ Otwieranie konfiguracji...');
+    window.location.href = 'mobile_config.html';
+    updateActionUsage('config');
+}
+
+// Load statistics
+async function loadQuickActionsStats() {
+    try {
+        // Mock data - w prawdziwej aplikacji byłyby to API calls
+        const stats = {
+            todayLogins: Math.floor(Math.random() * 20) + 5,
+            activeSessions: Math.floor(Math.random() * 15) + 3,
+            actionsUsed: Math.floor(Math.random() * 50) + 10,
+            shortcutsUsed: Math.floor(Math.random() * 15) + 2
+        };
+        
+        updateStatsDisplay(stats);
+        
+    } catch (error) {
+        console.error('❌ Błąd ładowania statystyk Quick Actions:', error);
+    }
+}
+
+function updateStatsDisplay(stats) {
+    const elements = {
+        'today-logins': stats.todayLogins,
+        'active-sessions': stats.activeSessions,
+        'quick-actions-used': stats.actionsUsed,
+        'shortcuts-used': stats.shortcutsUsed
+    };
+    
+    Object.entries(elements).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        }
+    });
+}
+
+function updateActionUsage(actionType) {
+    const currentUsed = parseInt(document.getElementById('quick-actions-used')?.textContent || '0');
+    const shortcutsElement = document.getElementById('shortcuts-used');
+    const shortcutsUsed = parseInt(shortcutsElement?.textContent || '0');
+    
+    // Update actions used
+    if (document.getElementById('quick-actions-used')) {
+        document.getElementById('quick-actions-used').textContent = currentUsed + 1;
+    }
+    
+    // Update shortcuts used (only for keyboard shortcuts)
+    if (event && event.ctrlKey && shortcutsElement) {
+        shortcutsElement.textContent = shortcutsUsed + 1;
+    }
+}
+
+function showActionFeedback(message, type = 'info') {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-info';
+    const icon = type === 'success' ? 'check-circle' : 'info-circle';
+    
+    const feedback = document.createElement('div');
+    feedback.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+    feedback.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    feedback.innerHTML = `
+        <i class="fas fa-${icon} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(feedback);
+    
+    setTimeout(() => {
+        feedback.remove();
+    }, 3000);
+}
+
+// Export functions for global access
+window.QuickActionsComponent = {
+    openAddEmployee,
+    focusStartWork,
+    focusStopWork,
+    refreshAllData,
+    goToEmployees,
+    openReports,
+    focusTerminal,
+    openConfig
+};
+</script>
+            </div>
+            <div class="action-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 73%"></div>
+                </div>
+                <span>73% kompletny</span>
+            </div>
+        </div>
+
+        <div class="action-item secondary" data-action="export-data">
+            <div class="action-icon">
+                <i class="fas fa-download"></i>
+            </div>
+            <div class="action-content">
+                <h4>Eksport Danych</h4>
+                <p>Pobierz dane do Excel/CSV</p>
+            </div>
+            <div class="action-dropdown">
+                <button class="dropdown-toggle">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Zarządzanie systemem -->
+        <div class="action-item tertiary" data-action="system-config">
+            <div class="action-icon">
+                <i class="fas fa-cogs"></i>
+            </div>
+            <div class="action-content">
+                <h4>Konfiguracja</h4>
+                <p>Ustawienia systemu</p>
+            </div>
+            <div class="action-warning" id="config-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Wymaga uwagi</span>
+            </div>
+        </div>
+
+        <div class="action-item tertiary" data-action="backup-data">
+            <div class="action-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="action-content">
+                <h4>Backup Danych</h4>
+                <p>Kopia zapasowa systemu</p>
+            </div>
+            <div class="action-schedule">
+                <i class="fas fa-calendar"></i>
+                <span>Następny: <span id="next-backup">17:00</span></span>
+            </div>
+        </div>
+
+        <!-- Komunikacja -->
+        <div class="action-item accent" data-action="send-notifications">
+            <div class="action-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div class="action-content">
+                <h4>Powiadomienia</h4>
+                <p>Wyślij wiadomość do pracowników</p>
+            </div>
+            <div class="action-badge notification">
+                <span id="pending-notifications">5</span> oczekujące
+            </div>
+        </div>
+
+        <div class="action-item accent" data-action="mobile-sync">
+            <div class="action-icon">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <div class="action-content">
+                <h4>Sync Mobilny</h4>
+                <p>Synchronizuj aplikację mobilną</p>
+            </div>
+            <div class="action-sync-status" id="sync-status">
+                <i class="fas fa-sync-alt fa-spin"></i>
+                <span>Synchronizowanie...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dodatkowe akcje (rozwijalne) -->
+    <div class="additional-actions" id="additional-actions" style="display: none;">
+        <div class="actions-divider">
+            <span>Dodatkowe Opcje</span>
+        </div>
+
+        <div class="actions-row">
+            <button class="mini-action" data-action="user-permissions">
+                <i class="fas fa-key"></i>
+                <span>Uprawnienia</span>
+            </button>
+            <button class="mini-action" data-action="audit-logs">
+                <i class="fas fa-history"></i>
+                <span>Logi Audytu</span>
+            </button>
+            <button class="mini-action" data-action="database-tools">
+                <i class="fas fa-database"></i>
+                <span>Narzędzia BD</span>
+            </button>
+            <button class="mini-action" data-action="api-status">
+                <i class="fas fa-network-wired"></i>
+                <span>Status API</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toggle dla dodatkowych akcji -->
+    <div class="actions-footer">
+        <button id="toggle-additional" class="toggle-btn">
+            <i class="fas fa-chevron-down"></i>
+            <span>Pokaż więcej akcji</span>
+        </button>
+        <div class="actions-help">
+            <i class="fas fa-keyboard"></i>
+            <span>Użyj skrótów klawiszowych</span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal do szybkich akcji -->
+<div class="quick-action-modal" id="quick-action-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modal-title">Akcja</h3>
+            <button class="modal-close" id="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="modal-body">
+            <!-- Zawartość modala będzie wstawiana dynamicznie -->
+        </div>
+    </div>
+</div>
+
+<style>
+/* QUICK ACTIONS COMPONENT STYLES */
+.quick-actions-component {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 20px 0;
+}
+
+/* Header komponentu */
+.actions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.actions-header h3 {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.actions-header h3 i {
+    color: #f39c12;
+    font-size: 1.2rem;
+}
+
+.actions-badge {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Grid akcji */
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+/* Elementy akcji */
+.action-item {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, currentColor, transparent);
+    opacity: 0.7;
+}
+
+.action-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: currentColor;
+}
+
+/* Różne kategorie akcji */
+.action-item.primary { color: #3498db; }
+.action-item.primary:hover { box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2); }
+
+.action-item.secondary { color: #9b59b6; }
+.action-item.secondary:hover { box-shadow: 0 8px 25px rgba(155, 89, 182, 0.2); }
+
+.action-item.tertiary { color: #34495e; }
+.action-item.tertiary:hover { box-shadow: 0 8px 25px rgba(52, 73, 94, 0.2); }
+
+.action-item.accent { color: #e74c3c; }
+.action-item.accent:hover { box-shadow: 0 8px 25px rgba(231, 76, 60, 0.2); }
+
+/* Ikona akcji */
+.action-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: currentColor;
+    color: white;
+    font-size: 20px;
+    margin-bottom: 15px;
+    transition: transform 0.3s ease;
+}
+
+.action-item:hover .action-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Zawartość akcji */
+.action-content h4 {
+    color: #2c3e50;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    line-height: 1.3;
+}
+
+.action-content p {
+    color: #7f8c8d;
+    font-size: 13px;
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+}
+
+.action-shortcut {
+    background: #f8f9fa;
+    color: #495057;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+/* Dodatkowe elementy akcji */
+.action-counter {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.action-status {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.action-status.active {
+    color: #27ae60;
+}
+
+.action-status.active i {
+    color: #27ae60;
+    animation: pulse 2s infinite;
+}
+
+.action-progress {
+    margin-top: 10px;
+}
+
+.progress-bar {
+    background: #ecf0f1;
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.progress-fill {
+    background: linear-gradient(90deg, currentColor, transparent);
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.action-progress span {
+    font-size: 11px;
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+.action-dropdown {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.dropdown-toggle {
+    background: #f8f9fa;
+    border: none;
+    padding: 6px;
+    border-radius: 6px;
+    color: #495057;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.dropdown-toggle:hover {
+    background: #e9ecef;
+    transform: rotate(180deg);
+}
+
+.action-warning {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.action-schedule {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #7f8c8d;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.action-badge.notification {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.action-sync-status {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #3498db;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+/* Dodatkowe akcje */
+.additional-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #f8f9fa;
+    animation: slideDown 0.3s ease-out;
+}
+
+.actions-divider {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.actions-divider span {
+    background: white;
+    color: #7f8c8d;
+    padding: 0 15px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.actions-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #ecf0f1;
+    z-index: -1;
+}
+
+.actions-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.mini-action {
+    background: white;
+    border: 2px solid #ecf0f1;
+    padding: 12px 18px;
+    border-radius: 10px;
+    color: #7f8c8d;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mini-action:hover {
+    border-color: #3498db;
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.05);
+    transform: translateY(-2px);
+}
+
+.mini-action i {
+    font-size: 14px;
+}
+
+/* Footer akcji */
+.actions-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #f8f9fa;
+}
+
+.toggle-btn {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: #495057;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toggle-btn:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    transform: translateY(-1px);
+}
+
+.toggle-btn.expanded i {
+    transform: rotate(180deg);
+}
+
+.actions-help {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #7f8c8d;
+    font-size: 12px;
+}
+
+/* Modal */
+.quick-action-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 16px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80%;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #7f8c8d;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+/* Animacje */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .quick-actions-component {
+        padding: 20px 15px;
+    }
+    
+    .actions-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .actions-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    
+    .actions-footer {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .actions-row {
+        justify-content: stretch;
+    }
+    
+    .mini-action {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 20px;
+        max-height: 85%;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-item {
+        padding: 15px;
+    }
+    
+    .action-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    
+    .action-content h4 {
+        font-size: 14px;
+    }
+    
+    .action-content p {
+        font-size: 12px;
+    }
+}
+</style>
+
+<script>
+// QUICK ACTIONS COMPONENT CLASS
+class QuickActionsComponent {
+    constructor() {
+        this.isExpanded = false;
+        this.shortcuts = {};
+        this.modal = null;
+        this.init();
+    }
+
+    init() {
+        console.log('⚡ Quick Actions Component inicjalizowany...');
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.setupComponent();
+            });
+        } else {
+            this.setupComponent();
+        }
+    }
+
+    setupComponent() {
+        // Setup event listeners
+        this.setupEventListeners();
+        this.setupKeyboardShortcuts();
+        this.setupModal();
+        
+        // Załaduj dane
+        this.updateCounters();
+        this.startPeriodicUpdates();
+        
+        console.log('✅ Quick Actions Component zainicjalizowany');
+    }
+
+    setupEventListeners() {
+        // Action items click handlers
+        document.querySelectorAll('.action-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const action = item.dataset.action;
+                if (action) {
+                    this.executeAction(action, item);
+                }
+            });
+        });
+
+        // Mini actions click handlers
+        document.querySelectorAll('.mini-action').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const action = item.dataset.action;
+                if (action) {
+                    this.executeAction(action, item);
+                }
+            });
+        });
+
+        // Toggle additional actions
+        const toggleBtn = document.getElementById('toggle-additional');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                this.toggleAdditionalActions();
+            });
+        }
+
+        // Modal close
+        const modalClose = document.getElementById('modal-close');
+        if (modalClose) {
+            modalClose.addEventListener('click', () => {
+                this.closeModal();
+            });
+        }
+
+        // Modal background click
+        const modal = document.getElementById('quick-action-modal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.closeModal();
+                }
+            });
+        }
+    }
+
+    setupKeyboardShortcuts() {
+        this.shortcuts = {
+            'ctrl+n': 'add-employee',
+            'ctrl+t': 'mark-attendance',
+            'ctrl+r': 'daily-report',
+            'ctrl+e': 'export-data',
+            'ctrl+shift+c': 'system-config',
+            'ctrl+b': 'backup-data',
+            'ctrl+shift+n': 'send-notifications',
+            'ctrl+m': 'mobile-sync'
+        };
+
+        document.addEventListener('keydown', (e) => {
+            const key = this.getShortcutKey(e);
+            if (this.shortcuts[key]) {
+                e.preventDefault();
+                this.executeAction(this.shortcuts[key]);
+            }
+        });
+    }
+
+    getShortcutKey(e) {
+        const parts = [];
+        if (e.ctrlKey) parts.push('ctrl');
+        if (e.shiftKey) parts.push('shift');
+        if (e.altKey) parts.push('alt');
+        parts.push(e.key.toLowerCase());
+        return parts.join('+');
+    }
+
+    setupModal() {
+        this.modal = document.getElementById('quick-action-modal');
+    }
+
+    toggleAdditionalActions() {
+        const additional = document.getElementById('additional-actions');
+        const toggleBtn = document.getElementById('toggle-additional');
+        
+        if (!additional || !toggleBtn) return;
+
+        this.isExpanded = !this.isExpanded;
+
+        if (this.isExpanded) {
+            additional.style.display = 'block';
+            toggleBtn.classList.add('expanded');
+            toggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i><span>Ukryj dodatkowe akcje</span>';
+        } else {
+            additional.style.display = 'none';
+            toggleBtn.classList.remove('expanded');
+            toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i><span>Pokaż więcej akcji</span>';
+        }
+    }
+
+    async executeAction(actionType, element = null) {
+        console.log(`🚀 Wykonywanie akcji: ${actionType}`);
+        
+        // Visual feedback
+        if (element) {
+            this.showActionFeedback(element);
+        }
+
+        switch (actionType) {
+            case 'add-employee':
+                await this.showAddEmployeeModal();
+                break;
+            case 'mark-attendance':
+                await this.showAttendanceModal();
+                break;
+            case 'daily-report':
+                await this.generateDailyReport();
+                break;
+            case 'export-data':
+                await this.showExportModal();
+                break;
+            case 'system-config':
+                await this.showConfigModal();
+                break;
+            case 'backup-data':
+                await this.startBackup();
+                break;
+            case 'send-notifications':
+                await this.showNotificationsModal();
+                break;
+            case 'mobile-sync':
+                await this.startMobileSync();
+                break;
+            case 'user-permissions':
+                await this.showPermissionsModal();
+                break;
+            case 'audit-logs':
+                await this.showAuditLogsModal();
+                break;
+            case 'database-tools':
+                await this.showDatabaseToolsModal();
+                break;
+            case 'api-status':
+                await this.showApiStatusModal();
+                break;
+            default:
+                console.warn(`⚠️ Nieznana akcja: ${actionType}`);
+        }
+    }
+
+    showActionFeedback(element) {
+        element.style.transform = 'scale(0.95)';
+        element.style.transition = 'transform 0.1s ease';
+        
+        setTimeout(() => {
+            element.style.transform = '';
+            element.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        }, 100);
+    }
+
+    async showAddEmployeeModal() {
+        this.showModal('Dodaj Nowego Pracownika', `
+            <div class="form-group">
+                <label>Imię i nazwisko:</label>
+                <input type="text" class="form-control" placeholder="Jan Kowalski">
+            </div>
+            <div class="form-group">
+                <label>PESEL:</label>
+                <input type="text" class="form-control" placeholder="80010112345">
+            </div>
+            <div class="form-group">
+                <label>Stanowisko:</label>
+                <select class="form-control">
+                    <option>Pracownik</option>
+                    <option>Kierownik</option>
+                    <option>Dyrektor</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary">Dodaj pracownika</button>
+                <button class="btn btn-secondary" onclick="window.QuickActions.closeModal()">Anuluj</button>
+            </div>
+        `);
+    }
+
+    async showAttendanceModal() {
+        this.showModal('Oznacz Obecność', `
+            <div class="attendance-scanner">
+                <div class="scanner-area">
+                    <i class="fas fa-qrcode"></i>
+                    <p>Zeskanuj kartę pracownika lub wybierz z listy</p>
+                </div>
+                <div class="employee-search">
+                    <input type="text" placeholder="Wyszukaj pracownika..." class="form-control">
+                </div>
+                <div class="attendance-actions">
+                    <button class="btn btn-success">Wejście</button>
+                    <button class="btn btn-warning">Wyjście</button>
+                </div>
+            </div>
+        `);
+    }
+
+    async generateDailyReport() {
+        this.showModal('Generowanie Raportu Dziennego', `
+            <div class="report-progress">
+                <div class="progress-info">
+                    <i class="fas fa-chart-bar"></i>
+                    <h4>Przygotowywanie raportu...</h4>
+                    <p>Zbieranie danych z ostatnich 24 godzin</p>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 73%; animation: progressFill 2s ease-out;"></div>
+                    </div>
+                    <span>73%</span>
+                </div>
+                <div class="report-stats">
+                    <div class="stat">
+                        <span class="label">Pracownicy:</span>
+                        <span class="value">24</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Obecności:</span>
+                        <span class="value">18</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Godziny pracy:</span>
+                        <span class="value">144h</span>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        // Symulacja postępu
+        setTimeout(() => this.closeModal(), 3000);
+    }
+
+    async showExportModal() {
+        this.showModal('Eksport Danych', `
+            <div class="export-options">
+                <h4>Wybierz format eksportu:</h4>
+                <div class="format-buttons">
+                    <button class="format-btn">
+                        <i class="fas fa-file-excel"></i>
+                        Excel (.xlsx)
+                    </button>
+                    <button class="format-btn">
+                        <i class="fas fa-file-csv"></i>
+                        CSV (.csv)
+                    </button>
+                    <button class="format-btn">
+                        <i class="fas fa-file-pdf"></i>
+                        PDF (.pdf)
+                    </button>
+                </div>
+                <div class="date-range">
+                    <label>Zakres dat:</label>
+                    <div class="date-inputs">
+                        <input type="date" class="form-control">
+                        <span>do</span>
+                        <input type="date" class="form-control">
+                    </div>
+                </div>
+                <button class="btn btn-primary">Pobierz plik</button>
+            </div>
+        `);
+    }
+
+    async showConfigModal() {
+        this.showModal('Konfiguracja Systemu', `
+            <div class="config-sections">
+                <div class="config-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Niektóre ustawienia wymagają ponownego uruchomienia systemu</span>
+                </div>
+                <div class="config-item">
+                    <label>Automatyczny backup:</label>
+                    <select class="form-control">
+                        <option>Codziennie o 17:00</option>
+                        <option>Co 2 dni</option>
+                        <option>Tygodniowo</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label>Maksymalny czas pracy bez przerwy:</label>
+                    <input type="number" class="form-control" value="8" min="1" max="12"> godzin
+                </div>
+                <button class="btn btn-primary">Zapisz zmiany</button>
+            </div>
+        `);
+    }
+
+    async startBackup() {
+        this.showModal('Backup w Toku', `
+            <div class="backup-progress">
+                <div class="backup-icon">
+                    <i class="fas fa-shield-alt fa-pulse"></i>
+                </div>
+                <h4>Tworzenie kopii zapasowej...</h4>
+                <p>Zabezpieczanie danych systemu</p>
+                <div class="backup-files">
+                    <div class="file-item">✅ Baza danych pracowników</div>
+                    <div class="file-item">🔄 Logi obecności</div>
+                    <div class="file-item">⏳ Konfiguracja systemu</div>
+                </div>
+            </div>
+        `);
+
+        setTimeout(() => this.closeModal(), 4000);
+    }
+
+    async startMobileSync() {
+        // Aktualizuj status synchronizacji
+        const syncStatus = document.getElementById('sync-status');
+        if (syncStatus) {
+            syncStatus.innerHTML = '<i class="fas fa-check"></i><span>Zsynchronizowano</span>';
+            syncStatus.style.color = '#27ae60';
+        }
+
+        setTimeout(() => {
+            if (syncStatus) {
+                syncStatus.innerHTML = '<i class="fas fa-sync-alt"></i><span>Gotowy do sync</span>';
+                syncStatus.style.color = '#3498db';
+            }
+        }, 5000);
+    }
+
+    showModal(title, content) {
+        if (!this.modal) return;
+
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+
+        if (modalTitle) modalTitle.textContent = title;
+        if (modalBody) modalBody.innerHTML = content;
+
+        this.modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    closeModal() {
+        if (!this.modal) return;
+
+        this.modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    updateCounters() {
+        // Symulacja aktualizacji liczników
+        const counters = {
+            'new-employees-today': Math.floor(Math.random() * 5) + 1,
+            'pending-notifications': Math.floor(Math.random() * 8) + 2,
+            'next-backup': this.getNextBackupTime()
+        };
+
+        Object.entries(counters).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+    }
+
+    getNextBackupTime() {
+        const now = new Date();
+        const nextBackup = new Date(now);
+        nextBackup.setHours(17, 0, 0, 0);
+        
+        if (nextBackup <= now) {
+            nextBackup.setDate(nextBackup.getDate() + 1);
+        }
+
+        return nextBackup.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    startPeriodicUpdates() {
+        // Aktualizuj liczniki co 5 minut
+        setInterval(() => {
+            this.updateCounters();
+        }, 300000);
+    }
+
+    destroy() {
+        // Cleanup event listeners
+        document.removeEventListener('keydown', this.keyHandler);
+        console.log('🗑️ Quick Actions Component zniszczony');
+    }
+}
+
+// Inicjalizacja komponentu
+window.QuickActions = new QuickActionsComponent();
+
+// Cleanup przy opuszczeniu strony
+window.addEventListener('beforeunload', () => {
+    if (window.QuickActions) {
+        window.QuickActions.destroy();
+    }
+});
+</script>
+
+<style>
+/* Dodatkowe style dla modalnych okien */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    color: #495057;
+    border: 2px solid #e9ecef;
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #27ae60, #229954);
+    color: white;
+    flex: 1;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+    flex: 1;
+}
+
+/* Style dla modali */
+.attendance-scanner {
+    text-align: center;
+}
+
+.scanner-area {
+    background: #f8f9fa;
+    padding: 40px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 2px dashed #dee2e6;
+}
+
+.scanner-area i {
+    font-size: 48px;
+    color: #3498db;
+    margin-bottom: 15px;
+}
+
+.employee-search {
+    margin-bottom: 20px;
+}
+
+.attendance-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.report-progress {
+    text-align: center;
+}
+
+.progress-info h4 {
+    color: #2c3e50;
+    margin: 15px 0 8px 0;
+}
+
+.progress-info p {
+    color: #7f8c8d;
+    margin-bottom: 25px;
+}
+
+.progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.progress-bar-container .progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #ecf0f1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-container .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2980b9);
+    border-radius: 4px;
+}
+
+.report-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 25px;
+}
+
+.stat {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat .label {
+    display: block;
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-bottom: 5px;
+}
+
+.stat .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.format-buttons {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.format-btn {
+    background: white;
+    border: 2px solid #e9ecef;
+    padding: 20px 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 120px;
+}
+
+.format-btn:hover {
+    border-color: #3498db;
+    color: #3498db;
+    transform: translateY(-2px);
+}
+
+.format-btn i {
+    display: block;
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.date-range {
+    margin-bottom: 25px;
+}
+
+.date-inputs {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.date-inputs span {
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+.config-warning {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.config-item {
+    margin-bottom: 20px;
+}
+
+.backup-icon i {
+    font-size: 48px;
+    color: #27ae60;
+    margin-bottom: 20px;
+}
+
+.backup-files {
+    margin-top: 25px;
+    text-align: left;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.file-item {
+    padding: 8px 0;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+@keyframes progressFill {
+    from { width: 0%; }
+    to { width: 73%; }
+}
+</style>

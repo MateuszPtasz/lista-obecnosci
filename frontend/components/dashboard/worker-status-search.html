@@ -1,0 +1,411 @@
+<!-- STATUS PRACOWNIKÓW – WYSZUKIWARKA (oparta na logice z index.html) -->
+<style>
+  .worker-status-search { position: relative; }
+  .worker-status-search .segmented {
+    display: inline-flex; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; background: #f8fafc;
+  }
+  .worker-status-search .segmented button {
+    padding: 8px 12px; border: 0; background: transparent; cursor: pointer; font-weight: 600; color: #374151;
+  }
+  .worker-status-search .segmented button.active { background: #2563eb; color: #fff; }
+  .worker-status-search .searchbar { display: flex; gap: 8px; align-items: center; }
+  .worker-status-search .searchbar .form-control { height: 42px; border-radius: 10px; }
+  .worker-status-search .searchbar .btn { height: 42px; border-radius: 10px; font-weight: 600; }
+  .worker-status-search .btn-primary { background: linear-gradient(135deg,#2563eb,#1e40af); border: 1px solid transparent; }
+  .worker-status-search .btn-outline-secondary { background: #f8f9fa; border: 1px solid #e5e7eb; color: #374151; }
+  .worker-status-search .btn-outline-secondary:hover { background: rgba(37,99,235,.08); border-color: #2563eb; color: #2563eb; }
+  .worker-status-search .results { margin-top: 16px; }
+  .worker-status-search .card.result { border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+  .worker-status-search .card-header { display: flex; justify-content: space-between; align-items: center; }
+  .worker-status-search .badge { font-weight: 700; }
+  .worker-status-search .status-active { background: #16a34a; color: #fff; }
+  .worker-status-search .status-inactive { background: #6b7280; color: #fff; }
+  .worker-status-search .actions .btn { border-radius: 10px; }
+  .worker-status-search .actions .btn-success { background: linear-gradient(135deg,#16a34a,#15803d); border: 1px solid transparent; }
+  .worker-status-search .actions .btn-danger { background: linear-gradient(135deg,#ef4444,#dc2626); border: 1px solid transparent; }
+  .worker-status-search .actions .btn-warning { background: linear-gradient(135deg,#f59e0b,#d97706); border: 1px solid transparent; }
+
+  /* === Spacing & layout improvements for search UI === */
+  .worker-status-search .card-header { padding: 16px 24px; }
+  .worker-status-search .card-body { padding: 24px; }
+
+  /* Pasek nad wyszukiwaniem (tryb + info) */
+  .worker-status-search .toolbar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 12px; row-gap: 8px; margin-bottom: 16px; }
+
+  /* Segmented switch – bardziej czytelny i komfortowy */
+  .worker-status-search .segmented { gap: 0; border-radius: 12px; padding: 4px; background: #f3f6ff; border-color: #e5e7eb; }
+  .worker-status-search .segmented button { padding: 10px 16px; font-size: 14px; }
+  .worker-status-search .segmented button.active { box-shadow: 0 6px 16px rgba(37,99,235,.25); }
+
+  /* Pasek wyszukiwarki jako grid: input | szukaj | wyczyść */
+  .worker-status-search .searchbar { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: stretch; margin: 12px 0 6px; }
+  .worker-status-search .searchbar .form-control { height: 46px; border-radius: 12px; font-size: 15px; padding: 0 14px; }
+  .worker-status-search .searchbar .btn { min-width: 130px; height: 46px; border-radius: 12px; font-weight: 700; font-size: 15px; }
+
+  /* Input group – lepszy kontrast ikony */
+  .worker-status-search .input-group-text { background: var(--brand); border: 1px solid var(--brand); color: #fff; border-radius: 12px 0 0 12px; }
+
+  /* Więcej oddechu dla wyników */
+  .worker-status-search .results { margin-top: 20px; }
+  .worker-status-search .card.result { border-radius: 14px; }
+
+  /* === Table layout for results === */
+  .worker-status-search .table-wrap { margin-top: 12px; border:1px solid var(--border); border-radius: 12px; overflow: hidden; background:#fff; }
+  .worker-status-search table { width:100%; border-collapse: collapse; font-size: 14px; }
+  .worker-status-search thead { background:#f8fafc; }
+  .worker-status-search th, .worker-status-search td { padding: 10px 12px; border-bottom:1px solid #eef2f7; text-align: left; }
+  .worker-status-search tbody tr:hover { background: #f9fbff; }
+  .worker-status-search .table-status-badge { padding:.25rem .5rem; border-radius:.5rem; font-weight:700; font-size:.8rem; color:#fff; }
+  .worker-status-search .table-status-badge.active { background:#16a34a; }
+  .worker-status-search .table-status-badge.inactive { background:#6b7280; }
+
+  /* Search input above table */
+  .worker-status-search .table-toolbar { display:grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 8px; }
+  .worker-status-search .table-search .input-group-text { background: var(--brand); border:1px solid var(--brand); color:#fff; border-radius: 12px 0 0 12px; }
+  .worker-status-search .table-search .form-control { height:46px; border-radius: 0 12px 12px 0; font-size:15px; }
+
+  /* Buttons (lokalne style aby działały bez Bootstrap) */
+  .worker-status-search .btn { 
+    display: inline-flex; align-items: center; gap: 6px; 
+    padding: 6px 10px; border-radius: 10px; border: 1px solid transparent; 
+    cursor: pointer; user-select: none; transition: transform .12s ease, box-shadow .2s ease, opacity .2s ease;
+  }
+  .worker-status-search .btn-sm { padding: 6px 10px; font-size: 13px; }
+  .worker-status-search .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.08); }
+  .worker-status-search .btn:active { transform: translateY(0); }
+
+  .worker-status-search .btn-success { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; }
+  .worker-status-search .btn-success:hover { box-shadow: 0 8px 20px rgba(22,163,74,.30); }
+  .worker-status-search .btn-danger  { background: linear-gradient(135deg,#ef4444,#dc2626); color:#fff; }
+  .worker-status-search .btn-danger:hover  { box-shadow: 0 8px 20px rgba(239,68,68,.30); }
+  .worker-status-search .btn-warning { background: linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+
+  .worker-status-search td.actions { white-space: nowrap; }
+
+  @media (max-width: 900px) {
+    .worker-status-search th:nth-child(4), .worker-status-search td:nth-child(4),
+    .worker-status-search th:nth-child(5), .worker-status-search td:nth-child(5) { display:none; }
+  }
+
+  /* Force overrides for action button colors */
+  .worker-status-search td.actions .btn-success { background: linear-gradient(135deg,#16a34a,#15803d) !important; color:#fff !important; border-color: transparent !important; }
+  .worker-status-search td.actions .btn-danger  { background: linear-gradient(135deg,#ef4444,#dc2626) !important; color:#fff !important; border-color: transparent !important; }
+</style>
+
+<div class="card mb-4 worker-status-search-component worker-status-search">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-user-clock text-primary"></i>
+      Status pracowników – wyszukiwarka
+    </h3>
+    <p class="card-subtitle">Tabela: Imię i nazwisko, ID. Wpisuj aby filtrować bez klikania.</p>
+  </div>
+  <div class="card-body">
+    <!-- Toolbar with search input -->
+    <div class="table-toolbar">
+      <div class="table-search">
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+          <input id="wss-table-filter" type="text" class="form-control" placeholder="Szukaj po imieniu, nazwisku lub ID..." autocomplete="off">
+        </div>
+      </div>
+    </div>
+
+    <!-- Results table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Imię i nazwisko</th>
+            <th>Status</th>
+            <th>Start</th>
+            <th>Trwa</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody id="wss-table-body">
+          <tr>
+            <td colspan="6" style="text-align:center; padding:18px; color:#6b7280;">
+              <div class="spinner-border text-primary" role="status" style="vertical-align:middle;"></div>
+              <span style="margin-left:8px;">Ładowanie statusów...</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  let __WSS_BOUND = false;
+  let mode = 'id';
+  let allWorkers = [];
+  let filterTimer = null;
+
+  function setMode(newMode){
+    mode = newMode;
+    const idBtn = document.querySelector('.worker-status-search .segmented button[data-mode="id"]');
+    const nameBtn = document.querySelector('.worker-status-search .segmented button[data-mode="name"]');
+    idBtn?.classList.toggle('active', mode==='id');
+    nameBtn?.classList.toggle('active', mode!=='id');
+
+    const input = document.getElementById('wss-input');
+    if(!input) return;
+    input.placeholder = mode==='id' ? 'Wpisz ID pracownika (np. 001)' : 'Wpisz imię lub nazwisko';
+    input.focus();
+  }
+
+  function showLoading(){
+    const r = document.getElementById('wss-results');
+    if(!r) return;
+    r.innerHTML = `
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Ładowanie...</span></div>
+        <div class="mt-3 text-muted">Pobieranie statusu...</div>
+      </div>`;
+  }
+
+  function showMessage(icon, title, subtitle){
+    const r = document.getElementById('wss-results');
+    if(!r) return;
+    r.innerHTML = `
+      <div class="text-center py-5 text-muted">
+        <i class="fas ${icon} fa-3x"></i>
+        <h5 class="mt-3">${title}</h5>
+        ${subtitle ? `<div class="small">${subtitle}</div>` : ''}
+      </div>`;
+  }
+
+  function normalizeWorker(obj){
+    if(!obj) return null;
+    const toBool = (v) => {
+      if(typeof v === 'boolean') return v;
+      if(typeof v === 'number') return v === 1;
+      if(typeof v === 'string'){
+        const s = v.toLowerCase();
+        return ['1','true','t','yes','y','on','active','online','pracuje','working','started','in_progress','aktywny','w pracy','w_pracy'].includes(s);
+      }
+      return false;
+    };
+    // ID
+    const worker_id = obj.worker_id || obj.employee_id || obj.id || obj.workerId || obj.employeeId || obj.pracownik_id || '';
+    // Imię i nazwisko
+    const name = obj.name || obj.full_name || obj.employee_name ||
+      [obj.first_name, obj.last_name].filter(Boolean).join(' ') ||
+      [obj.imie, obj.nazwisko].filter(Boolean).join(' ') || '—';
+    // Heurystyka aktywności
+    const boolCandidates = [obj.is_active, obj.pracuje, obj.czy_pracuje, obj.isWorking, obj.is_working, obj.isActive, obj.active, obj.working, obj.status, obj.state];
+    let isActiveByBool = boolCandidates.some(toBool);
+    let isActiveByTimes = false;
+    if('stop_time' in obj) isActiveByTimes = (obj.stop_time === null || obj.stop_time === undefined);
+    if(!isActiveByTimes && 'czas_stop' in obj) isActiveByTimes = (obj.czas_stop === null || obj.czas_stop === undefined);
+    if(!isActiveByTimes && ('start_time' in obj || 'czas_start' in obj)){
+      const st = obj.start_time || obj.czas_start;
+      if(st) isActiveByTimes = true; // jeśli mamy start i brak stop, traktuj jako aktywny
+    }
+    const is_active = isActiveByBool || isActiveByTimes;
+    const start_time = obj.start_time || obj.czas_start || obj.started_at || null;
+    const duration = obj.duration || obj.time_diff || obj.elapsed || obj.czas_trwania || null;
+
+    return { worker_id, name, is_active, start_time, duration };
+  }
+
+  function toTime(val){ try { return new Date(val).toLocaleTimeString(); } catch(_) { return '-'; } }
+
+  function renderTable(list){
+    const tb = document.getElementById('wss-table-body');
+    if(!tb) return;
+    if(!list || list.length===0){
+      tb.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:#6b7280;">Brak wyników</td></tr>`;
+      return;
+    }
+    tb.innerHTML = list.map(w => {
+      const active = w.is_active;
+      const badge = `<span class=\"table-status-badge ${active?'active':'inactive'}\">${active?'Pracuje':'Nieaktywny'}</span>`;
+      const start = active && w.start_time ? toTime(w.start_time) : '-';
+      const dur = active && w.duration ? w.duration : '-';
+      const actions = active
+        ? `<button class=\"btn btn-danger btn-sm\" data-action=\"stop\" data-id=\"${w.worker_id}\" title=\"Zakończ pracę\"><i class=\"fas fa-xmark\"></i></button>`
+        : `<button class=\"btn btn-success btn-sm\" data-action=\"start\" data-id=\"${w.worker_id}\" title=\"Rozpocznij pracę\"><i class=\"fas fa-play\"></i></button>`;
+      return `<tr>
+        <td>${w.worker_id||'-'}</td>
+        <td>${w.name||'-'}</td>
+        <td>${badge}</td>
+        <td>${start}</td>
+        <td>${dur}</td>
+        <td class=\"actions\">${actions}</td>
+      </tr>`;
+    }).join('');
+
+    // Bind actions
+    tb.querySelectorAll('[data-action]')?.forEach(btn => btn.addEventListener('click', onActionClick));
+  }
+
+  function applyFilter(){
+    const q = (document.getElementById('wss-table-filter')?.value || '').trim().toLowerCase();
+    const list = !q ? allWorkers : allWorkers.filter(w => (w.name||'').toLowerCase().includes(q) || (w.worker_id||'').toLowerCase().includes(q));
+    renderTable(list);
+  }
+
+  async function loadAllStatuses(){
+    const tb = document.getElementById('wss-table-body');
+    if(tb){ tb.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:#6b7280;"><div class=\"spinner-border text-primary\"></div><span style=\"margin-left:8px;\">Ładowanie...</span></td></tr>`; }
+
+    const pickArray = (j) => {
+      if(!j) return null;
+      if(Array.isArray(j)) return j;
+      return j.workers || j.items || j.data || j.list || j.active_workers || j.activeWorkers || null;
+    };
+
+    try{
+      // 1) Główny endpoint
+      let resp = await fetch('/api/workers/status');
+      if(resp.ok){
+        let data = await resp.json();
+        let arr = pickArray(data);
+        if(arr && arr.length){
+          allWorkers = arr.map(normalizeWorker).filter(Boolean);
+          applyFilter();
+          return;
+        }
+      }
+      // 2) Fallback: employees + active_workers
+      let employees = [];
+      try{
+        const rEmp = await fetch('/api/employees');
+        if(rEmp.ok){
+          const jEmp = await rEmp.json();
+          const aEmp = pickArray(jEmp) || [];
+          employees = aEmp.map(normalizeWorker).filter(Boolean);
+        }
+      }catch(_){ /* ignore */ }
+
+      let activeSet = new Set();
+      try{
+        const rAct = await fetch('/api/active_workers');
+        if(rAct.ok){
+          const jAct = await rAct.json();
+          const aAct = pickArray(jAct) || [];
+          aAct.forEach(x => {
+            const id = x?.worker_id || x?.employee_id || x?.id || x?.workerId || x?.employeeId;
+            if(id) activeSet.add(String(id));
+          });
+        }
+      }catch(_){ /* ignore */ }
+
+      // Połącz: oznacz aktywnych
+      if(employees.length){
+        allWorkers = employees.map(w => ({...w, is_active: activeSet.has(String(w.worker_id))}));
+        applyFilter();
+        return;
+      }
+
+      // 3) Ostatni fallback: jeśli active_workers zwraca pełne obiekty, pokaż tylko aktywnych
+      if(activeSet.size){
+        allWorkers = Array.from(activeSet).map(id => ({ worker_id: id, name: '-', is_active: true, start_time: null, duration: null }));
+        applyFilter();
+        return;
+      }
+
+      throw new Error('Brak danych o statusach');
+    }catch(err){
+      if(tb){ tb.innerHTML = `<tr><td colspan=\"6\" style=\"text-align:center; padding:18px; color:#b91c1c;\">Błąd pobierania: ${err?.message||'nieznany'}</td></tr>`; }
+    }
+  }
+
+  async function onActionClick(e){
+    const btn = e.currentTarget;
+    const action = btn.getAttribute('data-action');
+    const workerId = btn.getAttribute('data-id');
+    if(!action || !workerId) return;
+    try{
+      if(action==='start') await apiStart(workerId);
+      if(action==='stop') await apiStop(workerId);
+      if(action==='emergency'){
+        if(!confirm(`Czy na pewno awaryjnie zakończyć pracę dla ${workerId}?`)) return;
+        await apiEmergency(workerId, 'Awaryjne zakończenie z wyszukiwarki statusu');
+      }
+      await loadAllStatuses();
+      window.dispatchEvent(new CustomEvent('workers:refresh'));
+    }catch(err){ alert('Błąd: '+(err?.message||err)); }
+  }
+
+  function bind(){
+    if(__WSS_BOUND) return; __WSS_BOUND = true;
+    // Natychmiastowe filtrowanie z debounce
+    document.getElementById('wss-table-filter')?.addEventListener('input', ()=>{
+      clearTimeout(filterTimer);
+      filterTimer = setTimeout(applyFilter, 200);
+    });
+    loadAllStatuses();
+  }
+
+  // Zachowaj API kompatybilne
+  window.WorkerStatusSearchComponent = {
+    init: bind,
+    search: applyFilter,
+    setMode: function(){ /* nieużywane w trybie tabeli */ }
+  };
+
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', bind); } else { bind(); }
+
+  // === Brakujące funkcje API (start/stop/awaryjne) ===
+  async function apiStart(workerId){
+    const now = new Date();
+    const body = {
+      worker_id: workerId,
+      employee_id: workerId,
+      czas_start: now.toISOString(),
+      lokalizacja_start: { lat: 0, lon: 0 }
+    };
+    const resp = await fetch('/api/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(!resp.ok){
+      let d = {}; try { d = await resp.json(); } catch(_) {}
+      throw new Error(d?.detail || `HTTP ${resp.status}`);
+    }
+  }
+
+  async function apiStop(workerId){
+    const now = new Date();
+    const body = {
+      worker_id: workerId,
+      employee_id: workerId,
+      czas_stop: now.toISOString(),
+      location: 'Panel administratora',
+      lat: 0,
+      lon: 0
+    };
+    const resp = await fetch('/api/stop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(!resp.ok){
+      let d = {}; try { d = await resp.json(); } catch(_) {}
+      throw new Error(d?.detail || `HTTP ${resp.status}`);
+    }
+  }
+
+  async function apiEmergency(workerId, reason){
+    const body = { worker_id: workerId, reason: reason || 'Awaryjne zakończenie' };
+    const resp = await fetch('/api/admin/force-stop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(!resp.ok){
+      let d = {}; try { d = await resp.json(); } catch(_) {}
+      throw new Error(d?.detail || `HTTP ${resp.status}`);
+    }
+  }
+  // === koniec: funkcje API ===
+})();
+</script>

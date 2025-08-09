@@ -57,13 +57,21 @@ frontend/
 - **Formularze**: Obsługa PIN i lokalizacji
 
 #### 5. **active-workers.html**
-- **Cel**: Monitoring obecnie pracujących osób
+- **Cel**: Pulpit główny — lista aktywnych pracowników
 - **API**: `/api/active_workers`
 - **Funkcje**:
-  - Lista aktywnych pracowników
-  - Czas pracy w czasie rzeczywistym
-  - Możliwość zakończenia pracy
-- **Auto-odświeżanie**: Co 15 sekund
+  - Tabela aktywnych pracowników z czasem startu i trwaniem
+  - Link do lokalizacji (Google Maps), avatar z inicjałami
+  - Przycisk odświeżania i init guard
+
+#### 6. **worker-status-search.html**
+- **Cel**: Wyszukiwarka statusu pracownika (ID lub imię/nazwisko)
+- **API**: `/api/worker/{id}/status`, `/api/workers/status`, fallback: `/api/employees` + `/api/active_workers`
+- **Funkcje**:
+  - Live filtrowanie, tabela (ID, Imię i nazwisko, Status, Start, Trwa, Akcje)
+  - Akcje Start/Stop/Awaryjne (zielony/czerwony), tooltips, debounce 200ms
+  - Guard inicjalizacji, zgodny z loaderem
+- **Test**: `frontend/worker-status-search-test.html`
 
 ### 🌐 Common Components (`/components/common/`)
 
@@ -256,6 +264,7 @@ await Promise.all(loadPromises);
 | work-management | ✅ Done | ✅ Yes | 🟡 Basic | ✅ Complete |
 | active-workers | ✅ Done | ✅ Yes | 🟡 Basic | ✅ Complete |
 | calendar-widget | ✅ Done | 🟡 Partial | 🟡 Basic | ✅ Complete |
+| worker-status-search | ✅ Done | ✅ Yes | 🟡 Basic | ✅ Complete |
 | employee-search | ✅ Done | 🔴 No | 🔴 None | ✅ Complete |
 | employee-list | ✅ Done | 🔴 No | 🔴 None | ✅ Complete |
 

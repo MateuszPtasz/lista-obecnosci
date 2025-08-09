@@ -1,0 +1,568 @@
+<!-- WYSZUKIWANIE PRACOWNIKA - KOMPONENT DASHBOARD -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-search text-primary"></i>
+            Wyszukiwanie pracownika
+        </h3>
+        <p class="card-subtitle">Znajdź pracownika po ID, imieniu lub nazwisku</p>
+    </div>
+    <div class="card-body">
+        <!-- Formularz wyszukiwania -->
+        <div class="search-form mb-4">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="employeeSearchInput" class="form-control form-control-lg" 
+                               placeholder="Wpisz ID pracownika, imię lub nazwisko..." 
+                               autocomplete="off">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-grid gap-2 d-md-block">
+                        <button type="button" id="searchEmployee" class="btn btn-primary btn-lg me-2">
+                            <i class="fas fa-search me-2"></i>Szukaj
+                        </button>
+                        <button type="button" id="clearSearch" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times me-1"></i>Wyczyść
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Szybkie wyszukiwanie po ID -->
+        <div class="quick-search mb-4">
+            <h5 class="mb-3">
+                <i class="fas fa-bolt text-warning me-2"></i>Szybkie wyszukiwanie po ID
+            </h5>
+            <div class="row g-2">
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                    <button class="btn btn-outline-primary w-100" onclick="quickSearch('001')">
+                        <i class="fas fa-id-badge me-1"></i>001
+                    </button>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                    <button class="btn btn-outline-primary w-100" onclick="quickSearch('002')">
+                        <i class="fas fa-id-badge me-1"></i>002
+                    </button>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                    <button class="btn btn-outline-primary w-100" onclick="quickSearch('003')">
+                        <i class="fas fa-id-badge me-1"></i>003
+                    </button>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                    <button class="btn btn-outline-primary w-100" onclick="quickSearch('004')">
+                        <i class="fas fa-id-badge me-1"></i>004
+                    </button>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                    <button class="btn btn-outline-primary w-100" onclick="quickSearch('005')">
+                        <i class="fas fa-id-badge me-1"></i>005
+                    </button>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                    <button class="btn btn-outline-secondary w-100" onclick="showAllEmployees()">
+                        <i class="fas fa-users me-1"></i>Wszyscy
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wyniki wyszukiwania -->
+        <div id="searchResults" class="search-results" style="display: none;">
+            <!-- Results będą ładowane dynamicznie -->
+        </div>
+
+        <!-- Lista ostatnio wyszukiwanych -->
+        <div class="recent-searches">
+            <h5 class="mb-3">
+                <i class="fas fa-history text-info me-2"></i>Ostatnio wyszukiwane
+            </h5>
+            <div id="recentSearchesList" class="recent-list">
+                <div class="recent-item">
+                    <button class="btn btn-sm btn-outline-info me-2" onclick="quickSearch('001')">
+                        <i class="fas fa-redo me-1"></i>001 - Jan Kowalski
+                    </button>
+                </div>
+                <div class="recent-item">
+                    <button class="btn btn-sm btn-outline-info me-2" onclick="quickSearch('Anna Nowak')">
+                        <i class="fas fa-redo me-1"></i>Anna Nowak
+                    </button>
+                </div>
+                <div class="recent-item">
+                    <button class="btn btn-sm btn-outline-info me-2" onclick="quickSearch('003')">
+                        <i class="fas fa-redo me-1"></i>003 - Piotr Wiśniewski
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template dla wyników wyszukiwania -->
+<div id="searchResultTemplate" style="display: none;">
+    <div class="search-result-card">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    <span class="employee-name"></span>
+                    <span class="badge bg-light text-dark ms-2 employee-id"></span>
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle text-primary me-2"></i>Informacje podstawowe</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>ID:</strong> <span class="employee-id-detail"></span></li>
+                            <li><strong>Stanowisko:</strong> <span class="employee-position"></span></li>
+                            <li><strong>Dział:</strong> <span class="employee-department"></span></li>
+                            <li><strong>Status:</strong> <span class="employee-status-badge"></span></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-clock text-success me-2"></i>Czas pracy</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Rozpoczęcie:</strong> <span class="work-start-time"></span></li>
+                            <li><strong>Czas pracy:</strong> <span class="work-duration"></span></li>
+                            <li><strong>Lokalizacja:</strong> <span class="work-location"></span></li>
+                            <li><strong>Przerwy:</strong> <span class="break-info"></span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-success" onclick="viewFullProfile()">
+                            <i class="fas fa-eye me-2"></i>Pełny profil
+                        </button>
+                        <button class="btn btn-info" onclick="viewTimesheet()">
+                            <i class="fas fa-calendar me-2"></i>Karta czasu pracy
+                        </button>
+                        <button class="btn btn-warning" onclick="sendMessage()">
+                            <i class="fas fa-envelope me-2"></i>Wyślij wiadomość
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="printReport()">
+                            <i class="fas fa-print me-2"></i>Drukuj raport
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* EMPLOYEE SEARCH STYLES */
+.search-form .input-group-text {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.search-form .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.quick-search .btn {
+    margin-bottom: 0.5rem;
+}
+
+.search-results {
+    margin-top: 2rem;
+}
+
+.search-result-card {
+    margin-bottom: 1rem;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.recent-searches {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.recent-item {
+    margin-bottom: 0.5rem;
+}
+
+.employee-status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.no-results {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.no-results i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+    .search-form .d-grid {
+        margin-top: 1rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 0.5rem;
+        border-radius: 0.375rem !important;
+    }
+}
+</style>
+
+<script>
+// EMPLOYEE SEARCH FUNCTIONALITY
+let recentSearches = JSON.parse(localStorage.getItem('recentEmployeeSearches') || '[]');
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔍 Employee Search Component załadowany');
+    setupEmployeeSearch();
+    loadRecentSearches();
+});
+
+function setupEmployeeSearch() {
+    // Setup search input
+    const searchInput = document.getElementById('employeeSearchInput');
+    const searchButton = document.getElementById('searchEmployee');
+    const clearButton = document.getElementById('clearSearch');
+    
+    // Enter key support
+    searchInput?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+    
+    // Search button
+    searchButton?.addEventListener('click', performSearch);
+    
+    // Clear button
+    clearButton?.addEventListener('click', clearSearch);
+    
+    console.log('✅ Employee Search zainicjalizowany');
+}
+
+async function performSearch() {
+    const searchInput = document.getElementById('employeeSearchInput');
+    const searchTerm = searchInput?.value.trim();
+    
+    if (!searchTerm) {
+        showNoResults('Wprowadź frazę do wyszukania');
+        return;
+    }
+    
+    console.log('🔍 Wyszukiwanie pracownika:', searchTerm);
+    
+    try {
+        // Show loading
+        showSearchLoading();
+        
+        // Mock API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Mock search results
+        const results = mockEmployeeSearch(searchTerm);
+        
+        if (results.length > 0) {
+            displaySearchResults(results);
+            addToRecentSearches(searchTerm);
+        } else {
+            showNoResults(`Nie znaleziono pracownika: "${searchTerm}"`);
+        }
+        
+    } catch (error) {
+        console.error('❌ Błąd wyszukiwania:', error);
+        showSearchError('Wystąpił błąd podczas wyszukiwania');
+    }
+}
+
+function quickSearch(searchTerm) {
+    const searchInput = document.getElementById('employeeSearchInput');
+    if (searchInput) {
+        searchInput.value = searchTerm;
+        performSearch();
+    }
+}
+
+function showAllEmployees() {
+    console.log('👥 Pokazywanie wszystkich pracowników');
+    showSearchLoading();
+    
+    setTimeout(() => {
+        const allEmployees = mockGetAllEmployees();
+        displaySearchResults(allEmployees);
+    }, 500);
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('employeeSearchInput');
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+    
+    if (resultsDiv) {
+        resultsDiv.style.display = 'none';
+        resultsDiv.innerHTML = '';
+    }
+    
+    console.log('🧹 Wyczyszczono wyszukiwanie');
+}
+
+function showSearchLoading() {
+    const resultsDiv = document.getElementById('searchResults');
+    if (!resultsDiv) return;
+    
+    resultsDiv.style.display = 'block';
+    resultsDiv.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Wyszukiwanie...</span>
+            </div>
+            <div class="mt-3">
+                <h5>Wyszukiwanie pracownika...</h5>
+                <p class="text-muted">Proszę czekać</p>
+            </div>
+        </div>
+    `;
+}
+
+function showNoResults(message) {
+    const resultsDiv = document.getElementById('searchResults');
+    if (!resultsDiv) return;
+    
+    resultsDiv.style.display = 'block';
+    resultsDiv.innerHTML = `
+        <div class="no-results">
+            <i class="fas fa-search"></i>
+            <h4>${message}</h4>
+            <p class="text-muted">Spróbuj użyć innej frazy wyszukiwania</p>
+        </div>
+    `;
+}
+
+function showSearchError(message) {
+    const resultsDiv = document.getElementById('searchResults');
+    if (!resultsDiv) return;
+    
+    resultsDiv.style.display = 'block';
+    resultsDiv.innerHTML = `
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            ${message}
+        </div>
+    `;
+}
+
+function displaySearchResults(results) {
+    const resultsDiv = document.getElementById('searchResults');
+    if (!resultsDiv) return;
+    
+    resultsDiv.style.display = 'block';
+    resultsDiv.innerHTML = `
+        <h5 class="mb-3">
+            <i class="fas fa-search-plus text-success me-2"></i>
+            Wyniki wyszukiwania (${results.length})
+        </h5>
+    `;
+    
+    results.forEach(employee => {
+        const resultHtml = createEmployeeResultCard(employee);
+        resultsDiv.innerHTML += resultHtml;
+    });
+}
+
+function createEmployeeResultCard(employee) {
+    const statusClass = getStatusClass(employee.status);
+    
+    return `
+        <div class="search-result-card">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        ${employee.name}
+                        <span class="badge bg-light text-dark ms-2">${employee.id}</span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-info-circle text-primary me-2"></i>Informacje podstawowe</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>ID:</strong> ${employee.id}</li>
+                                <li><strong>Stanowisko:</strong> ${employee.position}</li>
+                                <li><strong>Dział:</strong> ${employee.department}</li>
+                                <li><strong>Status:</strong> <span class="badge bg-${statusClass}">${employee.status}</span></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-clock text-success me-2"></i>Czas pracy</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Rozpoczęcie:</strong> ${employee.workStart}</li>
+                                <li><strong>Czas pracy:</strong> ${employee.workDuration}</li>
+                                <li><strong>Lokalizacja:</strong> ${employee.location}</li>
+                                <li><strong>Przerwy:</strong> ${employee.breaks}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-success" onclick="viewFullProfile('${employee.id}')">
+                                <i class="fas fa-eye me-2"></i>Pełny profil
+                            </button>
+                            <button class="btn btn-info" onclick="viewTimesheet('${employee.id}')">
+                                <i class="fas fa-calendar me-2"></i>Karta czasu pracy
+                            </button>
+                            <button class="btn btn-warning" onclick="sendMessage('${employee.id}')">
+                                <i class="fas fa-envelope me-2"></i>Wyślij wiadomość
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="printReport('${employee.id}')">
+                                <i class="fas fa-print me-2"></i>Drukuj raport
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getStatusClass(status) {
+    const statusMap = {
+        'Obecny': 'success',
+        'Na przerwie': 'warning',
+        'Nadgodziny': 'info',
+        'Nieobecny': 'danger',
+        'Spóźniony': 'warning'
+    };
+    return statusMap[status] || 'secondary';
+}
+
+// Mock data functions
+function mockEmployeeSearch(searchTerm) {
+    const allEmployees = mockGetAllEmployees();
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    
+    return allEmployees.filter(emp => 
+        emp.name.toLowerCase().includes(lowerSearchTerm) ||
+        emp.id.toLowerCase().includes(lowerSearchTerm) ||
+        emp.position.toLowerCase().includes(lowerSearchTerm)
+    );
+}
+
+function mockGetAllEmployees() {
+    return [
+        {
+            id: '001', name: 'Jan Kowalski', position: 'Operator', department: 'Produkcja',
+            status: 'Obecny', workStart: '08:15', workDuration: '7h 23m', 
+            location: 'Linia A', breaks: '2 przerwy (30min)'
+        },
+        {
+            id: '002', name: 'Anna Nowak', position: 'Kontroler jakości', department: 'Jakość',
+            status: 'Na przerwie', workStart: '08:00', workDuration: '6h 45m', 
+            location: 'Kawiarnia', breaks: 'Aktualna przerwa (8min)'
+        },
+        {
+            id: '003', name: 'Piotr Wiśniewski', position: 'Magazynier', department: 'Magazyn',
+            status: 'Nadgodziny', workStart: '06:00', workDuration: '9h 12m', 
+            location: 'Magazyn B', breaks: '3 przerwy (45min)'
+        },
+        {
+            id: '004', name: 'Marta Kaczmarek', position: 'Sprzątaczka', department: 'Utrzymanie ruchu',
+            status: 'Nieobecna', workStart: '--', workDuration: '--', 
+            location: 'Dom', breaks: 'Zwolnienie lekarskie'
+        },
+        {
+            id: '005', name: 'Tomasz Nowak', position: 'Mechanik', department: 'Konserwacja',
+            status: 'Obecny', workStart: '07:30', workDuration: '8h 05m', 
+            location: 'Warsztat', breaks: '1 przerwa (15min)'
+        }
+    ];
+}
+
+function addToRecentSearches(searchTerm) {
+    if (!recentSearches.includes(searchTerm)) {
+        recentSearches.unshift(searchTerm);
+        recentSearches = recentSearches.slice(0, 5); // Keep only last 5
+        localStorage.setItem('recentEmployeeSearches', JSON.stringify(recentSearches));
+        loadRecentSearches();
+    }
+}
+
+function loadRecentSearches() {
+    const recentList = document.getElementById('recentSearchesList');
+    if (!recentList || recentSearches.length === 0) return;
+    
+    recentList.innerHTML = '';
+    
+    recentSearches.forEach(search => {
+        const item = document.createElement('div');
+        item.className = 'recent-item';
+        item.innerHTML = `
+            <button class="btn btn-sm btn-outline-info me-2" onclick="quickSearch('${search}')">
+                <i class="fas fa-redo me-1"></i>${search}
+            </button>
+        `;
+        recentList.appendChild(item);
+    });
+}
+
+// Action functions
+function viewFullProfile(employeeId) {
+    console.log('👤 Wyświetlanie profilu:', employeeId);
+    alert(`Profil pracownika ${employeeId}\n\nTa funkcja zostanie zaimplementowana w kolejnej wersji.`);
+}
+
+function viewTimesheet(employeeId) {
+    console.log('📅 Karta czasu pracy:', employeeId);
+    alert(`Karta czasu pracy dla ${employeeId}\n\nTa funkcja zostanie zaimplementowana w kolejnej wersji.`);
+}
+
+function sendMessage(employeeId) {
+    console.log('✉️ Wysyłanie wiadomości:', employeeId);
+    alert(`Wysyłanie wiadomości do ${employeeId}\n\nTa funkcja zostanie zaimplementowana w kolejnej wersji.`);
+}
+
+function printReport(employeeId) {
+    console.log('🖨️ Drukowanie raportu:', employeeId);
+    alert(`Drukowanie raportu dla ${employeeId}\n\nTa funkcja zostanie zaimplementowana w kolejnej wersji.`);
+}
+
+// Export functions for global access
+window.EmployeeSearchComponent = {
+    performSearch,
+    quickSearch,
+    showAllEmployees,
+    clearSearch,
+    viewFullProfile,
+    viewTimesheet,
+    sendMessage,
+    printReport
+};
+</script>

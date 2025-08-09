@@ -1,0 +1,122 @@
+<!-- PULPIT GŁÓWNY — Aktywni pracownicy (wyodrębnione z index.html) -->
+<style>
+  .active-workers { position: relative; }
+  .active-workers .card-header { display:flex; justify-content: space-between; align-items:center; }
+  .active-workers .btn { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; border:1px solid transparent; cursor:pointer; }
+  .active-workers .btn-primary { background: linear-gradient(135deg,#2563eb,#1e40af); color:#fff; }
+  .active-workers .table-wrap { margin-top: 10px; border:1px solid #eef2f7; border-radius:12px; overflow:hidden; background:#fff; }
+  .active-workers table { width:100%; border-collapse: collapse; font-size:14px; }
+  .active-workers th, .active-workers td { padding:10px 12px; border-bottom:1px solid #eef2f7; text-align:left; }
+  .active-workers thead { background:#f8fafc; }
+  .active-workers tbody tr:hover { background:#f9fbff; }
+  .active-workers .status { display:inline-flex; align-items:center; gap:6px; font-weight:700; }
+  .active-workers .status-present { color:#16a34a; }
+  .active-workers .status-absent { color:#6b7280; }
+  .active-workers .worker-info { display:flex; align-items:center; gap:10px; }
+  .active-workers .worker-avatar { width:28px; height:28px; border-radius:50%; background:#e5e7eb; display:flex; align-items:center; justify-content:center; font-weight:800; color:#374151; }
+  .active-workers .time-badge, .active-workers .duration-badge { display:inline-flex; align-items:center; gap:6px; background:#f3f4f6; padding:4px 8px; border-radius:8px; font-weight:600; }
+</style>
+
+<div class="card mb-4 active-workers-component active-workers">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title"><i class="fas fa-tachometer-alt text-primary"></i> Pulpit główny</h3>
+      <p class="card-subtitle">Aktywni pracownicy na dziś</p>
+    </div>
+    <button class="btn btn-primary" id="aw-refresh"><i class="fas fa-sync-alt"></i> Odśwież listę</button>
+  </div>
+  <div class="card-body">
+    <div id="aw-container" class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:100px;">Status</th>
+            <th>Pracownik</th>
+            <th style="width:140px;">Rozpoczęcie</th>
+            <th style="width:140px;">Czas pracy</th>
+            <th style="width:140px;">Lokalizacja</th>
+          </tr>
+        </thead>
+        <tbody id="aw-body">
+          <tr>
+            <td colspan="5" style="text-align:center; padding:18px; color:#6b7280;">
+              <i class="fas fa-spinner fa-spin text-primary" style="font-size:1.2rem;"></i>
+              <span style="margin-left:8px;">Ładowanie...</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  let __AW_BOUND = false;
+
+  function initialsFromName(name){
+    const parts = String(name||'').trim().split(/\s+/).filter(Boolean);
+    return parts.map(p=>p[0]).join('').slice(0,2).toUpperCase() || 'P';
+  }
+
+  function toFixed(v){ try { return parseFloat(v).toFixed(5); } catch(_) { return null; } }
+
+  function renderRows(data){
+    const tb = document.getElementById('aw-body');
+    if(!tb) return;
+    if(!data || data.length===0){
+      tb.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:18px; color:#6b7280;">Brak aktywnych pracowników</td></tr>`;
+      return;
+    }
+    tb.innerHTML = data.map(worker => {
+      const statusBadge = (worker.status === 'online' || !worker.status)
+        ? '<span class="status status-present"><i class="fas fa-circle"></i> Online</span>'
+        : '<span class="status status-absent"><i class="fas fa-circle"></i> Offline</span>';
+      const initials = initialsFromName(worker.name || worker.full_name || '-');
+      let locationCell = '<span class="text-muted"><i class="fas fa-map-marker-slash"></i> Brak</span>';
+      const lat = worker.start_lat ?? worker.lat ?? worker.startLat;
+      const lon = worker.start_lon ?? worker.lon ?? worker.startLon;
+      const latF = toFixed(lat), lonF = toFixed(lon);
+      if(latF && lonF){
+        locationCell = `<a href="https://www.google.com/maps?q=${latF},${lonF}" target="_blank" class="btn btn-sm btn-outline" title="Pokaż na mapie: ${latF}, ${lonF}"><i class="fas fa-map-marker-alt"></i> Mapa</a>`;
+      }
+      return `
+        <tr>
+          <td>${statusBadge}</td>
+          <td>
+            <div class="worker-info">
+              <div class="worker-avatar">${initials}</div>
+              <div class="worker-name">${worker.name || '-'}</div>
+            </div>
+          </td>
+          <td><span class="time-badge"><i class="fas fa-clock"></i> ${worker.start_time || '-'}</span></td>
+          <td><span class="duration-badge"><i class="fas fa-stopwatch"></i> ${worker.duration || '-'}</span></td>
+          <td>${locationCell}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  async function loadActiveWorkers(){
+    const tb = document.getElementById('aw-body');
+    if(tb){ tb.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:18px; color:#6b7280;"><i class=\"fas fa-spinner fa-spin text-primary\"></i><span style=\"margin-left:8px;\">Ładowanie...</span></td></tr>`; }
+    try{
+      const resp = await fetch('/api/active_workers');
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      renderRows(Array.isArray(data) ? data : (data?.workers || data?.items || data?.data || []));
+    }catch(err){
+      if(tb){ tb.innerHTML = `<tr><td colspan=\"5\" style=\"text-align:center; padding:18px; color:#b91c1c;\">Błąd pobierania: ${err?.message||'nieznany'}</td></tr>`; }
+    }
+  }
+
+  function bind(){
+    if(__AW_BOUND) return; __AW_BOUND = true;
+    document.getElementById('aw-refresh')?.addEventListener('click', loadActiveWorkers);
+    loadActiveWorkers();
+  }
+
+  window.ActiveWorkersComponent = { init: bind, refresh: loadActiveWorkers };
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', bind); } else { bind(); }
+})();
+</script>

@@ -1,0 +1,222 @@
+<!-- Work Management (wierna kopia z działającego index.html) -->
+<style>
+  /* Kopia minimalnych stylów z index.html dla sekcji pracy */
+  .work-management-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .work-module { background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .work-module-header h4 { font-size: 16px; margin: 0 0 8px; display: flex; align-items: center; gap: 8px; }
+  .work-form-compact { display: flex; flex-direction: column; gap: 12px; }
+  .form-group-compact { display: flex; flex-direction: column; gap: 6px; }
+  .form-group-compact label { font-weight: 600; font-size: 13px; color: #34495e; }
+  .form-group-compact input { height: 40px; border-radius: 8px; border: 1px solid #ced4da; padding: 0 12px; font-size: 14px; }
+  .btn-compact { height: 40px; }
+  .btn-secondary-compact { height: 36px; }
+  .mt-2 { margin-top: 8px; }
+
+  /* === Navbar theme alignment (overrides, scoped) === */
+  :root {
+    --brand: #2563eb;
+    --brand-700: #1e40af;
+    --brand-soft: rgba(37, 99, 235, 0.10);
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --border: #e9ecef;
+  }
+
+  .work-management-container { gap: 18px; }
+
+  .work-module {
+    border: 1px solid var(--border);
+    border-top: 4px solid transparent; /* pasek na górze zamiast z lewej */
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .work-module:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.10); }
+  .start-module { border-top-color: var(--brand); }
+  .stop-module { border-top-color: var(--danger); }
+  .emergency-stop-module { border-top-color: var(--warn); }
+
+  .work-module-header h4 { color: #2c3e50; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  /* Branduj tylko success na niebiesko, aby spójnie z navbar */
+  .work-management-container .text-success { color: var(--brand) !important; }
+
+  /* Formularze */
+  .work-management-container .form-group-compact label { color: #495057; }
+  .work-management-container .form-control {
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid #ced4da;
+    padding: 0 12px;
+    font-size: 14px;
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  .work-management-container .form-control:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 4px var(--brand-soft);
+  }
+
+  /* Przyciski */
+  .work-management-container .btn { 
+    border-radius: 10px; 
+    font-weight: 600; 
+    transition: transform .15s ease, box-shadow .15s ease, background-color .2s ease, border-color .2s ease; 
+  }
+  .work-management-container .btn-compact { height: 42px; }
+  .work-management-container .btn-secondary-compact { height: 38px; }
+
+  .work-management-container .btn-success {
+    background: linear-gradient(135deg, var(--brand), var(--brand-700));
+    border: 1px solid transparent;
+    color: #fff;
+  }
+  .work-management-container .btn-success:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,.25); }
+
+  .work-management-container .btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border: 1px solid transparent;
+    color: #fff;
+  }
+  .work-management-container .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(239,68,68,.25); }
+
+  .work-management-container .btn-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: 1px solid transparent;
+    color: #fff;
+  }
+  .work-management-container .btn-warning:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(245,158,11,.25); }
+
+  .work-management-container .btn-outline-secondary {
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    color: #495057;
+  }
+  .work-management-container .btn-outline-secondary:hover {
+    background: var(--brand-soft);
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+
+  /* Wyniki/alerty */
+  .work-management-container .alert { 
+    border-radius: 10px; 
+    padding: 10px 12px; 
+    font-size: 13px; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    border-left: 3px solid transparent;
+  }
+  .work-management-container .alert-success { 
+    background: rgba(37,99,235,0.08); 
+    color: #1f2937; 
+    border-color: var(--brand);
+  }
+  .work-management-container .alert-error { 
+    background: rgba(239,68,68,0.08); 
+    color: #7f1d1d; 
+    border-color: #ef4444;
+  }
+
+  /* Responsywność spójna z kalendarzem */
+  @media (max-width: 992px) {
+    .work-management-container { grid-template-columns: 1fr; }
+  }
+  @media (min-width: 993px) and (max-width: 1200px) {
+    .work-management-container { grid-template-columns: 1fr 1fr; }
+  }
+  /* === End navbar theme alignment === */
+</style>
+
+<div class="work-management-container">
+  <!-- Start -->
+  <div class="work-module start-module">
+    <div class="work-module-header">
+      <h4><i class="fas fa-play text-success"></i>Rozpocznij pracę</h4>
+    </div>
+    <form id="startWorkForm" class="work-form-compact">
+      <div class="form-group-compact">
+        <label for="workerId" class="form-label"><i class="fas fa-id-card text-success me-1"></i>ID Pracownika:</label>
+        <input type="text" id="workerId" name="workerId" class="form-control" placeholder="np. 001, 002..." required autocomplete="off">
+      </div>
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-success btn-compact"><i class="fas fa-play me-2"></i>Rozpocznij pracę</button>
+        <button type="button" id="btnClearStart" class="btn btn-outline-secondary btn-secondary-compact"><i class="fas fa-times me-1"></i>Wyczyść</button>
+      </div>
+      <div id="startWorkResult" class="mt-2"></div>
+    </form>
+  </div>
+
+  <!-- Stop -->
+  <div class="work-module stop-module">
+    <div class="work-module-header">
+      <h4><i class="fas fa-stop text-danger"></i>Zakończ pracę</h4>
+    </div>
+    <form id="stopWorkForm" class="work-form-compact">
+      <div class="form-group-compact">
+        <label for="stopWorkerId" class="form-label"><i class="fas fa-id-card text-danger me-1"></i>ID Pracownika:</label>
+        <input type="text" id="stopWorkerId" name="stopWorkerId" class="form-control" placeholder="np. 001, 002..." required autocomplete="off">
+      </div>
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-danger btn-compact"><i class="fas fa-stop me-2"></i>Zakończ pracę</button>
+        <button type="button" id="btnClearStop" class="btn btn-outline-secondary btn-secondary-compact"><i class="fas fa-times me-1"></i>Wyczyść</button>
+      </div>
+      <div id="stopWorkResult" class="mt-2"></div>
+    </form>
+  </div>
+
+  <!-- Emergency -->
+  <div class="work-module emergency-stop-module">
+    <div class="work-module-header">
+      <h4><i class="fas fa-exclamation-triangle text-warning"></i>Awaryjne zakończenie pracy</h4>
+      <p class="text-muted small">Używaj tylko w przypadku problemów z normalnym zakończeniem pracy</p>
+    </div>
+    <form id="emergencyStopForm" class="work-form-compact">
+      <div class="form-group-compact">
+        <label for="emergencyWorkerId" class="form-label"><i class="fas fa-id-card text-warning me-1"></i>ID Pracownika:</label>
+        <input type="text" id="emergencyWorkerId" name="emergencyWorkerId" class="form-control" placeholder="np. 001, 002..." required autocomplete="off">
+      </div>
+      <div class="form-group-compact">
+        <label for="emergencyReason" class="form-label"><i class="fas fa-comment-alt text-warning me-1"></i>Powód:</label>
+        <input type="text" id="emergencyReason" name="emergencyReason" class="form-control" value="Problem z zakończeniem sesji" autocomplete="off">
+      </div>
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-warning btn-compact"><i class="fas fa-exclamation-triangle me-2"></i>Awaryjne zakończenie</button>
+        <button type="button" id="btnClearEmergency" class="btn btn-outline-secondary btn-secondary-compact"><i class="fas fa-times me-1"></i>Wyczyść</button>
+      </div>
+      <div id="emergencyStopResult" class="mt-2"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Wykorzystujemy te same funkcje co w index.html (realne API)
+  async function startWork(workerId){try{const e=await fetch('/api/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({worker_id:workerId,employee_id:workerId,czas_start:new Date().toISOString(),lokalizacja_start:{lat:0,lon:0}})});const t=await e.json();if(e.ok){document.getElementById('startWorkResult').innerHTML=`<div class="alert alert-success"><i class="fas fa-check-circle"></i> Pracownik ${workerId} rozpoczął pracę.</div>`;document.getElementById('workerId').value='';if(typeof loadActiveWorkers==='function')setTimeout(loadActiveWorkers,1000);window.dispatchEvent(new CustomEvent('workers:refresh'))}else throw new Error(t.detail||'Błąd rozpoczęcia pracy')}catch(e){document.getElementById('startWorkResult').innerHTML=`<div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`}}
+  async function stopWork(workerId){try{const e=await fetch('/api/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({worker_id:workerId,employee_id:workerId,czas_stop:new Date().toISOString(),location:'Panel administratora',lat:0,lon:0})});const t=await e.json();if(e.ok){document.getElementById('stopWorkResult').innerHTML=`<div class="alert alert-success"><i class="fas fa-check-circle"></i> Pracownik ${workerId} zakończył pracę.</div>`;document.getElementById('stopWorkerId').value='';if(typeof loadActiveWorkers==='function')setTimeout(loadActiveWorkers,1000);window.dispatchEvent(new CustomEvent('workers:refresh'))}else throw new Error(t.detail||'Błąd zakończenia pracy')}catch(e){document.getElementById('stopWorkResult').innerHTML=`<div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`}}
+  async function emergencyStopWork(workerId,reason){try{const e=await fetch('/api/admin/force-stop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({worker_id:workerId,reason:reason||'Problem z zakończeniem sesji'})});const t=await e.json();if(e.ok){document.getElementById('emergencyStopResult').innerHTML=`<div class="alert alert-success"><i class="fas fa-check-circle"></i> Awaryjne zakończono pracę dla ${workerId}.</div>`;document.getElementById('emergencyWorkerId').value='';document.getElementById('emergencyReason').value='Problem z zakończeniem sesji';if(typeof loadActiveWorkers==='function')setTimeout(loadActiveWorkers,1000);window.dispatchEvent(new CustomEvent('workers:refresh'))}else throw new Error(t.detail||'Błąd awaryjnego zakończenia')}catch(e){document.getElementById('emergencyStopResult').innerHTML=`<div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`}}
+
+  // Guard przed wielokrotną inicjalizacją
+  let __WORK_MGMT_BOUND = false;
+
+  // Bindowanie zdarzeń (idempotentne)
+  function bindWorkForms(){
+    if (__WORK_MGMT_BOUND) return; // zapobiega podwójnym listenerom
+    __WORK_MGMT_BOUND = true;
+
+    document.getElementById('startWorkForm')?.addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('workerId').value.trim();if(v)startWork(v)});
+    document.getElementById('stopWorkForm')?.addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('stopWorkerId').value.trim();if(v)stopWork(v)});
+    document.getElementById('emergencyStopForm')?.addEventListener('submit',e=>{e.preventDefault();const v=document.getElementById('emergencyWorkerId').value.trim();const r=document.getElementById('emergencyReason').value.trim();if(v&&confirm(`Czy na pewno awaryjnie zakończyć pracę dla ${v}?`))emergencyStopWork(v,r)});
+
+    document.getElementById('btnClearStart')?.addEventListener('click',()=>{document.getElementById('workerId').value='';document.getElementById('startWorkResult').innerHTML=''});
+    document.getElementById('btnClearStop')?.addEventListener('click',()=>{document.getElementById('stopWorkerId').value='';document.getElementById('stopWorkResult').innerHTML=''});
+    document.getElementById('btnClearEmergency')?.addEventListener('click',()=>{document.getElementById('emergencyWorkerId').value='';document.getElementById('emergencyReason').value='Problem z zakończeniem sesji';document.getElementById('emergencyStopResult').innerHTML=''})
+  }
+
+  // API dla loadera (opcjonalnie)
+  window.WorkManagementComponent={init:function(){bindWorkForms();}};
+
+  // Auto-init gdy nie ma loadera
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',bindWorkForms)}else{bindWorkForms()}
+</script>

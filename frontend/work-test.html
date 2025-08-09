@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test: Work Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f5f6fa; margin:0; padding:24px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .card { background:#fff; border:1px solid #e9ecef; border-radius:16px; box-shadow:0 6px 20px rgba(0,0,0,.06); overflow:hidden; }
+    .card-header { padding:18px 22px; border-bottom:1px solid #edf2f7; display:flex; align-items:center; gap:10px; }
+    .card-header h2 { margin:0; font-size:18px; font-weight:700; color:#2c3e50; display:flex; align-items:center; gap:8px; }
+    .card-body { padding:18px 22px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fas fa-vial"></i> Test komponentu: Work Management</h2>
+      </div>
+      <div class="card-body" id="component-root">
+        <div style="padding:24px; text-align:center; color:#6c757d">
+          <i class="fas fa-spinner fa-spin"></i>
+          Ładowanie komponentu...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (async function(){
+      const root = document.getElementById('component-root');
+      try{
+        const res = await fetch('./components/work/work-management.html', { cache: 'no-store' });
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const html = await res.text();
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const scripts = Array.from(tmp.querySelectorAll('script'));
+        scripts.forEach(s=>s.remove());
+        root.innerHTML = tmp.innerHTML;
+        for(const s of scripts){
+          const ns = document.createElement('script');
+          ns.textContent = s.textContent;
+          root.appendChild(ns);
+        }
+        // zainicjalizuj jeśli expose API
+        if(window.WorkManagementComponent?.init){ window.WorkManagementComponent.init(); }
+      }catch(err){
+        root.innerHTML = `<div style="color:#e74c3c;">Błąd ładowania komponentu: ${err.message}</div>`;
+      }
+    })();
+  </script>
+</body>
+</html>

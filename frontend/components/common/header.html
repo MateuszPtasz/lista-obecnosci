@@ -1,0 +1,157 @@
+<!-- Modern Header Component with Glassmorphism -->
+<div class="modern-header-container">
+    <div class="modern-header-section">
+        <h1 class="modern-header-title">
+            📊 System Listy Obecności
+        </h1>
+        <p class="modern-header-subtitle">
+            Nowoczesny system zarządzania obecnością pracowników
+        </p>
+    </div>
+</div>
+
+<style>
+/* Modern Header Component Styles */
+.modern-header-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 120px;
+}
+
+.modern-header-section {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    margin: 20px 0;
+    padding: 40px 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-header-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.modern-header-section:hover::before {
+    left: 100%;
+}
+
+.modern-header-title {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 2.8em;
+    font-weight: 300;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modern-header-subtitle {
+    color: #666;
+    font-size: 18px;
+    margin: 0;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .modern-header-container {
+        padding: 15px;
+    }
+    
+    .modern-header-section {
+        padding: 30px 20px;
+        margin: 15px 0;
+    }
+    
+    .modern-header-title {
+        font-size: 2.2em;
+    }
+    
+    .modern-header-subtitle {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modern-header-title {
+        font-size: 1.8em;
+    }
+    
+    .modern-header-subtitle {
+        font-size: 14px;
+    }
+}
+
+/* Animation on load */
+.modern-header-section {
+    animation: headerSlideIn 0.8s ease-out;
+}
+
+@keyframes headerSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+</style>
+
+<script>
+// Modern Header Component Logic
+class ModernHeaderComponent {
+    constructor() {
+        this.init();
+    }
+    
+    init() {
+        console.log('✨ Modern Header Component załadowany');
+        
+        // Dodaj efekt tętnienia dla emoji
+        this.addPulseEffect();
+    }
+    
+    addPulseEffect() {
+        const title = document.querySelector('.modern-header-title');
+        if (!title) return;
+        
+        // Efekt pulsowania emoji co 5 sekund
+        setInterval(() => {
+            const emoji = title.textContent.match(/📊/);
+            if (emoji) {
+                title.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    title.style.transform = 'scale(1)';
+                }, 200);
+            }
+        }, 5000);
+    }
+}
+
+// Auto-inicjalizacja gdy DOM jest gotowy
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        new ModernHeaderComponent();
+    });
+} else {
+    new ModernHeaderComponent();
+}
+</script>

@@ -1,0 +1,629 @@
+<!-- TERMINAL - KOMPONENT DASHBOARD -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-terminal text-primary"></i>
+            Terminal administratora
+        </h3>
+        <p class="card-subtitle">Wykonaj polecenia systemowe i sprawdź status aplikacji</p>
+    </div>
+    <div class="card-body">
+        <!-- Toolbar -->
+        <div class="terminal-toolbar mb-3">
+            <div class="btn-group btn-group-sm me-3" role="group">
+                <button id="clearTerminal" class="btn btn-outline-secondary">
+                    <i class="fas fa-broom me-1"></i>Wyczyść
+                </button>
+                <button id="saveLog" class="btn btn-outline-success">
+                    <i class="fas fa-save me-1"></i>Zapisz log
+                </button>
+                <button id="exportLog" class="btn btn-outline-info">
+                    <i class="fas fa-download me-1"></i>Eksportuj
+                </button>
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+                <button class="btn btn-outline-primary" onclick="runQuickCommand('status')">
+                    <i class="fas fa-info-circle me-1"></i>Status
+                </button>
+                <button class="btn btn-outline-warning" onclick="runQuickCommand('logs')">
+                    <i class="fas fa-file-alt me-1"></i>Logi
+                </button>
+                <button class="btn btn-outline-danger" onclick="runQuickCommand('errors')">
+                    <i class="fas fa-exclamation-triangle me-1"></i>Błędy
+                </button>
+            </div>
+        </div>
+
+        <!-- Terminal window -->
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <span class="terminal-btn terminal-close"></span>
+                    <span class="terminal-btn terminal-minimize"></span>
+                    <span class="terminal-btn terminal-maximize"></span>
+                </div>
+                <div class="terminal-title">
+                    <i class="fas fa-terminal me-2"></i>
+                    System Administrator Terminal - localhost
+                </div>
+                <div class="terminal-status">
+                    <span class="status-indicator online"></span>
+                    Połączony
+                </div>
+            </div>
+            
+            <div class="terminal-body" id="terminalBody">
+                <div class="terminal-output" id="terminalOutput">
+                    <div class="terminal-line welcome">
+                        <span class="terminal-prompt">system@localhost:~$</span>
+                        <span class="terminal-text">Witaj w terminalu administratora systemu obecności</span>
+                    </div>
+                    <div class="terminal-line info">
+                        <span class="terminal-prompt">system@localhost:~$</span>
+                        <span class="terminal-text">Wpisz 'help' aby zobaczyć dostępne polecenia</span>
+                    </div>
+                </div>
+                
+                <div class="terminal-input-line">
+                    <span class="terminal-prompt">admin@localhost:~$</span>
+                    <input type="text" id="terminalInput" class="terminal-input" 
+                           placeholder="Wpisz polecenie..." autocomplete="off" autofocus>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick commands -->
+        <div class="quick-commands mt-3">
+            <h6><i class="fas fa-bolt text-warning me-2"></i>Szybkie polecenia:</h6>
+            <div class="row g-2">
+                <div class="col-6 col-sm-4 col-md-3">
+                    <button class="btn btn-sm btn-outline-secondary w-100" onclick="runQuickCommand('help')">
+                        <i class="fas fa-question-circle me-1"></i>help
+                    </button>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3">
+                    <button class="btn btn-sm btn-outline-primary w-100" onclick="runQuickCommand('ps')">
+                        <i class="fas fa-tasks me-1"></i>ps
+                    </button>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3">
+                    <button class="btn btn-sm btn-outline-success w-100" onclick="runQuickCommand('uptime')">
+                        <i class="fas fa-clock me-1"></i>uptime
+                    </button>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3">
+                    <button class="btn btn-sm btn-outline-info w-100" onclick="runQuickCommand('who')">
+                        <i class="fas fa-users me-1"></i>who
+                    </button>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3">
+                    <button class="btn btn-sm btn-outline-warning w-100" onclick="runQuickCommand('df -h')">
+                        <i class="fas fa-hdd me-1"></i>df -h
+                    </button>
+                </div>
+                <div class="col-6 col-sm-4 col-md-3">
+                    <button class="btn btn-sm btn-outline-danger w-100" onclick="runQuickCommand('tail logs')">
+                        <i class="fas fa-file-alt me-1"></i>tail logs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* TERMINAL COMPONENT STYLES */
+.terminal-window {
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #333;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.terminal-header {
+    background: linear-gradient(135deg, #333, #444);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #555;
+}
+
+.terminal-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.terminal-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.terminal-close { background-color: #ff5f57; }
+.terminal-minimize { background-color: #ffbd2e; }
+.terminal-maximize { background-color: #28ca42; }
+
+.terminal-title {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.terminal-status {
+    display: flex;
+    align-items: center;
+    color: #aaa;
+    font-size: 0.8rem;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.status-indicator.online { background-color: #28ca42; }
+.status-indicator.offline { background-color: #ff5f57; }
+
+.terminal-body {
+    background-color: #1e1e1e;
+    color: #f8f8f2;
+    padding: 1rem;
+    min-height: 400px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.terminal-output {
+    margin-bottom: 1rem;
+}
+
+.terminal-line {
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: baseline;
+    word-wrap: break-word;
+}
+
+.terminal-prompt {
+    color: #50fa7b;
+    margin-right: 0.5rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.terminal-text {
+    color: #f8f8f2;
+    flex: 1;
+}
+
+.terminal-line.error .terminal-text {
+    color: #ff5555;
+}
+
+.terminal-line.success .terminal-text {
+    color: #50fa7b;
+}
+
+.terminal-line.warning .terminal-text {
+    color: #f1fa8c;
+}
+
+.terminal-line.info .terminal-text {
+    color: #8be9fd;
+}
+
+.terminal-line.welcome .terminal-text {
+    color: #bd93f9;
+    font-weight: 600;
+}
+
+.terminal-input-line {
+    display: flex;
+    align-items: baseline;
+}
+
+.terminal-input {
+    background: transparent;
+    border: none;
+    color: #f8f8f2;
+    font-family: inherit;
+    font-size: inherit;
+    flex: 1;
+    padding: 0;
+    outline: none;
+    caret-color: #50fa7b;
+}
+
+.terminal-input::placeholder {
+    color: #6272a4;
+}
+
+.terminal-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.quick-commands .btn {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.8rem;
+}
+
+/* Scrollbar styling for terminal */
+.terminal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.terminal-body::-webkit-scrollbar-track {
+    background: #282a36;
+}
+
+.terminal-body::-webkit-scrollbar-thumb {
+    background: #44475a;
+    border-radius: 3px;
+}
+
+.terminal-body::-webkit-scrollbar-thumb:hover {
+    background: #6272a4;
+}
+
+@media (max-width: 768px) {
+    .terminal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .terminal-toolbar {
+        justify-content: center;
+    }
+    
+    .quick-commands .col-6 {
+        flex: 0 0 50%;
+    }
+}
+</style>
+
+<script>
+// TERMINAL FUNCTIONALITY
+let terminalHistory = [];
+let historyIndex = -1;
+let commandCount = 0;
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('💻 Terminal Component załadowany');
+    setupTerminal();
+});
+
+function setupTerminal() {
+    const terminalInput = document.getElementById('terminalInput');
+    const clearBtn = document.getElementById('clearTerminal');
+    const saveBtn = document.getElementById('saveLog');
+    const exportBtn = document.getElementById('exportLog');
+    
+    // Handle terminal input
+    terminalInput?.addEventListener('keydown', handleTerminalInput);
+    
+    // Toolbar buttons
+    clearBtn?.addEventListener('click', clearTerminal);
+    saveBtn?.addEventListener('click', saveTerminalLog);
+    exportBtn?.addEventListener('click', exportTerminalLog);
+    
+    // Auto-focus terminal input
+    terminalInput?.focus();
+    
+    console.log('✅ Terminal zainicjalizowany');
+}
+
+function handleTerminalInput(e) {
+    const input = e.target;
+    
+    if (e.key === 'Enter') {
+        const command = input.value.trim();
+        if (command) {
+            executeCommand(command);
+            terminalHistory.push(command);
+            historyIndex = terminalHistory.length;
+            input.value = '';
+        }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (historyIndex > 0) {
+            historyIndex--;
+            input.value = terminalHistory[historyIndex];
+        }
+    } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex < terminalHistory.length - 1) {
+            historyIndex++;
+            input.value = terminalHistory[historyIndex];
+        } else {
+            historyIndex = terminalHistory.length;
+            input.value = '';
+        }
+    } else if (e.key === 'Tab') {
+        e.preventDefault();
+        // Basic tab completion
+        const suggestions = ['help', 'status', 'logs', 'errors', 'ps', 'uptime', 'who', 'df', 'tail', 'clear'];
+        const current = input.value.toLowerCase();
+        const matches = suggestions.filter(cmd => cmd.startsWith(current));
+        if (matches.length === 1) {
+            input.value = matches[0];
+        }
+    }
+}
+
+async function executeCommand(command) {
+    console.log('🔧 Wykonywanie polecenia:', command);
+    
+    // Add command to output
+    addTerminalLine(`admin@localhost:~$ ${command}`, 'command');
+    
+    // Show loading
+    const loadingLine = addTerminalLine('Wykonywanie polecenia...', 'info');
+    
+    try {
+        // Mock command execution
+        await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+        
+        // Remove loading line
+        loadingLine.remove();
+        
+        // Execute command
+        const output = processCommand(command);
+        if (Array.isArray(output)) {
+            output.forEach(line => addTerminalLine(line.text, line.type || 'normal'));
+        } else {
+            addTerminalLine(output, 'normal');
+        }
+        
+    } catch (error) {
+        loadingLine.remove();
+        addTerminalLine(`Błąd: ${error.message}`, 'error');
+    }
+    
+    scrollTerminalToBottom();
+    commandCount++;
+}
+
+function processCommand(command) {
+    const cmd = command.toLowerCase().trim();
+    
+    switch (cmd) {
+        case 'help':
+            return [
+                { text: 'Dostępne polecenia:', type: 'success' },
+                { text: '  help           - wyświetla tę pomoc' },
+                { text: '  status         - status systemu' },
+                { text: '  logs           - ostatnie logi systemu' },
+                { text: '  errors         - błędy systemu' },
+                { text: '  ps             - lista procesów' },
+                { text: '  uptime         - czas działania systemu' },
+                { text: '  who            - zalogowani użytkownicy' },
+                { text: '  df -h          - wykorzystanie dysku' },
+                { text: '  tail logs      - ostatnie wpisy w logu' },
+                { text: '  clear          - wyczyść terminal' },
+                { text: '  version        - wersja aplikacji' },
+                { text: '  restart        - restartuj system' }
+            ];
+            
+        case 'status':
+            return [
+                { text: 'Status systemu obecności:', type: 'success' },
+                { text: '  System:        Działający ✓', type: 'success' },
+                { text: '  Baza danych:   Połączona ✓', type: 'success' },
+                { text: '  API:           Aktywne ✓', type: 'success' },
+                { text: '  Użytkownicy:   18 aktywnych', type: 'info' },
+                { text: '  Obciążenie:    Normalne (23%)', type: 'info' },
+                { text: '  Pamięć:        156MB / 512MB', type: 'info' }
+            ];
+            
+        case 'logs':
+            return [
+                { text: 'Ostatnie logi systemu:', type: 'info' },
+                { text: '[15:42:15] INFO: Użytkownik 001 rozpoczął pracę' },
+                { text: '[15:41:23] INFO: Backup bazy danych ukończony' },
+                { text: '[15:40:45] WARN: Wysoka temperatura serwera (78°C)', type: 'warning' },
+                { text: '[15:39:12] INFO: Raport dzienny wygenerowany' },
+                { text: '[15:38:34] INFO: Użytkownik 002 na przerwie' },
+                { text: '[15:37:58] ERROR: Błąd synchronizacji z systemem HR', type: 'error' }
+            ];
+            
+        case 'errors':
+            return [
+                { text: 'Błędy systemu:', type: 'warning' },
+                { text: '[15:37:58] ERROR: Błąd synchronizacji z systemem HR', type: 'error' },
+                { text: '[14:23:12] ERROR: Timeout połączenia z czytnikiem kart', type: 'error' },
+                { text: '[13:45:33] WARN: Niepoprawny format danych z API', type: 'warning' },
+                { text: '3 błędy w ciągu ostatniej godziny', type: 'warning' }
+            ];
+            
+        case 'ps':
+            return [
+                { text: 'Lista aktywnych procesów:', type: 'info' },
+                { text: 'PID    PROCESS                CPU   MEM' },
+                { text: '1234   attendance-api         12%   45MB' },
+                { text: '5678   database-service       8%    120MB' },
+                { text: '9012   web-server             5%    32MB' },
+                { text: '3456   backup-service         2%    18MB' },
+                { text: '7890   monitoring-agent       1%    12MB' }
+            ];
+            
+        case 'uptime':
+            const uptime = Math.floor(Math.random() * 100) + 10;
+            return [
+                { text: `System działa nieprzerwanie od ${uptime} dni`, type: 'success' },
+                { text: `Ostatni restart: ${new Date(Date.now() - uptime * 24 * 60 * 60 * 1000).toLocaleString('pl-PL')}` },
+                { text: `Średnie obciążenie: 0.23, 0.31, 0.28`, type: 'info' }
+            ];
+            
+        case 'who':
+            return [
+                { text: 'Aktywni administratorzy:', type: 'info' },
+                { text: 'admin    tty1     15:30 (console)' },
+                { text: 'root     pts/0    14:45 (192.168.1.100)' },
+                { text: 'monitor  pts/1    13:20 (system)' }
+            ];
+            
+        case 'df -h':
+        case 'df':
+            return [
+                { text: 'Wykorzystanie przestrzeni dyskowej:', type: 'info' },
+                { text: 'System      Size  Used Avail Use%' },
+                { text: '/dev/sda1   50G   18G   30G  38%  /' },
+                { text: '/dev/sda2   100G  45G   50G  48%  /var' },
+                { text: '/dev/sda3   200G  23G  167G  12%  /home' },
+                { text: 'tmpfs       4G    120M  3.9G  3%   /tmp' }
+            ];
+            
+        case 'tail logs':
+        case 'tail':
+            return [
+                { text: 'Najnowsze wpisy w logu:', type: 'info' },
+                { text: `[${new Date().toLocaleTimeString()}] INFO: Terminal command executed: ${command}` },
+                { text: `[${new Date(Date.now() - 30000).toLocaleTimeString()}] INFO: Worker status updated` },
+                { text: `[${new Date(Date.now() - 60000).toLocaleTimeString()}] INFO: Database backup completed` },
+                { text: `[${new Date(Date.now() - 90000).toLocaleTimeString()}] WARN: High memory usage detected` }
+            ];
+            
+        case 'clear':
+            clearTerminal();
+            return 'Terminal wyczyszczony';
+            
+        case 'version':
+            return [
+                { text: 'System Obecności v2.1.0', type: 'success' },
+                { text: 'Build: 20250106-1542' },
+                { text: 'Node.js: v18.17.0' },
+                { text: 'Database: PostgreSQL 14.5' }
+            ];
+            
+        case 'restart':
+            return [
+                { text: 'UWAGA: Restart systemu!', type: 'warning' },
+                { text: 'Wszystkie sesje zostaną zakończone.', type: 'warning' },
+                { text: 'Wpisz "restart --confirm" aby potwierdzić', type: 'info' }
+            ];
+            
+        case 'restart --confirm':
+            return [
+                { text: 'Rozpoczynanie restartu systemu...', type: 'warning' },
+                { text: 'Zamykanie połączeń...', type: 'info' },
+                { text: 'Zapisywanie stanu...', type: 'info' },
+                { text: 'System zostanie ponownie uruchomiony za 10 sekund', type: 'warning' }
+            ];
+            
+        default:
+            if (cmd.startsWith('cd ')) {
+                return `Zmieniono katalog na: ${cmd.substring(3)}`;
+            } else if (cmd.startsWith('ls')) {
+                return [
+                    { text: 'Zawartość katalogu:', type: 'info' },
+                    { text: 'drwxr-xr-x  logs/' },
+                    { text: 'drwxr-xr-x  config/' },
+                    { text: 'drwxr-xr-x  backups/' },
+                    { text: '-rw-r--r--  system.conf' },
+                    { text: '-rw-r--r--  database.db' }
+                ];
+            } else {
+                return `Nieznane polecenie: ${command}. Wpisz 'help' aby zobaczyć dostępne polecenia.`;
+            }
+    }
+}
+
+function runQuickCommand(command) {
+    const terminalInput = document.getElementById('terminalInput');
+    if (terminalInput) {
+        terminalInput.value = command;
+        executeCommand(command);
+        terminalInput.value = '';
+        terminalInput.focus();
+    }
+}
+
+function addTerminalLine(text, type = 'normal') {
+    const output = document.getElementById('terminalOutput');
+    if (!output) return null;
+    
+    const line = document.createElement('div');
+    line.className = `terminal-line ${type}`;
+    
+    if (type === 'command') {
+        line.innerHTML = `<span class="terminal-prompt">admin@localhost:~$</span><span class="terminal-text">${text}</span>`;
+    } else {
+        line.innerHTML = `<span class="terminal-text">${text}</span>`;
+    }
+    
+    output.appendChild(line);
+    return line;
+}
+
+function scrollTerminalToBottom() {
+    const terminalBody = document.getElementById('terminalBody');
+    if (terminalBody) {
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+    }
+}
+
+function clearTerminal() {
+    const output = document.getElementById('terminalOutput');
+    if (output) {
+        output.innerHTML = `
+            <div class="terminal-line welcome">
+                <span class="terminal-prompt">system@localhost:~$</span>
+                <span class="terminal-text">Terminal wyczyszczony</span>
+            </div>
+        `;
+    }
+    console.log('🧹 Terminal wyczyszczony');
+}
+
+function saveTerminalLog() {
+    const output = document.getElementById('terminalOutput');
+    if (!output) return;
+    
+    const logContent = Array.from(output.children)
+        .map(line => line.textContent)
+        .join('\n');
+    
+    localStorage.setItem('terminalLog', logContent);
+    addTerminalLine('Log zapisany w localStorage', 'success');
+    console.log('💾 Log terminala zapisany');
+}
+
+function exportTerminalLog() {
+    const output = document.getElementById('terminalOutput');
+    if (!output) return;
+    
+    const logContent = Array.from(output.children)
+        .map(line => line.textContent)
+        .join('\n');
+    
+    const blob = new Blob([logContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `terminal-log-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    addTerminalLine('Log wyeksportowany do pliku', 'success');
+    console.log('📥 Log terminala wyeksportowany');
+}
+
+// Export functions for global access
+window.TerminalComponent = {
+    executeCommand,
+    runQuickCommand,
+    clearTerminal,
+    saveTerminalLog,
+    exportTerminalLog
+};
+</script>
